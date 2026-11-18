@@ -1,0 +1,18 @@
+---
+import { renderScene } from '../engine/render';
+import type { ResolvedStep, Scene } from '../engine/types';
+
+interface Props {
+  scene: Scene;
+  steps: ResolvedStep[];
+  label: string;
+}
+
+const { scene, steps, label } = Astro.props;
+// The player sets aria-describedby to the current step's description on mount.
+const svg = renderScene(scene).replace('role="img"', `role="img" aria-label="${label.replace(/"/g, '&quot;')}"`);
+---
+<figure class="iso-canvas">
+  <div class="iso-canvas__stage" set:html={svg} />
+  {steps.map((s) => <p id={`describe-${s.id}`} class="sr-only">{s.text.describe}</p>)}
+</figure>

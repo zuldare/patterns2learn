@@ -1,0 +1,26 @@
+---
+import type { ResolvedStep } from '../engine/types';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  steps: ResolvedStep[];
+}
+
+const { lang, steps } = Astro.props;
+const n = steps.length;
+---
+<nav class="step-nav" aria-label={t(lang, 'steps')} data-js-only>
+  <ol class="step-bar" role="list">
+    {steps.map((s, i) => (
+      <li>
+        <button
+          type="button"
+          data-goto={i}
+          aria-label={`${t(lang, 'step')} ${i + 1} ${t(lang, 'of')} ${n}: ${s.text.title}`}
+          aria-current={i === 0 ? 'step' : undefined}
+        >{i + 1}</button>
+      </li>
+    ))}
+  </ol>
+</nav>

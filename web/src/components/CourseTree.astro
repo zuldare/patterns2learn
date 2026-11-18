@@ -1,0 +1,42 @@
+---
+import type { Category, Lesson } from '../engine/types';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  lessons: Lesson[];
+  current?: string;
+}
+
+const { lang, lessons, current } = Astro.props;
+const order: Category[] = ['spring', 'creational', 'structural', 'behavioral'];
+const groups = order
+  .map((cat) => ({ cat, items: lessons.filter((l) => l.category === cat) }))
+  .filter((g) => g.items.length > 0);
+---
+<aside class="course-tree" id="course-tree" aria-labelledby="course-tree-title">
+  <div class="course-tree__head">
+    <h2 id="course-tree-title" class="course-tree__title">{t(lang, 'course')}</h2>
+    <button class="btn btn--small course-tree__close" type="button" data-action="toggle-tree" data-js-only>{t(lang, 'close')}</button>
+  </div>
+  {groups.map(({ cat, items }) => (
+    <section class="course-tree__group">
+      <h3 class="course-tree__cat">{t(lang, cat)}</h3>
+      <ul role="list">
+        {items.map((l) => (
+          <li>
+            <a
+              class="course-tree__item"
+              href={`/${lang}/patterns/${l.slug}/`}
+              aria-current={l.slug === current ? 'page' : undefined}
+              data-lesson-link={l.slug}
+            >
+              <span class="course-tree__name">{l.texts[lang].title}</span>
+              <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</aside>

@@ -1,0 +1,49 @@
+---
+import type { ResolvedStep } from '../engine/types';
+import { highlightJava } from '../lib/highlight';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  steps: ResolvedStep[];
+}
+
+const { lang, steps } = Astro.props;
+const blocks = await Promise.all(
+  steps.map(async (s) => ({
+    id: s.id,
+    file: s.snippet ? s.snippet.file.split('/').pop() : undefined,
+    path: s.snippet?.file,
+    html: s.snippet ? await highlightJava(s.snippet.code, s.code?.highlight ?? []) : undefined,
+  })),
+);
+---
+<div class="code-panel" data-open="true">
+  <div class="code-panel__head">
+    <h2 class="code-panel__title">{t(lang, 'code')}</h2>
+    <button
+      class="btn btn--small"
+      type="button"
+      data-action="toggle-code"
+      aria-controls="code-snippets"
+      aria-expanded="true"
+      data-label-open={t(lang, 'hideCode')}
+      data-label-closed={t(lang, 'showCode')}
+      data-js-only
+    >{t(lang, 'hideCode')}</button>
+  </div>
+  <div class="code-snippets" id="code-snippets">
+    {blocks.map((b) => (
+      <div class="code-snippet" data-step-id={b.id}>
+        {b.html ? (
+          <>
+            <p class="code-snippet__file" title={b.path}>{b.file}</p>
+            <Fragment set:html={b.html} />
+          </>
+        ) : (
+          <p class="code-snippet__empty">{t(lang, 'noCode')}</p>
+        )}
+      </div>
+    ))}
+  </div>
+</div>

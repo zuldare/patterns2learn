@@ -1,0 +1,49 @@
+---
+import { DONATE_URL } from '../config';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  path: string;
+  /** Lesson pages show a button that opens the course tree as a drawer below 1200px. */
+  hasTree?: boolean;
+}
+
+const { lang, path, hasTree = false } = Astro.props;
+const locales: Locale[] = ['es', 'en'];
+---
+<header class="site-header">
+  <a class="brand" href={`/${lang}/`}>
+    <span class="brand-name">patterns<span class="brand-two">2</span>learn</span>
+    <span class="brand-tagline">{t(lang, 'tagline')}</span>
+  </a>
+  <div class="header-actions">
+    {hasTree && (
+    <button class="btn tree-toggle" type="button" data-action="toggle-tree" aria-controls="course-tree" aria-expanded="false" data-js-only>
+      {t(lang, 'course')}
+    </button>
+    )}
+    <nav aria-label={t(lang, 'language')}>
+    <ul class="lang-switch" role="list">
+      {locales.map((l) => (
+        <li>
+          <a href={`/${l}${path}`} hreflang={l} lang={l} aria-current={l === lang ? 'page' : undefined}>{l.toUpperCase()}</a>
+        </li>
+      ))}
+    </ul>
+    </nav>
+    <button class="btn theme-toggle" type="button" data-action="toggle-theme" data-label-paper={t(lang, 'themePaper')} data-label-blueprint={t(lang, 'themeBlueprint')} data-js-only>
+      <span class="theme-toggle__icon" aria-hidden="true"></span>
+      <span class="theme-toggle__label theme-toggle__label--to-blueprint">{t(lang, 'themeBlueprint')}</span>
+      <span class="theme-toggle__label theme-toggle__label--to-paper">{t(lang, 'themePaper')}</span>
+    </button>
+    <a class="btn btn--accent donate" href={DONATE_URL} target="_blank" rel="noopener">
+      <span class="donate__icon" aria-hidden="true">♥</span>
+      <span class="donate__label">{t(lang, 'donateCta')}</span>
+    </a>
+  </div>
+</header>
+
+<script>
+  import '../scripts/theme-toggle';
+</script>

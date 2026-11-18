@@ -17,6 +17,20 @@
   --warn: #b4651d;
   --danger: #b23a2e;
   --pop-shadow: 2px 3px 0 var(--ink);
+  --on-accent: var(--ink);
+  /* Code (Shiki css-variables theme): every colour derives from the palette, AA on --surface and --code-hl. */
+  --code-hl: var(--accent-soft);
+  --shiki-foreground: var(--ink);
+  --shiki-background: var(--surface);
+  --shiki-token-keyword: var(--accent-ink);
+  --shiki-token-string: color-mix(in srgb, var(--warn) 70%, var(--ink));
+  --shiki-token-string-expression: color-mix(in srgb, var(--warn) 70%, var(--ink));
+  --shiki-token-constant: var(--danger);
+  --shiki-token-function: color-mix(in srgb, var(--accent-ink) 50%, var(--ink));
+  --shiki-token-parameter: var(--ink);
+  --shiki-token-comment: var(--muted);
+  --shiki-token-punctuation: var(--muted);
+  --shiki-token-link: var(--accent-ink);
 }
 
 :root[data-theme="blueprint"] {
@@ -33,4 +47,17 @@
   --warn: #ffc27a;
   --danger: #ff9a8f;
   --pop-shadow: 2px 3px 0 #061a33;
+  --on-accent: var(--bg);
+  --code-hl: var(--accent-soft);
+  --shiki-foreground: var(--ink);
+  --shiki-background: var(--surface);
+  --shiki-token-keyword: var(--accent);
+  --shiki-token-string: var(--warn);
+  --shiki-token-string-expression: var(--warn);
+  --shiki-token-constant: var(--danger);
+  --shiki-token-function: var(--accent-ink);
+  --shiki-token-parameter: var(--ink);
+  --shiki-token-comment: var(--muted);
+  --shiki-token-punctuation: var(--muted);
+  --shiki-token-link: var(--accent-ink);
 }

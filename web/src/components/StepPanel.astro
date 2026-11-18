@@ -1,0 +1,26 @@
+---
+import type { ResolvedStep } from '../engine/types';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  steps: ResolvedStep[];
+}
+
+const { lang, steps } = Astro.props;
+const n = steps.length;
+---
+<div class="step-panel">
+  {steps.map((s, i) => (
+    <section class="step-text" data-step-id={s.id} id={`step-${s.id}`} aria-labelledby={`step-title-${s.id}`}>
+      <p class="step-text__count">{t(lang, 'step')} {i + 1} {t(lang, 'of')} {n}</p>
+      <h2 class="step-text__title" id={`step-title-${s.id}`}>{s.text.title}</h2>
+      <div class="step-text__body prose" set:html={s.text.html} />
+    </section>
+  ))}
+  <div class="step-controls" data-js-only>
+    <button class="btn" type="button" data-action="prev">← {t(lang, 'back')}</button>
+    <button class="btn btn--accent" type="button" data-action="next">{t(lang, 'next')} →</button>
+  </div>
+  <p class="sr-only" aria-live="polite" data-step-status></p>
+</div>

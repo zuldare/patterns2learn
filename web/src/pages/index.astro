@@ -1,1 +1,27 @@
-<h1>patterns2learn</h1>
+---
+// Root: picks /es/ or /en/ from the browser languages (spec §5.3).
+const site = Astro.site ?? new URL('https://patterns2learn.vercel.app');
+const href = (path: string) => new URL(path, site).href;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>patterns2learn — Design patterns, the Spring Boot way</title>
+    <meta name="description" content="An interactive course on design patterns with isometric diagrams and real Spring Boot code." />
+    <link rel="canonical" href={href('/en/')} />
+    <link rel="alternate" hreflang="es" href={href('/es/')} />
+    <link rel="alternate" hreflang="en" href={href('/en/')} />
+    <link rel="alternate" hreflang="x-default" href={href('/')} />
+    <script is:inline>
+      location.replace((navigator.languages || [navigator.language || '']).some(function (l) { return l.startsWith('es'); }) ? '/es/' : '/en/');
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p><a href="/es/" hreflang="es" lang="es">patterns2learn en español</a></p>
+      <p><a href="/en/" hreflang="en">patterns2learn in English</a></p>
+    </noscript>
+  </body>
+</html>

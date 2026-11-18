@@ -1,0 +1,23 @@
+---
+import type { GetStaticPaths } from 'astro';
+import LessonLayout from '../../../layouts/LessonLayout.astro';
+import { listLessons } from '../../../lib/lessons';
+import type { Lesson } from '../../../engine/types';
+import type { Locale } from '../../../i18n';
+
+export const getStaticPaths = (async () => {
+  const lessons = await listLessons();
+  return (['es', 'en'] as const).flatMap((lang) =>
+    lessons.map((lesson) => ({ params: { lang, slug: lesson.slug }, props: { lesson, lessons } })),
+  );
+}) satisfies GetStaticPaths;
+
+interface Props {
+  lesson: Lesson;
+  lessons: Lesson[];
+}
+
+const lang = Astro.params.lang as Locale;
+const { lesson, lessons } = Astro.props;
+---
+<LessonLayout lang={lang} lesson={lesson} lessons={lessons} />

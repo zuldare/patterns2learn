@@ -1,0 +1,59 @@
+---
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/ibm-plex-mono/700.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/engine.css';
+import Analytics from '@vercel/analytics/astro';
+import Header from '../components/Header.astro';
+import Seo from '../components/Seo.astro';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /** Path below the locale prefix; drives hreflang, canonical and the language switch. */
+  path: string;
+  hasTree?: boolean;
+}
+
+const { lang, title, description, path, hasTree = false } = Astro.props;
+---
+<!doctype html>
+<html lang={lang} data-theme="paper">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    {/* Anti-flicker: applies the stored theme (or prefers-color-scheme) before first paint.
+        `?theme=paper|blueprint` overrides for one page view without being stored. */}
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        var t = null;
+        try {
+          var q = new URLSearchParams(location.search).get('theme');
+          t = q === 'paper' || q === 'blueprint' ? q : JSON.parse(localStorage.getItem('p2l:theme'));
+        } catch (e) {}
+        if (t !== 'paper' && t !== 'blueprint') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'paper';
+        }
+        d.dataset.theme = t;
+      })();
+    </script>
+    <Seo lang={lang} title={title} description={description} path={path} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t(lang, 'skipToContent')}</a>
+    <Header lang={lang} path={path} hasTree={hasTree} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Analytics />
+  </body>
+</html>

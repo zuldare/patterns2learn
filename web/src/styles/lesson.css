@@ -1,0 +1,231 @@
+/* Lesson layout (spec §5.1): 1 column < 960px, 2 columns 960–1199px (tree in a
+   drawer), 3 columns ≥ 1200px. Mobile order = DOM order: diagram, step bar,
+   text, code. */
+
+.lesson-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.lesson {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+  border-radius: var(--radius);
+}
+.lesson:focus-visible { outline-offset: 6px; }
+
+.lesson__title { font-size: 1.5rem; font-weight: 700; }
+.lesson__summary { margin: 0.25rem 0 0; color: var(--muted); }
+
+/* ---------- Canvas ---------- */
+
+.iso-canvas {
+  margin: 0;
+  padding: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+:root[data-theme="blueprint"] .iso-canvas {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 160px 160px, 160px 160px, 32px 32px, 32px 32px;
+  background-position: -1px -1px;
+}
+.iso-canvas .iso-scene { max-height: min(62vh, 560px); }
+
+/* ---------- Step bar ---------- */
+
+.step-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step-bar button {
+  min-width: 36px;
+  height: 36px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.step-bar button:hover { border-color: var(--ink); }
+.step-bar button.is-done { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-strong); }
+.step-bar button[aria-current="step"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--ink);
+  box-shadow: var(--pop-shadow);
+}
+
+/* ---------- Step text ---------- */
+
+.step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--pop-shadow);
+}
+html:not(.js) .step-text + .step-text { border-top: 1.5px dashed var(--line); padding-top: 16px; }
+.step-text__count {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.step-text__title { font-size: 1.15rem; margin-bottom: 0.6rem; }
+.step-controls { display: flex; justify-content: space-between; gap: 12px; }
+
+/* ---------- Code ---------- */
+
+.code-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.code-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+}
+.code-panel[data-open="true"] .code-panel__head { border-bottom: 1.5px solid var(--line); }
+.code-panel__title { font-size: 0.9rem; font-weight: 700; }
+.code-panel[data-open="false"] .code-snippets { display: none; }
+
+.code-snippet__file {
+  margin: 0;
+  padding: 8px 14px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.code-snippet__empty { margin: 0; padding: 12px 14px; color: var(--muted); font-size: 0.85rem; }
+html:not(.js) .code-snippet:has(.code-snippet__empty) { display: none; }
+html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--line); }
+
+.code-snippet pre.shiki {
+  margin: 0;
+  padding: 10px 0 14px;
+  overflow-x: auto;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 4;
+}
+.code-snippet pre.shiki code { display: block; min-width: max-content; }
+.code-snippet .line { display: inline-block; min-width: 100%; padding: 0 14px; }
+.code-snippet .line.is-hl {
+  background: var(--code-hl);
+  box-shadow: inset 3px 0 0 var(--accent-strong);
+}
+
+/* ---------- Course tree ---------- */
+
+.course-tree__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.course-tree__title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.course-tree__group + .course-tree__group { margin-top: 16px; }
+.course-tree__cat { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
+.course-tree ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.course-tree__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.course-tree__item:hover { border-color: var(--line); }
+.course-tree__item[aria-current="page"] {
+  background: var(--surface);
+  border-color: var(--ink);
+  box-shadow: var(--pop-shadow);
+  font-weight: 500;
+}
+.course-tree__meta { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+/* < 1200px: without JS the tree sits after the lesson; with JS it is a drawer. */
+@media (max-width: 1199.98px) {
+  .course-tree { order: 2; }
+  html.js .course-tree {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(320px, 85vw);
+    padding: 16px;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1.5px solid var(--ink);
+    box-shadow: 4px 0 0 var(--ink);
+  }
+  html.js .course-tree:not([data-open="true"]) { display: none; }
+}
+
+/* ---------- ≥ 960px: canvas column + text column ---------- */
+
+@media (min-width: 960px) {
+  .lesson-shell { padding: 24px; }
+  .lesson {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    grid-template-areas:
+      "head text"
+      "canvas text"
+      "bar text"
+      "code text";
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 24px;
+    align-items: start;
+  }
+  .lesson__head { grid-area: head; }
+  .iso-canvas { grid-area: canvas; }
+  .step-nav { grid-area: bar; }
+  .code-panel { grid-area: code; }
+  .step-panel { grid-area: text; position: sticky; top: 16px; }
+}
+
+/* ---------- ≥ 1200px: tree column ---------- */
+
+@media (min-width: 1200px) {
+  .lesson-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+  }
+  .course-tree { position: sticky; top: 24px; }
+  .site-header .tree-toggle,
+  .course-tree .course-tree__close { display: none; }
+}

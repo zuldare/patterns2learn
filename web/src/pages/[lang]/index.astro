@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CourseTree from '../../components/CourseTree.astro';
+import { listLessons } from '../../lib/lessons';
+import { t, type Locale } from '../../i18n';
+
+// Minimal locale home; the full landing page arrives in Task 10.
+export function getStaticPaths() {
+  return [{ params: { lang: 'es' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Locale;
+const lessons = await listLessons();
+---
+<BaseLayout lang={lang} title={`patterns2learn — ${t(lang, 'tagline')}`} description={t(lang, 'intro')} path="/">
+  <div class="home">
+    <h1 class="home__title">patterns2learn</h1>
+    <p class="home__intro">{t(lang, 'intro')}</p>
+    <CourseTree lang={lang} lessons={lessons} />
+  </div>
+</BaseLayout>
