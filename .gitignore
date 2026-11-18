@@ -1,0 +1,21 @@
+# Java / Maven
+target/
+*.class
+*.log
+hs_err_pid*
+
+# Node / Astro
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Scratch workspace
+.superpowers/
