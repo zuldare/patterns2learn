@@ -1,0 +1,31 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+:root[data-theme="blueprint"] body {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+a { color: var(--accent-ink); }
+
+:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+
+.btn {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--pop-shadow);
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}

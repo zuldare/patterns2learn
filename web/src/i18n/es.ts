@@ -1,0 +1,26 @@
+import type { en } from './en';
+
+export const es: { [K in keyof typeof en]: string } = {
+  next: 'Siguiente',
+  back: 'Atrás',
+  step: 'Paso',
+  of: 'de',
+  code: 'Código',
+  showCode: 'Ver código',
+  hideCode: 'Ocultar código',
+  quiz: 'Cuestionario',
+  check: 'Comprobar',
+  correct: '¡Correcto!',
+  incorrect: 'No del todo, inténtalo de nuevo.',
+  cheatsheet: 'Chuleta',
+  print: 'Imprimir',
+  donate: 'Apoya el proyecto',
+  donateCta: 'Invítame a un café',
+  startHere: 'Empieza aquí',
+  themePaper: 'Tema papel',
+  themeBlueprint: 'Tema blueprint',
+  language: 'Idioma',
+  course: 'Curso',
+  minutes: 'min',
+  runIt: 'Ejecútalo',
+};

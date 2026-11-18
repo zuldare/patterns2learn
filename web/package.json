@@ -1,0 +1,24 @@
+{
+  "name": "patterns2learn-web",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.5",
+    "astro": "7.4.12"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "happy-dom": "21.0.4",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}
