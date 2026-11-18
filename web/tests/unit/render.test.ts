@@ -1,0 +1,52 @@
+import { renderScene } from '../../src/engine/render';
+import type { Entity, Scene } from '../../src/engine/types';
+import { scene } from './fixtures/scene';
+
+const block = (id: string, x: number, y: number): Entity => ({
+  id, kind: 'block', label: id.toUpperCase(), pos: { x, y }, size: { w: 1, d: 1, h: 1 }, tone: 'neutral',
+});
+const miniScene: Scene = {
+  entities: [block('mid', 2, 2), block('front', 4, 4), block('back', 0, 0)],
+  links: [{ id: 'l1', from: 'back', to: 'front', style: 'call' }],
+  steps: [{ id: 's0', visible: ['back', 'mid', 'front'], highlight: [], packets: [] }],
+};
+
+test('renders entities in depth order with data-ids and no literal colors', () => {
+  const svg = renderScene(miniScene);
+  const ids = [...svg.matchAll(/class="iso-entity[^"]*" data-id="([^"]+)"/g)].map(m => m[1]);
+  expect(ids).toEqual(['back', 'mid', 'front']);
+  expect(svg).not.toMatch(/#[0-9a-f]{3,6}\b/i);
+  expect(svg).toContain('id="path-l1"');
+});
+test('ties in depth keep declaration order', () => {
+  const svg = renderScene({ ...miniScene, entities: [block('b', 1, 0), block('a', 0, 1)] , links: [] });
+  const ids = [...svg.matchAll(/class="iso-entity[^"]*" data-id="([^"]+)"/g)].map(m => m[1]);
+  expect(ids).toEqual(['b', 'a']);
+});
+test('svg structure: viewBox, kind/tone classes, link groups, empty packet layer, labels', () => {
+  const svg = renderScene(scene);
+  expect(svg).toMatch(/^<svg[^>]* viewBox="-?[\d.]+ -?[\d.]+ [\d.]+ [\d.]+"/);
+  expect(svg).toContain('class="iso-entity kind-container tone-neutral" data-id="ctx"');
+  expect(svg).toContain('class="iso-entity kind-block tone-accent" data-id="service"');
+  expect(svg).toContain('class="iso-link style-injects" data-id="l-inject"');
+  expect(svg).toMatch(/<g class="iso-packets"><\/g>/);
+  expect(svg).toContain('>Spring context<');
+  expect(svg).not.toMatch(/rgb\(|hsl\(/i);
+});
+test('viewBox includes a 32px margin around all geometry', () => {
+  const svg = renderScene({ ...miniScene, entities: [block('only', 0, 0)], links: [] });
+  const [minX, , width] = svg.match(/viewBox="([^"]+)"/)![1].split(' ').map(Number);
+  // a 1x1 block spans sx in [-32, 32]; label pill may be wider, never narrower
+  expect(minX).toBeLessThanOrEqual(-64);
+  expect(width).toBeGreaterThanOrEqual(128);
+});
+test('link groups store projected endpoint coordinates', () => {
+  const root = document.createElement('div');
+  root.innerHTML = renderScene(miniScene);
+  const g = root.querySelector<SVGGElement>('.iso-link[data-id="l1"]')!;
+  // top-face centre of back (0,0,h=1) block → x=0.5,y=0.5,z=1 → sx 0, sy 16-32 = -16
+  expect(Number(g.dataset.x1)).toBe(0);
+  expect(Number(g.dataset.y1)).toBe(-16);
+  expect(Number(g.dataset.x2)).toBe(0);
+  expect(Number(g.dataset.y2)).toBe(4.5 * 32 - 32);
+});

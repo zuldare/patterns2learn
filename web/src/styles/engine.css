@@ -1,0 +1,84 @@
+/* Isometric engine (spec §8). Every colour is a token from tokens.css. */
+
+.iso-scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font);
+}
+
+.iso-scene text {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+/* Tones → tokens: consumed by the inline face fills via var(--tone). */
+.tone-neutral { --tone: var(--muted); }
+.tone-accent  { --tone: var(--accent); }
+.tone-warn    { --tone: var(--warn); }
+.tone-danger  { --tone: var(--danger); }
+
+.iso-entity,
+.iso-link {
+  transition: opacity 250ms ease-in-out;
+}
+
+.iso-face {
+  stroke: var(--ink);
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+}
+
+.kind-interface .iso-face {
+  stroke-dasharray: 5 3;
+  fill-opacity: 0.55;
+}
+
+.iso-label-pill,
+.iso-packet-pill {
+  stroke: var(--ink);
+  stroke-width: 1.5px;
+}
+
+.kind-container .iso-label-pill {
+  stroke: var(--muted);
+  stroke-dasharray: 3 2;
+}
+
+.iso-link-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+.style-implements .iso-link-line { stroke-dasharray: 7 4; stroke-linecap: butt; }
+.style-injects    .iso-link-line { stroke-dasharray: 0.1 5; stroke-width: 2.5px; }
+
+.iso-packet-pill { stroke: var(--accent-strong); }
+.iso-packet { filter: drop-shadow(var(--pop-shadow)); }
+
+.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.is-highlighted .iso-face,
+.is-highlighted .iso-label-pill,
+.iso-link.is-highlighted .iso-link-line {
+  stroke: var(--accent-strong);
+  stroke-width: 2.5px;
+}
+.iso-entity.is-highlighted {
+  filter: drop-shadow(var(--pop-shadow));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iso-entity,
+  .iso-link {
+    transition: none;
+  }
+}
