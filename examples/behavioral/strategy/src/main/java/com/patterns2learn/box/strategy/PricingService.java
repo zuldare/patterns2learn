@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PricingService {
+    // @step:service-map
     private final Map<String, PricingStrategy> strategies;
 
     public PricingService(Map<String, PricingStrategy> strategies) {
@@ -19,6 +20,7 @@ public class PricingService {
         }
         return strategy.priceFor(request);
     }
+    // @end
 
     public Set<String> plans() {
         return strategies.keySet();
