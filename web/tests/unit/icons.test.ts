@@ -43,3 +43,7 @@ test('catalogue includes the proxy shield and the database', () => {
 test('catalogue includes the file icon', () => {
   expect(ICON_NAMES).toContain('file');
 });
+test('catalogue includes the bell and the medal', () => {
+  expect(ICON_NAMES).toContain('bell');
+  expect(ICON_NAMES).toContain('medal');
+});
