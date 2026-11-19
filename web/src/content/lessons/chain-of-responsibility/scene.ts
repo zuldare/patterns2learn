@@ -96,7 +96,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: ['context', 'access'],
       packets: [],
-      code: { file: `${MAIN}/AccessChain.java`, region: 'chain', highlight: [2, 3, 5, 6] },
+      code: { file: `${MAIN}/AccessChain.java`, region: 'chain', highlight: [6, 7, 9, 10] },
     },
     {
       id: 'request',

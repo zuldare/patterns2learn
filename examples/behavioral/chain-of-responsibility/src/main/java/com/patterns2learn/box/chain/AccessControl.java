@@ -12,6 +12,6 @@ public class AccessControl {
     }
 
     public AccessDecision decide(CheckIn checkIn) {
-        return new AccessChain(rules).proceed(checkIn);
+        return new AccessChain(rules, 0).proceed(checkIn);
     }
 }

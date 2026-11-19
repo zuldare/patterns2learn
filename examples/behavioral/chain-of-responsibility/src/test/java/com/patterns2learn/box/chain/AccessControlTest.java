@@ -53,4 +53,20 @@ class AccessControlTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> new CheckIn(" ", 1))
             .isInstanceOf(IllegalArgumentException.class).hasMessage("athlete is required");
     }
+
+    @Test void theAuditLogKeepsOnlyTheLatestEntries() {
+        for (int i = 0; i < AuditRule.KEEP + 20; i++) access.decide(new CheckIn("Mia", 1));
+        assertThat(audit.log()).hasSize(AuditRule.KEEP);
+    }
+
+    @Test void aRuleThatProceedsTwiceIsAnError() {
+        AccessRule greedy = (checkIn, chain) -> {
+            chain.proceed(checkIn);
+            return chain.proceed(checkIn);
+        };
+        var control = new AccessControl(java.util.List.of(greedy));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> control.decide(new CheckIn("Ana", 1)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("proceed() called more than once by the same rule");
+    }
 }

@@ -89,10 +89,10 @@ En la versión clásica, cada `AccessHandler` guarda una referencia a su `next` 
 @describe: Tres handlers en fila, MembershipHandler, WaiverHandler y CapacityHandler, resaltados. Leo pasa del controlador al primero y de este al segundo, que devuelve denied.
 
 ## @step:spring-chain — Las reglas son beans
-En Spring, cada regla es un bean que implementa `AccessRule`, con un `@Order` que fija su sitio. `AccessControl` recibe la lista ordenada y, para cada check-in, crea una `AccessChain` que la recorre:
+En Spring, cada regla es un bean que implementa `AccessRule`, con un `@Order` que fija su sitio. `AccessControl` recibe la lista ordenada y, para cada check-in, arranca una `AccessChain` que la recorre:
 
 - Si ya no quedan reglas, el atleta pasa.
-- Si quedan, llama a la siguiente pasándole **la propia cadena**, y es la regla la que decide si llama a `proceed()` para seguir.
+- Si quedan, llama a la siguiente pasándole **el resto de la cadena**, y es la regla la que decide si llama a `proceed()` para seguir. Puede hacerlo una vez como mucho; una segunda llamada es un error.
 
 Es la misma forma que el `FilterChain` de los servlets.
 

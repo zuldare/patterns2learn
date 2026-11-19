@@ -89,10 +89,10 @@ In the classic version, each `AccessHandler` keeps a reference to its `next` and
 @describe: Three handlers in a row, MembershipHandler, WaiverHandler and CapacityHandler, highlighted. Leo goes from the controller to the first and on to the second, which sends back denied.
 
 ## @step:spring-chain — Rules are beans
-In Spring, each rule is a bean implementing `AccessRule`, with an `@Order` that sets its place. `AccessControl` gets the sorted list and, for every check-in, creates an `AccessChain` that walks it:
+In Spring, each rule is a bean implementing `AccessRule`, with an `@Order` that sets its place. `AccessControl` gets the sorted list and, for every check-in, starts an `AccessChain` that walks it:
 
 - If there are no rules left, the athlete gets in.
-- If there are, it calls the next one passing **the chain itself**, and it's the rule that decides whether to call `proceed()` to carry on.
+- If there are, it calls the next one passing **the rest of the chain**, and it's the rule that decides whether to call `proceed()` to carry on. It may do so once at most; a second call is an error.
 
 It's the same shape as the servlet `FilterChain`.
 

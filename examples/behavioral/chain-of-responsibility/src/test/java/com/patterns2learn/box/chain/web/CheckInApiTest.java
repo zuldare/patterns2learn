@@ -35,4 +35,18 @@ class CheckInApiTest {
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.error").value("athlete is required"));
     }
+
+    @Test void missingOrNonNumericSessionIs400WithTheUsualShape() throws Exception {
+        mvc.perform(post("/api/check-ins").param("athlete", "Ana"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("missing parameter: session"));
+        mvc.perform(post("/api/check-ins").param("athlete", "Ana").param("session", "evening"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("session must be a number"));
+    }
+
+    @Test void grantedHasNoReasonField() throws Exception {
+        mvc.perform(post("/api/check-ins").param("athlete", "Ana").param("session", "1"))
+           .andExpect(jsonPath("$.reason").doesNotExist());
+    }
 }
