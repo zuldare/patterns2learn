@@ -16,36 +16,47 @@ const { lang, lessons, current, static: isStatic = false } = Astro.props;
 const groups = catalogGroups(lessons);
 ---
 <aside class:list={['course-tree', { 'course-tree--static': isStatic }]} id="course-tree" aria-labelledby="course-tree-title">
-  <div class="course-tree__head">
-    <h2 id="course-tree-title" class="course-tree__title">{t(lang, 'course')}</h2>
-    {!isStatic && <button class="btn btn--small course-tree__close" type="button" data-action="toggle-tree" data-js-only>{t(lang, 'close')}</button>}
-  </div>
-  {groups.map(({ cat, items }) => (
-    <section class="course-tree__group">
-      <h3 class="course-tree__cat">{t(lang, cat)}</h3>
-      <ul role="list">
-        {items.map(({ slug, name, lesson: l }) => (
-          <li>
-            {l ? (
-              <a
-                class="course-tree__item"
-                href={`/${lang}/patterns/${slug}/`}
-                aria-current={slug === current ? 'page' : undefined}
-                data-lesson-link={slug}
-              >
-                <span class="course-tree__name">{l.texts[lang].title}</span>
-                <DoneMark lang={lang} />
-                <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
-              </a>
-            ) : (
-              <span class="course-tree__item course-tree__item--soon">
-                <span class="course-tree__name">{name}</span>
-                <span class="course-tree__meta">{t(lang, 'comingSoon')}</span>
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
-  ))}
+  {!isStatic && <button class="btn btn--small course-tree__close" type="button" data-action="toggle-tree" data-js-only>{t(lang, 'close')}</button>}
+  {/* Both levels fold with plain <details>: works without JS; tree-folds.ts remembers what was folded. */}
+  <details class="course-tree__root" open data-tree-key="root">
+    <summary class="course-tree__head">
+      <h2 id="course-tree-title" class="course-tree__title">{t(lang, 'course')}</h2>
+    </summary>
+    {groups.map(({ cat, items }) => (
+      <details
+        class="course-tree__group"
+        open
+        data-tree-key={cat}
+        data-current={items.some((i) => i.slug === current) ? 'true' : undefined}
+      >
+        <summary class="course-tree__cat">
+          <span>{t(lang, cat)}</span>
+          <span class="course-tree__count">{items.filter((i) => i.lesson).length}/{items.length}</span>
+        </summary>
+        <ul role="list">
+          {items.map(({ slug, name, lesson: l }) => (
+            <li>
+              {l ? (
+                <a
+                  class="course-tree__item"
+                  href={`/${lang}/patterns/${slug}/`}
+                  aria-current={slug === current ? 'page' : undefined}
+                  data-lesson-link={slug}
+                >
+                  <span class="course-tree__name">{l.texts[lang].title}</span>
+                  <DoneMark lang={lang} />
+                  <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
+                </a>
+              ) : (
+                <span class="course-tree__item course-tree__item--soon">
+                  <span class="course-tree__name">{name}</span>
+                  <span class="course-tree__meta">{t(lang, 'comingSoon')}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))}
+  </details>
 </aside>

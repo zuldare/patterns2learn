@@ -200,3 +200,28 @@ test('the sticky step panel never covers the quiz, which sits in its own card', 
   expect(card.border).toBeGreaterThan(0);
   expect(card.bg).not.toBe('rgba(0, 0, 0, 0)');
 });
+
+test('the course tree is a card whose course and categories fold, remembering what was folded', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/es/patterns/strategy/');
+  const tree = page.locator('#course-tree');
+  const card = await tree.evaluate((el) => parseFloat(getComputedStyle(el).borderTopWidth));
+  expect(card).toBeGreaterThan(0);
+
+  const creational = tree.locator('details[data-tree-key="creational"]');
+  const builder = tree.locator('a[data-lesson-link="builder"]');
+  await expect(builder).toBeVisible();
+  await creational.locator('summary').click();                      // fold one category
+  await expect(builder).toBeHidden();
+  await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeVisible();
+
+  await tree.locator('details[data-tree-key="behavioral"] > summary').click();   // fold the current lesson's category
+  await page.reload();
+  await expect(builder).toBeHidden();                                           // remembered
+  await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeVisible();   // but the current one opens again
+
+  await tree.locator('details[data-tree-key="root"] > summary').click();        // fold the whole course
+  await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeHidden();
+  await tree.locator('details[data-tree-key="root"] > summary').click();
+  await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeVisible();
+});

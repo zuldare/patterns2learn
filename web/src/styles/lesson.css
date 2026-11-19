@@ -150,15 +150,42 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 /* ---------- Course tree ---------- */
 
+/* The tree is its own card; "Curso" and each category fold with <details>. */
+.course-tree {
+  position: relative;
+  padding: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--pop-shadow);
+}
+.course-tree summary { list-style: none; cursor: pointer; }
+.course-tree summary::-webkit-details-marker { display: none; }
+.course-tree summary::before {
+  content: "";
+  flex: none;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+.course-tree details[open] > summary::before { transform: rotate(45deg); }
+.course-tree summary:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; border-radius: 6px; }
 .course-tree__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 8px;
+  color: var(--muted);
 }
+.course-tree__root[open] > .course-tree__head { margin-bottom: 12px; }
+.course-tree__close { position: absolute; top: 10px; right: 10px; }
 .course-tree__title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.course-tree__group + .course-tree__group { margin-top: 16px; }
-.course-tree__cat { font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
+.course-tree__group + .course-tree__group { margin-top: 12px; }
+.course-tree__cat { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700; padding: 2px 0; }
+.course-tree__group[open] > .course-tree__cat { margin-bottom: 6px; }
+.course-tree__count { margin-left: auto; color: var(--muted); font-weight: 400; }
 .course-tree ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .course-tree__item {
   display: flex;
@@ -172,7 +199,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 }
 .course-tree__item:hover { border-color: var(--line); }
 .course-tree__item[aria-current="page"] {
-  background: var(--surface);
+  background: var(--bg);
   border-color: var(--ink);
   box-shadow: var(--pop-shadow);
   font-weight: 500;

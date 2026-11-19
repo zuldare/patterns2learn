@@ -58,5 +58,5 @@ a.start-here__link:hover { transform: translate(-1px, -1px); box-shadow: 3px 4px
 .start-here__item.is-soon .start-here__link { color: var(--muted); border-style: dashed; }
 .start-here__item.is-soon .start-here__link::before { background: transparent; border-color: var(--muted); }
 
-.course-tree--static { padding: 0 4px; }
+
 @media (prefers-reduced-motion: reduce) { a.start-here__link:hover { transform: none; } }
