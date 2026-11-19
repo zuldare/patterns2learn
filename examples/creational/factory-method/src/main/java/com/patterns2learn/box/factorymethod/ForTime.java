@@ -9,7 +9,7 @@ public record ForTime(int capMinutes, List<String> movements) implements Workout
     }
 
     public String scoreUnit() {
-        return "seconds";
+        return "seconds (reps if you hit the cap)";
     }
 
     public boolean lowerIsBetter() {

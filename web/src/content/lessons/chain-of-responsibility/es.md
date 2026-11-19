@@ -12,11 +12,11 @@ recap:
     - Cliente (AccessControl, llamado por el controlador), que entrega la petición al primer eslabón
   pros:
     - Cada regla vive en su clase, pequeña y fácil de probar
-    - Añadir o quitar una regla no toca a las demás
+    - Añadir o quitar una regla no toca a las demás (siempre que respete el orden)
     - Un eslabón puede actuar antes y después del resto, como AuditRule
   cons:
     - El orden importa y hay que fijarlo a propósito
-    - Si nadie responde, la petición puede llegar al final sin que nadie lo note
+    - Hay que decidir qué pasa si nadie dice que no; aquí la puerta se abre por defecto, mientras que Spring Security deniega por defecto
     - Seguir una petición por la cadena cuesta más que leer un método con ifs
   related:
     - Decorator
@@ -86,6 +86,8 @@ En la versión clásica, cada `AccessHandler` guarda una referencia a su `next` 
 
 > [!key-idea]
 > Quien envía el check-in no sabe qué eslabón contestará. Solo lo entrega al primero.
+
+En el GoF clásico, un solo manejador se hace cargo de la petición y la cadena termina ahí. En la versión de Spring que viene ahora (la de los filtros), cada eslabón puede además actuar y seguir, como verás con `CapacityRule` y `AuditRule`.
 @describe: Tres handlers en fila, MembershipHandler, WaiverHandler y CapacityHandler, resaltados. Leo pasa del controlador al primero y de este al segundo, que devuelve denied.
 
 ## @step:spring-chain — Las reglas son beans
@@ -105,10 +107,10 @@ Ana tiene la cuota al día, el waiver firmado y queda plaza:
 
 1. `POST /api/check-ins?athlete=Ana&session=1` llega a `AccessControl`.
 2. Cada regla comprueba lo suyo y llama a `chain.proceed()`.
-3. `CapacityRule` le reserva una plaza y, como no quedan reglas, la cadena responde **granted**: 200.
+3. `CapacityRule` le reserva una plaza y, como no quedan reglas, la cadena responde **granted**: 200. Si ninguna regla dice que no, la puerta se abre.
 
 Fíjate en `MembershipRule`: o devuelve un "no" y corta, o pasa el turno. No sabe qué viene después.
-@describe: Ana · 18:00 viaja del atleta al controlador, decide() a AccessControl y proceed() recorre toda la fila de reglas, resaltadas, hasta CapacityRule.
+@describe: Ana · 18:00 viaja del atleta al controlador, decide() a AccessControl y proceed() recorre toda la fila de reglas, resaltadas, hasta CapacityRule; al final, granted · 200 vuelve de AccessControl al controlador.
 
 ## @step:denied — Leo se queda fuera
 Leo tiene la cuota al día, pero **no** ha firmado el waiver:
@@ -124,7 +126,7 @@ Leo tiene la cuota al día, pero **no** ha firmado el waiver:
 @describe: Leo pasa MembershipRule; WaiverRule, resaltada, devuelve waiver not signed hacia atrás y la cadena se para antes de CapacityRule.
 
 ## @step:order — El orden es parte de la regla
-`CapacityRule` es la única regla con un **efecto**: ocupa una plaza. Por eso va la última (`@Order(30)`). Si fuera antes que el waiver, Leo ocuparía una plaza y luego lo rechazarían.
+`CapacityRule` es la única regla con un **efecto**: ocupa una plaza, y tal como está escrita la ocupa **antes** de llamar a `proceed()`. Por eso va la última (`@Order(30)`). Si fuera antes que el waiver, Leo ocuparía una plaza y luego lo rechazarían. Otra opción sería llamar primero a `proceed()` y reservar solo si la respuesta es *granted*; entonces su posición daría igual.
 
 > [!warning]
 > Primero las comprobaciones que no cambian nada; al final, la que sí. Y deja el orden escrito en un solo sitio, con `@Order`, no en el orden en que se declaren las clases.
@@ -138,7 +140,7 @@ Leo tiene la cuota al día, pero **no** ha firmado el waiver:
 @describe: AccessControl envía proceed() a AuditRule, resaltada, y la respuesta granted vuelve por el mismo enlace al final.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-Cada petición HTTP a una app Spring pasa por una **cadena de filtros de servlet** antes de llegar al `DispatcherServlet`. Spring Security es justo eso: su `SecurityFilterChain` encadena filtros de autenticación, CSRF, sesión y autorización, y cada uno decide si corta la petición o llama a `chain.doFilter()`.
+En una app Spring MVC (servlet), cada petición HTTP pasa por una **cadena de filtros de servlet** antes de llegar al `DispatcherServlet`. Spring Security entra en esa cadena como un solo filtro (`DelegatingFilterProxy`, que delega en `FilterChainProxy`), y este ejecuta a su vez los filtros de su `SecurityFilterChain`: autenticación, CSRF, sesión, autorización… Cada uno decide si corta la petición o llama a `chain.doFilter()`.
 
 El test del ejemplo monta un `WaiverHeaderFilter`. Sin la cabecera `X-Waiver-Signed` responde 403 y la app no se entera; con ella, llama a `chain.doFilter()` y la petición sigue.
 

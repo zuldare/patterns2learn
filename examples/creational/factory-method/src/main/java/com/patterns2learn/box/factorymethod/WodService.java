@@ -1,29 +1,36 @@
 package com.patterns2learn.box.factorymethod;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WodService {
-    private final Map<String, WodPlanner> planners;
+    private final Map<String, WodPlanner> planners = new HashMap<>();
 
     // @step:pick
     public WodService(List<WodPlanner> planners) {
         // every WodPlanner bean, indexed by the format it handles
-        this.planners = planners.stream().collect(Collectors.toMap(WodPlanner::format, Function.identity()));
+        for (WodPlanner p : planners) {
+            if (this.planners.putIfAbsent(p.format().toLowerCase(Locale.ROOT), p) != null) {
+                throw new IllegalStateException("two planners for format: " + p.format());
+            }
+        }
     }
 
     public WodPlan plan(WodRequest request) {
-        String format = request.format().strip().toLowerCase(Locale.ROOT);
-        WodPlanner planner = planners.get(format);
+        String asked = request.format().strip();
+        WodPlanner planner = planners.get(asked.toLowerCase(Locale.ROOT));
         if (planner == null) {
-            throw new IllegalArgumentException("unknown format: " + format);
+            throw new IllegalArgumentException("unknown format: " + abbreviate(asked));
         }
         return planner.plan(request);   // which Workout class gets built is the planner's call
     }
     // @end
+
+    private static String abbreviate(String s) {
+        return s.length() <= 40 ? s : s.substring(0, 40) + "…";
+    }
 }

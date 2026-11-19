@@ -35,6 +35,20 @@ class WodApiTest {
         mvc.perform(post("/api/wods/plan").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Cindy\",\"format\":\"amrap\",\"minutes\":0,\"movements\":[\"burpees\"]}"))
            .andExpect(status().isBadRequest())
-           .andExpect(jsonPath("$.error").value("minutes must be between 1 and 60"));
+           .andExpect(jsonPath("$.error").value("minutes must be between 1 and 90"));
+    }
+
+    @Test void missingFieldsOrNonNumericMinutesAre400() throws Exception {
+        mvc.perform(post("/api/wods/plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"format\":\"amrap\",\"minutes\":20,\"movements\":[\"burpees\"]}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("name is required"));
+        mvc.perform(post("/api/wods/plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Cindy\",\"format\":\"amrap\",\"minutes\":20}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("at least one movement is required"));
+        mvc.perform(post("/api/wods/plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Cindy\",\"format\":\"amrap\",\"minutes\":\"twenty\",\"movements\":[\"burpees\"]}"))
+           .andExpect(status().isBadRequest());
     }
 }

@@ -9,9 +9,14 @@ import org.springframework.stereotype.Component;
 /** In-memory box data: who's a member, who signed the waiver, how many spots each class has left. */
 @Component
 public class BoxRegistry {
+    private final Set<String> knownAthletes = Set.of("Ana", "Leo", "Bea", "Cris", "Mia");
     private final Set<String> activeMembers = Set.of("Ana", "Leo", "Bea", "Cris");
     private final Set<String> signedWaivers = Set.of("Ana", "Mia", "Bea", "Cris");
     private final Map<Long, AtomicInteger> spots = new ConcurrentHashMap<>(Map.of(1L, new AtomicInteger(2)));
+
+    public boolean isKnown(String athlete) {
+        return knownAthletes.contains(athlete);
+    }
 
     public boolean isActiveMember(String athlete) {
         return activeMembers.contains(athlete);

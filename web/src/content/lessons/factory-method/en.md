@@ -61,13 +61,13 @@ The coach programs the week's WODs in the app. There are three formats, each des
 
 - **AMRAP**: as many rounds as possible in a set time; scored in rounds and reps.
 - **EMOM**: every minute you start again; scored in completed minutes.
-- **For Time**: finish the work as fast as you can, within a time cap; scored in seconds, and lower is better.
+- **For Time**: finish the work as fast as you can, within a time cap; scored in seconds, and lower is better (if you hit the cap, your completed reps count instead).
 
 `SwitchingWodService` handles it with a `switch` on the format to build the description.
 
 > [!problem]
 > The service knows every format and what each one looks like inside.
-@describe: The coach sends AMRAP 20' to WodController, which calls SwitchingWodService, highlighted in red; it's wired to Amrap, Emom and ForTime.
+@describe: The coach sends AMRAP 20' to WodController, which calls SwitchingWodService, highlighted in red: a single service that builds each format's text by hand.
 
 ## @step:smell — The same switch, twice
 Look further down: there's **another** `switch` on the format for the scoring unit, and a stray `format.equals("for-time")` check to know whether lower is better.
@@ -119,9 +119,11 @@ The coach programs Cindy: `POST /api/wods/plan` with format `amrap`, 20 minutes 
 2. `AmrapPlanner.plan()` calls its `createWorkout()`, which builds an `Amrap`.
 3. The whiteboard gets "AMRAP 20': 5 pull-ups, 10 push-ups, 15 air squats", scored in rounds and reps.
 
+The example test makes that same request by calling `WodService` directly.
+
 > [!key-idea]
 > Neither the service nor the controller ever wrote `new Amrap(...)`. Only its creator knows.
-@describe: Cindy · AMRAP 20′ travels from the coach to the controller, plan() to WodService and on to AmrapPlanner, highlighted, which builds an Amrap, also highlighted.
+@describe: Cindy · AMRAP 20' travels from the coach to the controller, plan() to WodService and on to AmrapPlanner, highlighted, which builds an Amrap, also highlighted.
 
 ## @step:for-time — Each creator knows its own part
 In For Time, the request's minutes aren't the duration but the **time cap**: Fran with an 8-minute cap. Only `ForTimePlanner` knows to read it that way, and it creates a `ForTime` where less time is better.
@@ -133,9 +135,9 @@ That knowledge lives in the format's creator, not in `if`s scattered across the 
 @describe: WodService sends plan() to ForTimePlanner, highlighted, which builds a ForTime, also highlighted.
 
 ## @step:spring-does-it — Spring already does it for you
-Spring is full of factory methods: `BeanFactory.getBean(...)` literally is one, and every `@Bean` method in a `@Configuration` class is a factory method you write.
+In a broad sense, Spring is full of "methods that create": `BeanFactory.getBean(...)` hands you objects without a `new`, and Spring's documentation calls every `@Bean` method a *factory method*. But they aren't the GoF pattern, because there's no subclass deciding which class to create.
 
-Then there's `FactoryBean`: a bean whose job is to **make another object**. Spring calls its `getObject()` and registers the result under the bean's name. In the example, `DailyWodFactoryBean` decides the WOD of the day: ask for `"dailyWod"` and you get an `Amrap`; ask for `"&dailyWod"` and you get the factory.
+The closest match to the pattern is `FactoryBean`: a bean whose job is to **make another object**. Spring registers the `FactoryBean` and, when someone asks for that bean, calls its `getObject()`; since `isSingleton()` is `true` by default, the result is cached and reused. In the example, `DailyWodFactoryBean` decides the WOD of the day: ask for `"dailyWod"` and you get an `Amrap`; ask for `"&dailyWod"` and you get the factory.
 
 > [!spring]
 > Many integrations work like this under the hood: they build a complex object (a client, a session, a proxy) behind a bean with a simple name.

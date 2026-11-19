@@ -69,4 +69,8 @@ class AccessControlTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("proceed() called more than once by the same rule");
     }
+
+    @Test void anAthleteTheBoxDoesNotKnowIsNotToldTheirMembershipExpired() {
+        assertThat(access.decide(new CheckIn("Zoe", 1))).isEqualTo(AccessDecision.deny("unknown athlete"));
+    }
 }

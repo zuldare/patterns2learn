@@ -3,9 +3,9 @@ package com.patterns2learn.box.chain;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/** Last on purpose: it's the only rule with a side effect (it takes a spot). */
+// @step:capacity
 @Component
-@Order(30)
+@Order(30)   // last on purpose: the only rule with a side effect (it takes a spot)
 public class CapacityRule implements AccessRule {
     private final BoxRegistry box;
 
@@ -13,7 +13,6 @@ public class CapacityRule implements AccessRule {
         this.box = box;
     }
 
-    // @step:capacity
     @Override
     public AccessDecision check(CheckIn checkIn, AccessChain chain) {
         if (!box.sessionExists(checkIn.sessionId())) {
@@ -24,5 +23,5 @@ public class CapacityRule implements AccessRule {
         }
         return chain.proceed(checkIn);
     }
-    // @end
 }
+// @end

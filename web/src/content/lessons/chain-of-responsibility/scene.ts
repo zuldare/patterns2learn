@@ -101,7 +101,7 @@ const scene: Scene = {
     {
       id: 'request',
       visible: SPRING,
-      highlight: ['membership', 'waiver', 'capacity'],
+      highlight: RULES,
       packets: [
         { link: 'l-athlete-controller', label: 'Ana · 18:00' },
         { link: 'l-controller-access', label: 'decide()' },
@@ -109,8 +109,9 @@ const scene: Scene = {
         { link: 'l-audit-membership', label: 'proceed()' },
         { link: 'l-membership-waiver', label: 'proceed()' },
         { link: 'l-waiver-capacity', label: 'proceed()' },
+        { link: 'l-controller-access', label: 'granted · 200', reverse: true },
       ],
-      code: { file: `${MAIN}/MembershipRule.java`, region: 'rule', highlight: [2, 13, 15] },
+      code: { file: `${MAIN}/MembershipRule.java`, region: 'rule', highlight: [2, 16, 18] },
     },
     {
       id: 'denied',
@@ -129,7 +130,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: ['capacity'],
       packets: [],
-      code: { file: `${MAIN}/CapacityRule.java`, region: 'capacity', highlight: [6, 9] },
+      code: { file: `${MAIN}/CapacityRule.java`, region: 'capacity', highlight: [2, 15, 18] },
     },
     {
       id: 'audit',
@@ -139,7 +140,7 @@ const scene: Scene = {
         { link: 'l-access-audit', label: 'proceed()' },
         { link: 'l-access-audit', label: 'granted', reverse: true },
       ],
-      code: { file: `${MAIN}/AuditRule.java`, region: 'audit', highlight: [3, 4, 6] },
+      code: { file: `${MAIN}/AuditRule.java`, region: 'audit', highlight: [2, 11, 12, 14] },
     },
     {
       id: 'spring-does-it',
@@ -156,7 +157,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: [],
       packets: [],
-      code: { file: `${MAIN}/MembershipRule.java`, region: 'rule', highlight: [13, 15] },
+      code: { file: `${MAIN}/MembershipRule.java`, region: 'rule', highlight: [16, 18] },
     },
   ],
 };

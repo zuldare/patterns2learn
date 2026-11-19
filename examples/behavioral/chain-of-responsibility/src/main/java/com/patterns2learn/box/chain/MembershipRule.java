@@ -15,6 +15,9 @@ public class MembershipRule implements AccessRule {
 
     @Override
     public AccessDecision check(CheckIn checkIn, AccessChain chain) {
+        if (!box.isKnown(checkIn.athlete())) {
+            return AccessDecision.deny("unknown athlete");
+        }
         if (!box.isActiveMember(checkIn.athlete())) {
             return AccessDecision.deny("membership expired");   // stop: the rest never runs
         }

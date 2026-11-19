@@ -49,9 +49,6 @@ const scene: Scene = {
   links: [
     { id: 'l-coach-controller', from: 'coach', to: 'controller', style: 'call' },
     { id: 'l-controller-switcher', from: 'controller', to: 'switcher', style: 'call' },
-    { id: 'l-switcher-amrap', from: 'switcher', to: 'amrap', style: 'call' },
-    { id: 'l-switcher-emom', from: 'switcher', to: 'emom', style: 'call' },
-    { id: 'l-switcher-fortime', from: 'switcher', to: 'fortime', style: 'call' },
     { id: 'l-controller-service', from: 'controller', to: 'service', style: 'call' },
     { id: 'l-service-amrapp', from: 'service', to: 'amrapP', style: 'call' },
     { id: 'l-service-emomp', from: 'service', to: 'emomP', style: 'call' },
@@ -67,14 +64,14 @@ const scene: Scene = {
   steps: [
     {
       id: 'problem',
-      visible: ['coach', 'controller', 'switcher', ...PRODUCTS],
+      visible: ['coach', 'controller', 'switcher'],
       highlight: ['switcher'],
       packets: [{ link: 'l-coach-controller', label: "AMRAP 20'" }],
       code: { file: `${MAIN}/before/SwitchingWodService.java`, region: 'switch', highlight: [3, 4, 5, 6] },
     },
     {
       id: 'smell',
-      visible: ['coach', 'controller', 'switcher', ...PRODUCTS],
+      visible: ['coach', 'controller', 'switcher'],
       highlight: ['switcher'],
       packets: [],
       code: { file: `${MAIN}/before/SwitchingWodService.java`, region: 'switch', highlight: [9, 15] },
@@ -102,14 +99,14 @@ const scene: Scene = {
       visible: SPRING,
       highlight: ['context', 'service'],
       packets: [],
-      code: { file: `${MAIN}/WodService.java`, region: 'pick', highlight: [3, 8, 12] },
+      code: { file: `${MAIN}/WodService.java`, region: 'pick', highlight: [4, 12, 16] },
     },
     {
       id: 'request',
       visible: SPRING,
       highlight: ['amrapP', 'amrap'],
       packets: [
-        { link: 'l-coach-controller', label: 'Cindy · AMRAP 20′' },
+        { link: 'l-coach-controller', label: "Cindy · AMRAP 20'" },
         { link: 'l-controller-service', label: 'plan()' },
         { link: 'l-service-amrapp', label: 'plan()' },
         { link: 'l-amrapp-amrap', label: 'new Amrap()' },

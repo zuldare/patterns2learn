@@ -12,11 +12,11 @@ recap:
     - Client (AccessControl, called by the controller), which hands the request to the first link
   pros:
     - Each rule lives in its own class, small and easy to test
-    - Adding or removing a rule doesn't touch the others
+    - Adding or removing a rule doesn't touch the others (as long as it respects the order)
     - A link can act before and after the rest, like AuditRule
   cons:
     - Order matters and must be set on purpose
-    - If nobody answers, the request can reach the end without anyone noticing
+    - You have to decide what happens if nobody says no; here the door opens by default, while Spring Security denies by default
     - Following a request through the chain is harder than reading one method full of ifs
   related:
     - Decorator
@@ -86,6 +86,8 @@ In the classic version, each `AccessHandler` keeps a reference to its `next` and
 
 > [!key-idea]
 > Whoever sends the check-in doesn't know which link will answer. It just hands it to the first one.
+
+In classic GoF, a single handler takes care of the request and the chain ends there. In the Spring version coming next (the filter-chain one), each link can also act and carry on, as you'll see with `CapacityRule` and `AuditRule`.
 @describe: Three handlers in a row, MembershipHandler, WaiverHandler and CapacityHandler, highlighted. Leo goes from the controller to the first and on to the second, which sends back denied.
 
 ## @step:spring-chain — Rules are beans
@@ -105,10 +107,10 @@ Ana's membership is paid, her waiver is signed and there's a spot left:
 
 1. `POST /api/check-ins?athlete=Ana&session=1` reaches `AccessControl`.
 2. Each rule checks its own thing and calls `chain.proceed()`.
-3. `CapacityRule` books her a spot and, with no rules left, the chain answers **granted**: 200.
+3. `CapacityRule` books her a spot and, with no rules left, the chain answers **granted**: 200. If no rule says no, the door opens.
 
 Look at `MembershipRule`: it either returns a "no" and cuts things short, or passes the turn. It doesn't know what comes next.
-@describe: Ana · 18:00 travels from the athlete to the controller, decide() to AccessControl, and proceed() walks the whole row of rules, highlighted, all the way to CapacityRule.
+@describe: Ana · 18:00 travels from the athlete to the controller, decide() to AccessControl, and proceed() walks the whole row of rules, highlighted, all the way to CapacityRule; finally granted · 200 travels back from AccessControl to the controller.
 
 ## @step:denied — Leo stays outside
 Leo's membership is paid, but he has **not** signed the waiver:
@@ -124,7 +126,7 @@ Leo's membership is paid, but he has **not** signed the waiver:
 @describe: Leo gets past MembershipRule; WaiverRule, highlighted, sends waiver not signed back and the chain stops before CapacityRule.
 
 ## @step:order — Order is part of the rule
-`CapacityRule` is the only rule with an **effect**: it takes a spot. That's why it goes last (`@Order(30)`). If it came before the waiver check, Leo would take a spot and then be turned away.
+`CapacityRule` is the only rule with an **effect**: it takes a spot, and as written it takes it **before** calling `proceed()`. That's why it goes last (`@Order(30)`). If it came before the waiver check, Leo would take a spot and then be turned away. Another option would be to call `proceed()` first and book only if the answer is *granted*; then its position wouldn't matter.
 
 > [!warning]
 > First the checks that change nothing; last, the one that does. And keep the order written in one place, with `@Order`, not in whatever order the classes happen to be declared.
@@ -138,7 +140,7 @@ Leo's membership is paid, but he has **not** signed the waiver:
 @describe: AccessControl sends proceed() to AuditRule, highlighted, and the granted answer comes back along the same link at the end.
 
 ## @step:spring-does-it — Spring already does it for you
-Every HTTP request to a Spring app goes through a **servlet filter chain** before reaching the `DispatcherServlet`. Spring Security is exactly that: its `SecurityFilterChain` chains authentication, CSRF, session and authorisation filters, and each one decides whether to cut the request short or call `chain.doFilter()`.
+In a Spring MVC (servlet) app, every HTTP request goes through a **servlet filter chain** before reaching the `DispatcherServlet`. Spring Security joins that chain as a single filter (`DelegatingFilterProxy`, which delegates to `FilterChainProxy`), which in turn runs the filters of its `SecurityFilterChain`: authentication, CSRF, session, authorisation… Each one decides whether to cut the request short or call `chain.doFilter()`.
 
 The example test sets up a `WaiverHeaderFilter`. Without the `X-Waiver-Signed` header it answers 403 and the app never knows; with it, it calls `chain.doFilter()` and the request carries on.
 
