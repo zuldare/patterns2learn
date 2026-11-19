@@ -11,7 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest(properties = "box.cards.stock=3")
+@SpringBootTest(properties = "box.cards.stock=10")
 @AutoConfigureMockMvc
 class MemberApiTest {
     @Autowired MockMvc mvc;
@@ -22,10 +22,13 @@ class MemberApiTest {
     }
 
     @Test void joiningAnswers201AndTheKioskUsesTheSameFacade() throws Exception {
-        join("Ana", "ana.api@box.example", "unlimited", "tok_visa")
+        // @step:request
+        mvc.perform(post("/api/members").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Ana\",\"email\":\"ana.api@box.example\",\"plan\":\"unlimited\",\"paymentToken\":\"tok_visa\"}"))
            .andExpect(status().isCreated())
            .andExpect(jsonPath("$.monthlyPrice").value(89.00))
            .andExpect(jsonPath("$.introClass").value("Saturday 10:00"));
+        // @end
         mvc.perform(post("/api/kiosk/join").param("name", "Eva").param("email", "eva.kiosk@box.example")
                 .param("plan", "3x-week").param("paymentToken", "tok_visa"))
            .andExpect(status().isCreated())

@@ -9,6 +9,7 @@ import com.patterns2learn.box.facade.subsystems.CardsOutOfStockException;
 import com.patterns2learn.box.facade.subsystems.DuplicateMemberException;
 import com.patterns2learn.box.facade.subsystems.IntroClasses;
 import com.patterns2learn.box.facade.subsystems.Mailer;
+import com.patterns2learn.box.facade.subsystems.Member;
 import com.patterns2learn.box.facade.subsystems.MemberRegistry;
 import com.patterns2learn.box.facade.subsystems.PaymentDeclinedException;
 import com.patterns2learn.box.facade.subsystems.Waivers;
@@ -25,13 +26,11 @@ class OnboardingFacadeTest {
     final OnboardingFacade onboarding = new OnboardingFacade(registry, cards, billing, waivers, intro, mailer);
 
     @Test void oneCallDoesTheWholeSignUp() {
-        // @step:join-test
         Welcome ana = onboarding.join(new JoinRequest("Ana", "ana@box.example", "unlimited", "tok_visa"));
 
         assertThat(ana.card()).isEqualTo("CARD-0001");
         assertThat(ana.monthlyPrice()).isEqualByComparingTo("89.00");
         assertThat(ana.introClass()).isEqualTo("Saturday 10:00");
-        // @end
         assertThat(registry.find(ana.memberId())).isPresent();
         assertThat(billing.charges()).containsExactly(new BigDecimal("89.00"));
         assertThat(waivers.sentTo()).containsExactly("ana@box.example");
@@ -65,6 +64,23 @@ class OnboardingFacadeTest {
             .isInstanceOf(IllegalArgumentException.class).hasMessage("unknown plan: gold");
         assertThat(registry.findByEmail("eva@box.example")).isEmpty();
         assertThat(cards.issued()).isEmpty();
+    }
+
+    @Test void onceItIsPaidAFailingFollowUpDoesNotUndoTheMembership() {
+        Mailer broken = new Mailer() {
+            @Override
+            public void welcome(Member member, String card, String introClass) {
+                throw new IllegalStateException("smtp down");
+            }
+        };
+        OnboardingFacade withBrokenMail = new OnboardingFacade(registry, cards, billing, waivers, intro, broken);
+
+        Welcome ana = withBrokenMail.join(new JoinRequest("Ana", "ana@box.example", "unlimited", "tok_visa"));
+
+        assertThat(ana.card()).isEqualTo("CARD-0001");
+        assertThat(registry.findByEmail("ana@box.example")).isPresent();
+        assertThat(billing.charges()).hasSize(1);
+        assertThat(waivers.sentTo()).containsExactly("ana@box.example");   // the other follow-ups still ran
     }
 
     @Test void theSameEmailCannotJoinTwice() {

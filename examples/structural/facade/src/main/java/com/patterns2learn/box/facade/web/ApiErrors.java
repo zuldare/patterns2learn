@@ -1,8 +1,10 @@
 package com.patterns2learn.box.facade.web;
 
+import com.patterns2learn.box.facade.InvalidJoinRequestException;
 import com.patterns2learn.box.facade.subsystems.CardsOutOfStockException;
 import com.patterns2learn.box.facade.subsystems.DuplicateMemberException;
 import com.patterns2learn.box.facade.subsystems.PaymentDeclinedException;
+import com.patterns2learn.box.facade.subsystems.UnknownPlanException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiErrors {
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({InvalidJoinRequestException.class, UnknownPlanException.class})
     public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
@@ -33,12 +35,12 @@ public class ApiErrors {
         return error(HttpStatus.BAD_REQUEST, "missing parameter " + e.getParameterName());
     }
 
-    /** A body that isn't JSON at all. A JoinRequest that breaks its own rules surfaces with its reason. */
+    /** JSON that can't become a JoinRequest. If the JoinRequest itself refused the data, say why. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> unreadable(HttpMessageNotReadableException e) {
         Throwable cause = e;
-        while (cause.getCause() != null && !(cause instanceof IllegalArgumentException)) cause = cause.getCause();
-        String reason = cause instanceof IllegalArgumentException ? cause.getMessage() : "malformed request body";
+        while (cause.getCause() != null && !(cause instanceof InvalidJoinRequestException)) cause = cause.getCause();
+        String reason = cause instanceof InvalidJoinRequestException ? cause.getMessage() : "malformed request body";
         return error(HttpStatus.BAD_REQUEST, reason);
     }
 

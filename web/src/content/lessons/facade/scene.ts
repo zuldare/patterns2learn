@@ -90,7 +90,7 @@ const scene: Scene = {
       visible: ['facade', ...SUBSYSTEMS],
       highlight: ['facade'],
       packets: [],
-      code: { file: `${MAIN}/OnboardingFacade.java`, region: 'join', highlight: [1, 3, 7, 8, 14, 15, 16] },
+      code: { file: `${MAIN}/OnboardingFacade.java`, region: 'join', highlight: [1, 3, 6, 13, 20, 21, 22, 23] },
     },
     {
       id: 'undo',
@@ -101,7 +101,7 @@ const scene: Scene = {
         { link: 'l-f-cards', label: 'revoke()' },
         { link: 'l-f-registry', label: 'remove()' },
       ],
-      code: { file: `${MAIN}/OnboardingFacade.java`, region: 'join', highlight: [2, 7, 8, 9, 10, 11, 12] },
+      code: { file: `${MAIN}/OnboardingFacade.java`, region: 'join', highlight: [2, 3, 6, 13, 15, 16, 19] },
     },
     {
       id: 'clients',
@@ -122,10 +122,10 @@ const scene: Scene = {
         { link: 'l-members-facade', label: 'join()' },
         { link: 'l-f-registry', label: 'register()' },
         { link: 'l-f-cards', label: 'issue()' },
-        { link: 'l-f-billing', label: '89.00 €' },
+        { link: 'l-f-billing', label: 'subscribe()' },
         { link: 'l-f-mailer', label: 'welcome()' },
       ],
-      code: { file: `${TEST}/OnboardingFacadeTest.java`, region: 'join-test', highlight: [1, 3, 4, 5] },
+      code: { file: `${TEST}/web/MemberApiTest.java`, region: 'request', highlight: [1, 3, 4, 5] },
     },
     {
       id: 'spring-does-it',

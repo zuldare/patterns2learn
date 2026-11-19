@@ -40,18 +40,18 @@ quiz:
     explain: Una fachada simplifica, pero no esconde. Billing sigue siendo un bean más, y un panel de facturación puede usarlo sin pasar por el alta.
   - q: La recepción y el kiosco de la entrada dan de alta socios. ¿Qué ganan con la fachada?
     options:
-      - Los dos llaman a join() y el orden de los pasos y cómo deshacerlos viven en un solo sitio
+      - La secuencia y cómo deshacerla se escriben una vez, en join()
       - Cada cliente puede elegir su propio orden de pasos sin afectar al otro
       - Los subsistemas dejan de necesitar sus propios tests unitarios
-      - Los clientes ya no tienen que validar los datos que reciben
+      - Cada uno puede saltarse el waiver cuando no le haga falta
     answer: 0
-    explain: Sin fachada, cada cliente copiaría la secuencia y, tarde o temprano, uno se olvidaría del waiver o de deshacer la tarjeta.
+    explain: Sin fachada, cada cliente copiaría la secuencia y, tarde o temprano, uno se olvidaría del waiver o de devolver la tarjeta.
   - q: ¿En qué sentido ApplicationContext es una fachada?
     options:
-      - Porque envuelve cada bean en un proxy que intercepta todas sus llamadas
-      - Porque es la única manera que tiene Spring de crear beans
-      - Porque reúne beans, mensajes, eventos y recursos en una interfaz y delega en cada pieza
-      - Porque oculta el BeanFactory y nadie más puede acceder a él
+      - Porque crea cada bean a través de un proxy compartido que añade comportamiento
+      - Porque registra los beans de todas las clases anotadas con @Component
+      - Porque pone beans, mensajes, eventos y recursos detrás de una sola interfaz
+      - Porque sustituye al BeanFactory, que ya no se usa dentro de Spring
     answer: 2
     explain: AbstractApplicationContext pasa getBean a su BeanFactory, getMessage al MessageSource, publishEvent al ApplicationEventMulticaster y getResources a un ResourcePatternResolver.
 ---
@@ -101,12 +101,14 @@ La fachada ordena los pasos a propósito:
 - si el cobro falla, devuelve la tarjeta y borra el registro, y relanza el error;
 - lo que no se puede deshacer, como los emails, solo se envía cuando ya se ha cobrado.
 
+Una vez cobrado, el socio ya está dentro: si después falla el waiver, la reserva o el email, la fachada lo anota en el log para repetirlo a mano, pero no deshace el alta. El test `onceItIsPaidAFailingFollowUpDoesNotUndoTheMembership` lo comprueba.
+
 > [!spring]
 > Con una base de datos, `@Transactional` en `join()` haría atómicos los pasos que tocan la base de datos. Pero un cobro o un email no se deshacen con un rollback: el orden y la compensación siguen siendo cosa de la fachada.
 @describe: Billing, resaltado con la fachada, responde payment declined; la fachada llama a revoke() en AccessCards y a remove() en MemberRegistry.
 
 ## @step:clients — Dos clientes, una llamada
-En Spring, la fachada es un `@Service` más. `MemberController` (la app de recepción, con JSON) y `KioskController` (el formulario de la tablet) la reciben por el constructor y hacen **una** llamada: `join(...)`.
+En Spring, la fachada es un `@Service` más. `MemberController` (la app de recepción, con JSON) y `KioskController` (el formulario de la tablet) la reciben inyectada y hacen **una** llamada: `join(...)`.
 
 Ninguno de los dos sabe que existen las tarjetas, el cobro o el waiver. Si mañana cambia el orden, cambia la fachada y los clientes ni se enteran.
 @describe: Aparece el contexto de Spring. MemberController y KioskController, resaltados, envían join() a OnboardingFacade, unida a los seis subsistemas.
@@ -120,20 +122,20 @@ Ninguno de los dos sabe que existen las tarjetas, el cobro o el waiver. Si maña
 4. Responde 201 con todo eso.
 
 Si el pago se rechaza, la respuesta es 402 y no queda rastro de Ana en el sistema.
-@describe: POST /api/members viaja de Recepción a MemberController y join() a la fachada, resaltada, que llama a register(), issue(), cobra 89.00 € y envía welcome().
+@describe: POST /api/members viaja de Recepción a MemberController y join() a la fachada, resaltada, que llama a register(), issue(), subscribe() y welcome().
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-El `ApplicationContext` es una fachada. Detrás de una sola interfaz hay varias piezas, y `AbstractApplicationContext` delega cada llamada en la suya:
+El `ApplicationContext` hace de fachada. Detrás de una sola interfaz hay varias piezas, y `AbstractApplicationContext` delega cada llamada en la suya:
 
 - `getBean(...)`, en su `BeanFactory`;
 - `getMessage(...)`, en el `MessageSource` (Spring Boot lo configura solo si hay un `messages.properties`);
 - `publishEvent(...)`, en el `ApplicationEventMulticaster`;
 - `getResources(...)`, en un `ResourcePatternResolver`.
 
-El test del ejemplo usa las cuatro sobre el mismo objeto.
+El test del ejemplo usa las cuatro sobre el mismo objeto. Y su operación "grande", `refresh()`, es como nuestro `join()`: prepara el bean factory, los post-processors, el `MessageSource`, los eventos y los singletons en un orden fijo.
 
 > [!spring]
-> `JdbcTemplate` y `RestClient` también hacen de fachada sobre APIs más complicadas (JDBC, los clientes HTTP), aunque además aplican otros patrones, como Template Method.
+> `JdbcTemplate` y `RestClient` también hacen de fachada sobre APIs más complicadas (JDBC, los clientes HTTP). `JdbcTemplate`, además, aplica Template Method.
 @describe: Dentro del contexto de Spring, ApplicationContext, resaltado, envía getBean() a BeanFactory, getMessage() a MessageSource, publishEvent() a ApplicationEventMulticaster y getResources() a ResourcePatternResolver.
 
 ## @step:recap — Resumen
@@ -143,6 +145,8 @@ Empezaste con un controlador que coordinaba seis piezas y acabaste con:
 - **El orden y la compensación** en un solo sitio.
 - **Varios clientes** que hacen una sola llamada.
 - **Subsistemas** que siguen ahí para quien los necesite directamente.
+
+No lo confundas con sus vecinos: **Adapter** convierte una interfaz en otra que ya existe; **Facade** crea una nueva y más sencilla sobre varias piezas; con **Mediator**, las piezas conocen al mediador y hablan a través de él, mientras que los subsistemas de una fachada ni saben que existe. Y una fachada suele tener una sola instancia: en Spring, un bean singleton.
 
 Y cuándo no hace falta: si solo hay un cliente y dos llamadas, la fachada es una clase de más. Y si empieza a acumular operaciones que no tienen que ver entre sí, divídela por casos de uso antes de que lo sepa todo.
 

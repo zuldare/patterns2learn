@@ -29,6 +29,7 @@ class SpringDoesItTooTest {
 
     @Autowired ApplicationContext context;
     @Autowired Listener listener;
+    @Autowired OnboardingFacade injected;
 
     @Test void oneInterfaceInFrontOfSeveralSubsystems() throws Exception {
         // @step:context
@@ -37,9 +38,9 @@ class SpringDoesItTooTest {
         Resource[] files = context.getResources("classpath*:messages*.properties");  // resources
         context.publishEvent(new MemberJoined("Ana"));                                // events
         // @end
-        assertThat(facade).isNotNull();
+        assertThat(facade).isSameAs(injected);
         assertThat(hello).isEqualTo("Welcome to the box, Ana!");
-        assertThat(files).isNotEmpty();
+        assertThat(files).extracting(Resource::getFilename).contains("messages.properties");
         assertThat(listener.heard).containsExactly("Ana");
     }
 }

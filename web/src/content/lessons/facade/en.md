@@ -25,7 +25,7 @@ quiz:
   - q: With FrontDeskController, what happens if Leo's payment is declined?
     options:
       - Nothing, because charging is the first thing the controller does
-      - Leo stays registered and holding an access card, even though he never paid
+      - Leo stays registered and keeps an access card, even though he never paid
       - Spring automatically undoes everything that had been done
       - The controller retries the charge until the bank accepts it
     answer: 1
@@ -40,18 +40,18 @@ quiz:
     explain: A facade simplifies, but it doesn't hide. Billing is still just another bean, and a billing dashboard can use it without going through sign-up.
   - q: The front desk and the kiosk at the entrance both sign up members. What do they gain from the facade?
     options:
-      - Both call join(), and the order of the steps and how to undo them live in one place
+      - The sequence and how to undo it are written once, in join()
       - Each client can pick its own order of steps without affecting the other
       - The subsystems no longer need their own unit tests
-      - The clients no longer have to validate the data they receive
+      - Each one can skip the waiver when it doesn't need it
     answer: 0
     explain: Without a facade, each client would copy the sequence and, sooner or later, one would forget the waiver or returning the card.
   - q: In what sense is ApplicationContext a facade?
     options:
-      - Because it wraps every bean in a proxy that intercepts all its calls
-      - Because it's the only way Spring has of creating beans
-      - Because it gathers beans, messages, events and resources in one interface and delegates to each part
-      - Because it hides the BeanFactory and nobody else can reach it
+      - Because it builds every bean through one shared proxy that adds behaviour
+      - Because it registers beans for every class annotated with @Component
+      - Because it puts beans, messages, events and resources behind one interface
+      - Because it replaces the BeanFactory, which Spring no longer uses inside
     answer: 2
     explain: AbstractApplicationContext passes getBean to its BeanFactory, getMessage to the MessageSource, publishEvent to the ApplicationEventMulticaster and getResources to a ResourcePatternResolver.
 ---
@@ -101,12 +101,14 @@ The facade orders the steps on purpose:
 - if the charge fails, it takes the card back, deletes the registration and rethrows the error;
 - what can't be undone, like emails, is only sent once the charge has gone through.
 
+Once the charge goes through, the member is in: if the waiver, the booking or the email fails afterwards, the facade logs it to be retried by hand, but doesn't undo the sign-up. The `onceItIsPaidAFailingFollowUpDoesNotUndoTheMembership` test checks it.
+
 > [!spring]
 > With a database, `@Transactional` on `join()` would make the database steps atomic. But a charge or an email isn't undone by a rollback: the order and the compensation are still the facade's job.
 @describe: Billing, highlighted with the facade, answers payment declined; the facade calls revoke() on AccessCards and remove() on MemberRegistry.
 
 ## @step:clients — Two clients, one call
-In Spring, the facade is just another `@Service`. `MemberController` (the front desk app, with JSON) and `KioskController` (the tablet's form) get it through their constructors and make **one** call: `join(...)`.
+In Spring, the facade is just another `@Service`. `MemberController` (the front desk app, with JSON) and `KioskController` (the tablet's form) get it injected and make **one** call: `join(...)`.
 
 Neither of them knows the cards, the billing or the waiver exist. If the order changes tomorrow, the facade changes and the clients never notice.
 @describe: The Spring context appears. MemberController and KioskController, highlighted, send join() to OnboardingFacade, wired to the six subsystems.
@@ -115,25 +117,25 @@ Neither of them knows the cards, the billing or the waiver exist. If the order c
 `POST /api/members` with Ana, the `unlimited` plan and a valid payment:
 
 1. `MemberController` calls `join(...)`.
-2. The facade registers Ana, gives her card `CARD-0001` and charges €89.00.
+2. The facade registers Ana, gives her card `CARD-0001` and charges 89.00 €.
 3. It sends the waiver, books her Saturday 10:00 class and sends the welcome.
 4. It answers 201 with all of that.
 
 If the payment is declined, the answer is 402 and there's no trace of Ana left in the system.
-@describe: POST /api/members travels from the front desk to MemberController and join() to the facade, highlighted, which calls register(), issue(), charges 89.00 € and sends welcome().
+@describe: POST /api/members travels from the front desk to MemberController and join() to the facade, highlighted, which calls register(), issue(), subscribe() and welcome().
 
 ## @step:spring-does-it — Spring already does it for you
-The `ApplicationContext` is a facade. Behind a single interface there are several parts, and `AbstractApplicationContext` delegates each call to its own:
+The `ApplicationContext` acts as a facade. Behind a single interface there are several parts, and `AbstractApplicationContext` delegates each call to its own:
 
 - `getBean(...)`, to its `BeanFactory`;
 - `getMessage(...)`, to the `MessageSource` (Spring Boot sets it up on its own if there's a `messages.properties`);
 - `publishEvent(...)`, to the `ApplicationEventMulticaster`;
 - `getResources(...)`, to a `ResourcePatternResolver`.
 
-The example test uses all four on the same object.
+The example test uses all four on the same object. And its "big" operation, `refresh()`, is like our `join()`: it sets up the bean factory, the post-processors, the `MessageSource`, events and the singletons in a fixed order.
 
 > [!spring]
-> `JdbcTemplate` and `RestClient` also act as facades over more complicated APIs (JDBC, HTTP clients), although they apply other patterns too, such as Template Method.
+> `JdbcTemplate` and `RestClient` also act as facades over more complicated APIs (JDBC, HTTP clients). `JdbcTemplate` also applies Template Method.
 @describe: Inside the Spring context, ApplicationContext, highlighted, sends getBean() to BeanFactory, getMessage() to MessageSource, publishEvent() to ApplicationEventMulticaster and getResources() to ResourcePatternResolver.
 
 ## @step:recap — Recap
@@ -143,6 +145,8 @@ You started with a controller coordinating six parts and ended up with:
 - **The order and the compensation** in one place.
 - **Several clients** making a single call.
 - **Subsystems** that are still there for anyone who needs them directly.
+
+Don't mix it up with its neighbours: **Adapter** turns one interface into another that already exists; **Facade** creates a new, simpler one over several parts; with **Mediator**, the parts know the mediator and talk through it, while the subsystems behind a facade don't even know it exists. And a facade usually has a single instance: in Spring, a singleton bean.
 
 And when you don't need it: if there's only one client and two calls, the facade is one class too many. And if it starts piling up unrelated operations, split it by use case before it knows everything.
 

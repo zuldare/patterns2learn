@@ -16,7 +16,7 @@ public class Billing {
 
     public BigDecimal priceOf(String plan) {
         BigDecimal price = PLANS.get(plan);
-        if (price == null) throw new IllegalArgumentException("unknown plan: " + abbreviate(plan));
+        if (price == null) throw new UnknownPlanException(abbreviate(plan));
         return price;
     }
 
