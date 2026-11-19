@@ -53,5 +53,6 @@
     <module>behavioral/strategy</module>
     <module>behavioral/observer</module>
     <module>behavioral/chain-of-responsibility</module>
+    <module>behavioral/command</module>
   </modules>
 </project>
