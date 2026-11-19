@@ -43,6 +43,7 @@
   <modules>
     <module>creational/singleton</module>
     <module>structural/proxy</module>
+    <module>structural/decorator</module>
     <module>behavioral/template-method</module>
     <module>behavioral/strategy</module>
     <module>behavioral/observer</module>
