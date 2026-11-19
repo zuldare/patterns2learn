@@ -37,6 +37,7 @@ class ClassSessionTest {
         assertThatThrownBy(() -> ClassSession.builder("WOD", LocalTime.NOON).minutes(135).build()).hasMessage("minutes must be 15 to 120, in steps of 15");
         assertThatThrownBy(() -> ClassSession.builder("WOD", LocalTime.NOON).beginnerFriendly().build()).hasMessage("a beginner-friendly class needs a coach");
         assertThatThrownBy(() -> ClassSession.builder("WOD", LocalTime.NOON).coach(" ").build()).hasMessage("coach cannot be blank");
+        assertThatThrownBy(() -> ClassSession.builder("WOD", LocalTime.NOON).coach("x".repeat(41)).build()).hasMessage("coach is at most 40 characters");
     }
 
     @Test void theConstructorEnforcesTheSameRulesSoNobodyCanSkipThem() {

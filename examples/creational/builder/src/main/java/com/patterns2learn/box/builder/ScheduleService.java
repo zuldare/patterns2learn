@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,12 +16,12 @@ public class ScheduleService {
     private final AtomicLong ids = new AtomicLong();
     private final Map<Long, Scheduled> sessions = new ConcurrentHashMap<>();
 
-    @Autowired
     public ScheduleService(SessionTemplates templates) {
         this(templates, 500);
     }
 
-    ScheduleService(SessionTemplates templates, int maxSessions) {
+    @Autowired
+    ScheduleService(SessionTemplates templates, @Value("${box.schedule.max-sessions:500}") int maxSessions) {
         this.templates = templates;
         this.maxSessions = maxSessions;
     }
@@ -46,7 +47,7 @@ public class ScheduleService {
     }
 
     private synchronized Scheduled save(ClassSession session) {
-        if (sessions.size() >= maxSessions) throw new IllegalStateException("the schedule is full");
+        if (sessions.size() >= maxSessions) throw new ScheduleFullException();
         Scheduled s = new Scheduled(ids.incrementAndGet(), session);
         sessions.put(s.id(), s);
         return s;

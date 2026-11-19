@@ -18,7 +18,7 @@ class SpringDoesItTooTest {
     @Autowired RestClient.Builder builder;
     @Autowired RestClient.Builder another;
 
-    @Test void bootHandsYouAPreconfiguredBuilderAFreshOneForEachInjection() {
+    @Test void bootHandsYouAFreshBuilderForEachInjection() {
         assertThat(builder).isNotSameAs(another);   // prototype: your settings never leak into someone else's client
     }
 

@@ -20,6 +20,7 @@ public record ClassSession(String name, LocalTime startsAt, int minutes, int cap
         if (coach != null) {
             if (coach.isBlank()) throw new IllegalArgumentException("coach cannot be blank");
             coach = coach.strip();
+            if (coach.length() > 40) throw new IllegalArgumentException("coach is at most 40 characters");
         }
         if (beginnerFriendly && coach == null) {
             throw new IllegalArgumentException("a beginner-friendly class needs a coach");

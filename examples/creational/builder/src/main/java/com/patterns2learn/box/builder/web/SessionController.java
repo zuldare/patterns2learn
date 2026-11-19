@@ -22,23 +22,22 @@ public class SessionController {
         this.schedule = schedule;
     }
 
-    // @step:created
     @PostMapping("/api/sessions")
     public ResponseEntity<Scheduled> create(@RequestBody SessionRequest request) {
         Scheduled s = schedule.schedule(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()   // a builder for the URI…
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()   // a builder for the URI…
             .path("/{id}")
             .buildAndExpand(s.id())
             .toUri();
         return ResponseEntity.created(location).body(s);                 // …and one for the response
     }
-    // @end
 
     @PostMapping("/api/sessions/templates/{template}")
     public ResponseEntity<Scheduled> fromTemplate(@PathVariable String template,
                                                   @RequestParam LocalTime startsAt,
                                                   @RequestParam(required = false) String coach) {
-        Scheduled s = schedule.fromTemplate(template, startsAt, coach);
+        String noBlank = coach == null || coach.isBlank() ? null : coach;   // an empty form field means "no coach"
+        Scheduled s = schedule.fromTemplate(template, startsAt, noBlank);
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
             .path("/api/sessions/{id}").buildAndExpand(s.id()).toUri();
         return ResponseEntity.created(location).body(s);

@@ -9,11 +9,11 @@ recap:
     - Builder (ClassSession.Builder), que recoge las piezas paso a paso
     - Product (ClassSession), el objeto terminado, inmutable y válido
     - Director (SessionTemplates), que conoce las recetas habituales y llama a los pasos en orden
-    - Client (ScheduleService), que pide el objeto sin conocer los detalles de cómo se monta
+    - Client (ScheduleService), que usa el builder directamente para las peticiones a medida y delega en el director las recetas fijas
   pros:
     - Cada opción tiene nombre, así que la llamada se lee sola
     - Los valores por defecto viven en un sitio y solo cambias lo que necesitas
-    - El objeto no existe hasta build(), y build() lo valida entero de una vez
+    - El objeto no existe hasta build(), y build() lo valida en un único sitio
   cons:
     - Más código, una clase extra por cada producto
     - Si el objeto tiene dos o tres campos, un constructor basta
@@ -26,7 +26,7 @@ quiz:
   - q: ¿Cuál es el problema real de new TelescopingSession("Hyrox prep", LocalTime.of(18, 0), 60, 12, "Ana", true, false)?
     options:
       - Que es más lento que un builder
-      - Que puedes intercambiar true y false (o 60 y 12) y sigue compilando, pero creas otra clase distinta
+      - Que puedes intercambiar true y false (o 60 y 12) y sigue compilando, pero creas otra sesión distinta
       - Que los records no permiten constructores con tantos parámetros
       - Que Spring no puede inyectar objetos creados con new
     answer: 1
@@ -83,7 +83,7 @@ Builder pone a alguien en medio: `ClassSession.Builder`.
 - `build()` entrega el `ClassSession` terminado, un record **inmutable**.
 
 > [!key-idea]
-> El producto no existe hasta `build()`. Mientras tanto, lo que está a medias es el builder, no la clase.
+> El producto no existe hasta `build()`. Mientras tanto, lo que está a medias es el builder, no la sesión.
 @describe: Aparece ClassSession.Builder, resaltado, que con build() entrega un ClassSession.
 
 ## @step:fluent — La llamada se lee sola
@@ -92,11 +92,11 @@ Compara con el principio: `ClassSession.builder("Hyrox prep", LocalTime.of(18, 0
 Cada opción dice lo que es, no hace falta escribir lo que va por defecto y el orden de las llamadas da igual. `beginnerFriendly()` no recibe un `true` que se pueda confundir con otro: llamarlo ya es la decisión.
 
 > [!key-idea]
-> Java no tiene argumentos con nombre. Un builder es la forma habitual de conseguirlos.
-@describe: ScheduleService envía coach Ana y beginnerFriendly al builder, y el builder entrega el ClassSession con build(); los dos aparecen resaltados.
+> Java no tiene argumentos con nombre. Un builder es la forma habitual de imitarlos.
+@describe: El builder, con coach Ana y beginnerFriendly ya puestos, entrega el ClassSession con build(); los dos aparecen resaltados.
 
 ## @step:validate — Válido o no existe
-¿Y si alguien pide `capacity(0)` o una clase para principiantes sin coach? `build()` llama al constructor del record, y ese constructor **comprueba todas las reglas de una vez**: duración de 15 a 120 minutos en tramos de 15, entre 1 y 30 plazas, coach obligatorio si es para principiantes.
+¿Y si alguien pide `capacity(0)` o una clase para principiantes sin coach? `build()` llama al constructor del record, y ese constructor **comprueba todas las reglas en un único sitio**, en el momento de `build()`: duración de 15 a 120 minutos en tramos de 15, entre 1 y 30 plazas, coach obligatorio si es para principiantes.
 
 Si algo falla, lanza una excepción con el motivo y no se crea nada. Como las reglas están en el constructor y no en el builder, tampoco se las salta quien haga `new ClassSession(...)` directamente.
 
@@ -110,7 +110,7 @@ El box repite siempre las mismas clases. `SessionTemplates` es el **director** d
 - `"beginner"`: 75 minutos, 8 plazas, coach, apta para principiantes y con lista de espera.
 - `"open-gym"`: 120 minutos, 20 plazas y sin coach.
 
-En el GoF clásico, el director trabaja contra una **interfaz** de builder y puede usar varios builders concretos con la misma receta: uno que monta la clase y otro que genera, por ejemplo, el cartel para la pizarra. En Java lo más habitual es lo que ves aquí, un builder fluido dentro de la clase (el estilo de *Effective Java*), con o sin director.
+En el GoF clásico, el director trabaja contra una **interfaz** de builder y puede usar varios builders concretos con la misma receta: uno que monta la clase y otro que genera, por ejemplo, el cartel para la pizarra. Allí es el cliente quien elige el builder concreto, se lo pasa al director y al final le pide el resultado al builder; aquí `SessionTemplates` crea el builder y devuelve la sesión, que es más sencillo. En Java lo más habitual es lo que ves aquí, un builder fluido dentro de la clase (el estilo de *Effective Java*), con o sin director.
 @describe: SessionTemplates, resaltado, envía "beginner" al builder, que entrega el ClassSession con build().
 
 ## @step:request — Hyrox prep en la app
@@ -127,10 +127,10 @@ El coach envía `POST /api/sessions` con nombre, hora, coach y "para principiant
 ## @step:spring-does-it — Spring ya lo hace por ti
 Spring está lleno de builders. El más útil en el día a día es `RestClient.Builder`: Spring Boot te lo **inyecta ya configurado** (conversores de mensajes, customizers) y con scope prototype, así que cada punto de inyección recibe uno nuevo. Le añades tu `baseUrl` y tus cabeceras, llamas a `build()` y tienes tu cliente.
 
-Hay más en el propio ejemplo: el controlador monta la cabecera `Location` con `ServletUriComponentsBuilder` y responde con `ResponseEntity.created(location).body(...)`, que también es un builder. Y en los tests, `MockMvcRequestBuilders`.
+Hay más en el propio ejemplo: el controlador monta la cabecera `Location` con `ServletUriComponentsBuilder` y responde con `ResponseEntity.created(location).body(...)`, que también es un builder. Y en los tests, el `MockHttpServletRequestBuilder` que devuelve `post(...)`.
 
 > [!spring]
-> Si usas Lombok, `@Builder` genera este mismo código. Escribirlo una vez a mano ayuda a saber qué hace, y dónde poner la validación.
+> Si usas Lombok, `@Builder` genera un builder parecido, aunque no igual: `builder()` no recibe los campos obligatorios, cada método recibe su valor (`beginnerFriendly(true)`) y los valores por defecto necesitan `@Builder.Default`. Escribirlo una vez a mano te enseña qué hace y dónde validar.
 @describe: Dentro del contexto de Spring, RestClient.Builder, resaltado, recibe baseUrl y defaultHeader y entrega un RestClient con build().
 
 ## @step:recap — Resumen
@@ -138,7 +138,9 @@ Empezaste con siete argumentos seguidos y acabaste con:
 
 - **Un builder** que se crea con lo imprescindible y guarda los valores por defecto.
 - **Métodos con nombre** para cada opción, encadenables.
-- **`build()`**, que entrega un objeto inmutable validado de una vez.
+- **`build()`**, que entrega un objeto inmutable y validado.
+
+Y cuándo no usarlo: si el objeto tiene tres o cuatro campos y casi todos son obligatorios, un record con su constructor (o un método estático con nombre) basta.
 - **Un director** opcional para las recetas que se repiten.
 
 > [!key-idea]

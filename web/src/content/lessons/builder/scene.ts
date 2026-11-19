@@ -74,17 +74,14 @@ const scene: Scene = {
     },
     {
       id: 'fluent',
-      visible: ['service', 'builder', 'session'],
+      visible: ['builder', 'session'],
       highlight: ['builder', 'session'],
-      packets: [
-        { link: 'l-service-builder', label: 'coach · beginnerFriendly' },
-        { link: 'l-builder-session', label: 'build()' },
-      ],
+      packets: [{ link: 'l-builder-session', label: 'build()' }],
       code: { file: `${TEST}/ClassSessionTest.java`, region: 'usage', highlight: [1, 2, 3, 4] },
     },
     {
       id: 'validate',
-      visible: ['service', 'builder', 'session'],
+      visible: ['builder', 'session'],
       highlight: ['session'],
       packets: [{ link: 'l-builder-session', label: 'capacity 0 → ✗' }],
       code: { file: `${MAIN}/ClassSession.java`, region: 'validate', highlight: [6, 9, 16] },

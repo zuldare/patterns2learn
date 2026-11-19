@@ -15,9 +15,12 @@ public class SessionTemplates {
                 .minutes(75).capacity(8).coach(coach)
                 .beginnerFriendly().waitlist()
                 .build();
-            case "open-gym" -> ClassSession.builder("Open gym", startsAt)
-                .minutes(120).capacity(20)
-                .build();
+            case "open-gym" -> {
+                if (coach != null) throw new IllegalArgumentException("an open gym has no coach");
+                yield ClassSession.builder("Open gym", startsAt)
+                    .minutes(120).capacity(20)
+                    .build();
+            }
             default -> throw new IllegalArgumentException("unknown template: " + abbreviate(template));
         };
     }

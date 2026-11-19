@@ -159,19 +159,22 @@ test('the theme button cycles paper → blueprint → dark → paper and remembe
   await expect(html).toHaveAttribute('data-theme', 'paper');
 });
 
-test('no step text overflows its panel sideways, in any lesson', async ({ page }) => {
-  const { readdirSync } = await import('node:fs');
-  const slugs = readdirSync('src/content/lessons').filter((d) => !d.startsWith('_'));
-  const offenders: string[] = [];
-  for (const slug of slugs) {
-    await page.goto(`/es/patterns/${slug}/`);
-    const ids = await page.locator('.step-text').evaluateAll((els) => els.map((e) => e.getAttribute('data-step-id')));
-    for (const id of ids) {
-      await page.locator('[data-lesson]').evaluate((el, step) => { location.hash = `step-${step}`; }, id);
-      await expect(page.locator(`.step-text[data-step-id="${id}"]`)).toBeVisible();
-      const over = await page.locator('.step-panel').evaluate((p) => p.scrollWidth - p.clientWidth);
-      if (over > 1) offenders.push(`${slug}#${id} (+${over}px)`);
-    }
-  }
-  expect(offenders).toEqual([]);
-});
+for (const width of [1440, 375])
+  test(`no step text overflows its panel sideways, in any lesson or language (${width}px)`, async ({ page }) => {
+    const { readdirSync } = await import('node:fs');
+    const slugs = readdirSync('src/content/lessons').filter((d) => !d.startsWith('_'));
+    await page.setViewportSize({ width, height: 900 });
+    const offenders: string[] = [];
+    for (const lang of ['es', 'en'])
+      for (const slug of slugs) {
+        await page.goto(`/${lang}/patterns/${slug}/`);
+        const ids = await page.locator('.step-text').evaluateAll((els) => els.map((e) => e.getAttribute('data-step-id')));
+        for (const id of ids) {
+          await page.evaluate((step) => { location.hash = `step-${step}`; }, id);
+          await expect(page.locator(`.step-text[data-step-id="${id}"]`)).toBeVisible();
+          const over = await page.locator('.step-panel').evaluate((p) => p.scrollWidth - p.clientWidth);
+          if (over > 1) offenders.push(`${lang}/${slug}#${id} (+${over}px)`);
+        }
+      }
+    expect(offenders).toEqual([]);
+  });

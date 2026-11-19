@@ -1,9 +1,11 @@
 package com.patterns2learn.box.builder.web;
 
+import com.patterns2learn.box.builder.ScheduleFullException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -15,8 +17,8 @@ public class ApiErrors {
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> conflict(IllegalStateException e) {
+    @ExceptionHandler(ScheduleFullException.class)
+    public ResponseEntity<Map<String, String>> full(ScheduleFullException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
     }
 
@@ -26,14 +28,14 @@ public class ApiErrors {
         return ResponseEntity.badRequest().body(Map.of("error", "invalid value for " + e.getName()));
     }
 
-    /** A body that can't become a ClassSession: 400 with the builder's reason when there is one. */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> missing(MissingServletRequestParameterException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "missing parameter " + e.getParameterName()));
+    }
+
+    /** JSON that can't become a SessionRequest (bad time, decimal minutes…). The builder's rules run later, in the service. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> unreadable(HttpMessageNotReadableException e) {
-        Throwable cause = e;
-        while (cause.getCause() != null && !(cause instanceof IllegalArgumentException)) {
-            cause = cause.getCause();
-        }
-        String reason = cause instanceof IllegalArgumentException ? cause.getMessage() : "malformed request body";
-        return ResponseEntity.badRequest().body(Map.of("error", reason));
+        return ResponseEntity.badRequest().body(Map.of("error", "malformed request body"));
     }
 }

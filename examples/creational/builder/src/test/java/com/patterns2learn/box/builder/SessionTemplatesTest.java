@@ -23,5 +23,6 @@ class SessionTemplatesTest {
         assertThat(templates.build(" Beginner ", LocalTime.NOON, "Ana").name()).isEqualTo("Beginners");
         assertThatThrownBy(() -> templates.build("zen", LocalTime.NOON, "Ana")).hasMessage("unknown template: zen");
         assertThatThrownBy(() -> templates.build("beginner", LocalTime.NOON, null)).hasMessage("a beginner-friendly class needs a coach");
+        assertThatThrownBy(() -> templates.build("open-gym", LocalTime.NOON, "Ana")).hasMessage("an open gym has no coach");
     }
 }
