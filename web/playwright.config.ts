@@ -19,7 +19,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      testMatch: ['lesson.spec.ts', 'cheatsheet.spec.ts'],
+      testMatch: ['lesson.spec.ts', 'cheatsheet.spec.ts', 'lab.spec.ts'],
       use: { browserName: 'chromium', viewport: { width: 1440, height: 900 }, launchOptions },
     },
     {
