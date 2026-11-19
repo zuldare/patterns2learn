@@ -42,12 +42,12 @@ const entities: Entity[] = [
   { id: 'connection', kind: 'block', label: 'Connection (H2)', ...at(12.0, 11.0), tone: 'accent', icon: 'key' },
   { id: 'statement', kind: 'block', label: 'Statement', ...at(11.25, 0.75), tone: 'neutral', icon: 'file' },
   { id: 'prepared', kind: 'block', label: 'PreparedStatement', ...at(13.75, 3.25), tone: 'neutral', icon: 'file' },
-  { id: 'metadata', kind: 'block', label: 'DatabaseMetaData', ...at(16.25, 5.75), tone: 'neutral', icon: 'file' },
+  { id: 'metadata', kind: 'block', label: 'CallableStatement', ...at(16.25, 5.75), tone: 'neutral', icon: 'file' },
 ];
 
 const KITS = ['kit', 'rx', 'scaled', 'teens'];
 const PRODUCTS = ['barbell', 'pull', 'scorecard'];
-const SPRING = ['context', 'coach', 'controller', 'service', 'planner', ...KITS, ...PRODUCTS];
+const SPRING = ['context', 'coach', 'controller', 'service', 'planner', ...KITS];
 
 const scene: Scene = {
   entities,
@@ -77,7 +77,7 @@ const scene: Scene = {
         { link: 'l-coach-controller', label: 'Fran · rx' },
         { link: 'l-service-ifelse', label: 'plan("rx")' },
       ],
-      code: { file: `${MAIN}/before/IfElseFranPlanner.java`, region: 'if-else', highlight: [3, 8, 13] },
+      code: { file: `${MAIN}/before/IfElseFranPlanner.java`, region: 'if-else', highlight: [3, 8, 13, 18] },
     },
     {
       id: 'smell',
@@ -112,11 +112,18 @@ const scene: Scene = {
       code: { file: `${MAIN}/FranPlanner.java`, region: 'client', highlight: [2, 3, 4] },
     },
     {
+      id: 'scoring',
+      visible: ['planner', ...KITS, ...PRODUCTS],
+      highlight: ['scorecard', 'teens'],
+      packets: [{ link: 'l-planner-kit', label: 'scorecard().score(…)' }],
+      code: { file: `${TEST}/FranPlannerTest.java`, region: 'scoring', highlight: [1, 2, 3] },
+    },
+    {
       id: 'spring-kits',
       visible: SPRING,
       highlight: ['context', 'service'],
       packets: [],
-      code: { file: `${MAIN}/WodService.java`, region: 'kits', highlight: [2, 8, 10] },
+      code: { file: `${MAIN}/WodService.java`, region: 'kits', highlight: [1, 2, 11, 13, 14] },
     },
     {
       id: 'request',
@@ -128,7 +135,7 @@ const scene: Scene = {
         { link: 'l-service-planner', label: 'plan(scaledKit)' },
         { link: 'l-planner-kit', label: 'barbell() · pull() · scorecard()' },
       ],
-      code: { file: `${TEST}/web/WodApiTest.java`, region: 'request', highlight: [1, 3, 4, 5] },
+      code: { file: `${TEST}/web/WodApiTest.java`, region: 'request', highlight: [1, 3, 4, 5, 6] },
     },
     {
       id: 'spring-does-it',
@@ -138,9 +145,9 @@ const scene: Scene = {
         { link: 'l-ds-connection', label: 'getConnection()' },
         { link: 'l-conn-statement', label: 'createStatement()' },
         { link: 'l-conn-prepared', label: 'prepareStatement()' },
-        { link: 'l-conn-metadata', label: 'getMetaData()' },
+        { link: 'l-conn-metadata', label: 'prepareCall()' },
       ],
-      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'jdbc', highlight: [1, 2, 3, 5, 6, 7] },
+      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'jdbc', highlight: [1, 2, 3, 4, 6] },
     },
     {
       id: 'recap',

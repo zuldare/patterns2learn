@@ -8,7 +8,7 @@ recap:
   participants:
     - AbstractFactory (DivisionKit), the interface with one method per piece of the family
     - ConcreteFactory (RxKit, ScaledKit, TeensKit), one per family
-    - AbstractProduct (Barbell, PullVariant, Scorecard), the pieces the family needs
+    - AbstractProduct (Scorecard), a piece with one implementation per family that scores differently; Barbell and PullVariant are data pieces
     - Client (FranPlanner), which puts the WOD together with whatever factory it's given
   pros:
     - Pieces from one family never get mixed with another's
@@ -23,12 +23,12 @@ recap:
     - Builder
     - Prototype
 quiz:
-  - q: What does FranPlanner receiving a whole DivisionKit, instead of three separate parameters, prevent?
+  - q: What do you avoid by passing FranPlanner a whole DivisionKit instead of three separate parameters?
     options:
-      - The planner having to know the divisions' database
-      - Having to declare a different bean for every WOD in the box
-      - Pieces from different families getting mixed, like Rx loads with a Scaled tag
-      - The JSON response ending up too large
+      - FranPlanner having to know each division's bean names
+      - Having to validate the barbell loads in the controller
+      - Pieces from different divisions reaching the planner
+      - The planner not being testable without starting Spring
     answer: 2
     explain: All three pieces come from the same kit, so they're always from the same division. With three separate parameters, nothing would stop you passing an Rx bar with a Scaled card.
   - q: The box opens a Masters division. What do you add?
@@ -43,8 +43,8 @@ quiz:
     options:
       - Abstract Factory can only be written with interfaces and Factory Method only with classes
       - Factory Method creates whole families of pieces and Abstract Factory a single object
-      - Not at all, they're two names for the same pattern depending on the book you read
-      - Abstract Factory creates a family of pieces; Factory Method, one piece through an overridden method
+      - Factory Method always creates new objects and Abstract Factory reuses existing ones
+      - Abstract Factory groups several creation methods; Factory Method is one, overridden
     answer: 3
     explain: An abstract factory is an object with several creation methods that belong together. Often each of those methods is, in turn, a factory method.
   - q: With Spring Boot and H2, what does connection.createStatement() return?
@@ -54,7 +54,7 @@ quiz:
       - Null, until the first query runs on that connection
       - A Spring object that translates the SQL to each database's dialect
     answer: 1
-    explain: Each Connection makes statements from its own driver. HikariCP wraps them (a Proxy), but underneath there's an H2 JdbcStatement, and isWrapperFor confirms it.
+    explain: Each Connection makes statements from its own driver. The pool, HikariCP, puts them in a wrapper of its own, but underneath there's an H2 JdbcStatement, and isWrapperFor confirms it.
 ---
 ## @step:problem — Fran for each division
 At the box, each athlete does Fran in their division. The board gives each one their own:
@@ -72,7 +72,9 @@ The first version, `IfElseFranPlanner`, decides each piece on its own: one `if` 
 ## @step:smell — A mixed card
 The load's `if` compares ignoring case and the tag's doesn't. All it takes is someone sending `"RX"`: the card comes out with **Rx loads and a Scaled tag**, and someone who did the full WOD shows up as scaled on the leaderboard. The `IfElseFranPlannerTest` test proves it.
 
-And every new division (Masters, adaptive) is three more `if`s, in three places.
+And every new division (Masters, adaptive) is four more `if`s, in four places.
+
+This particular bug could be fixed by normalising the text once, or with a `Division` enum. What Abstract Factory adds goes further: each family can bring **pieces with different behaviour**, and a new family doesn't touch the planner.
 
 > [!warning]
 > When several pieces must belong to the same family, deciding the family in each piece separately is asking for them to get mixed one day.
@@ -94,7 +96,7 @@ Whoever has a `DivisionKit` can ask it for the three pieces, and all three will 
 ## @step:families — Each factory, its family
 `RxKit` makes the 43 kg bar, the pull-ups and the 10-minute "Rx" card. `ScaledKit` and `TeensKit` do the same with their values.
 
-There isn't a single `if`: each class **is** a division, and it can't return a piece from another.
+There isn't a single `if`: each class **is** a division and gathers all its pieces in one place.
 @describe: RxKit, highlighted, makes its three pieces: Barbell 43 kg with barbell(), pull-ups with pull() and Rx · 10' with scorecard().
 
 ## @step:client — The planner doesn't know which division it is
@@ -103,17 +105,29 @@ There isn't a single `if`: each class **is** a division, and it can't return a p
 It doesn't know whether it's writing Fran for Rx or for Teens, and it doesn't need to. Since the three pieces come from the same kit, the card is always consistent.
 
 > [!key-idea]
-> The client depends on the factory's interface and the pieces' interfaces, never on a concrete family.
+> The client depends on the factory's interface and the pieces it hands out, never on a concrete family.
 @describe: FranPlanner, highlighted, asks DivisionKit for barbell(), pull() and scorecard().
+
+## @step:scoring — Each family scores its own way
+The pieces aren't just data. `Scorecard` is an interface, and each family brings its own way of scoring:
+
+- Rx and Scaled use `TimedScorecard`: if you finish, your score is your time ("3:05 Rx"); if you hit the cap, your reps ("CAP + 72 reps Rx").
+- Teens uses `TeensScorecard`: it always counts reps inside the cap, so nobody rushes the barbell.
+
+`FranPlanner` calls `kit.scorecard().score(...)` without knowing which one it got.
+
+> [!key-idea]
+> Abstract Factory pays off when families bring different classes or behaviour. If only a few numbers changed, an enum would do.
+@describe: The scorecard, highlighted together with TeensKit, is used with scorecard().score(…): each family scores its own way.
 
 ## @step:spring-kits — The factories are beans
 In Spring, each kit is a named `@Component`: `"rx"`, `"scaled"`, `"teens"`. `WodService` gets a `Map<String, DivisionKit>` with all of them, keyed by that name.
 
-When a request comes in, it normalises the division, looks up its kit in the map and hands it to the planner. If it doesn't exist, it answers 400.
+When a request comes in, it normalises the division (Rx if none is given), looks up its kit in the map and hands it to the planner. If it doesn't exist, it answers 400.
 
 > [!spring]
 > Injecting a `Map<String, Interface>` is the most direct way to pick a factory by key in Spring. To pick a single family for the whole application (by environment, say), `@Profile` or `@ConditionalOnProperty` work too.
-@describe: The Spring context appears. WodService, highlighted together with the context, has every factory at hand; FranPlanner, DivisionKit, the three kits and the Rx pieces are inside.
+@describe: The Spring context appears. WodService, highlighted together with the context, has every factory at hand; FranPlanner, DivisionKit and the three kits are inside.
 
 ## @step:request — Fran Scaled
 `GET /api/wods/fran?division=scaled`:
@@ -126,16 +140,13 @@ Without `division`, Rx is used. With a division that doesn't exist, the answer i
 @describe: GET /api/wods/fran?division=scaled travels from the coach to the controller, fran("scaled") to the service and plan(scaledKit) to FranPlanner, which asks DivisionKit for its pieces; FranPlanner and ScaledKit are highlighted.
 
 ## @step:spring-does-it — Spring already does it for you
-JDBC is an abstract factory you use every day. Spring Boot gives you a `DataSource`, and every `Connection` that comes out of it makes the pieces of **its** database:
+In JDBC, `Connection` works as an abstract factory. Spring Boot gives you a `DataSource`, and every `Connection` that comes out of it makes the pieces of **its** database: `createStatement()`, `prepareStatement(...)` and `prepareCall(...)` return statements from the H2 driver.
 
-- `createStatement()` and `prepareStatement(...)` return statements from the H2 driver;
-- `getMetaData()` describes that same database.
-
-Your code only sees the `java.sql` interfaces. Change the driver and the URL, and the whole family changes at once: you'll never get a PostgreSQL `Connection` with H2 statements. The connection pool (HikariCP) wraps them, but `isWrapperFor` confirms there's an H2 `JdbcStatement` underneath.
+Your code only sees the `java.sql` interfaces. Change the driver and the URL, and the whole family changes at once: you'll never get a PostgreSQL `Connection` with H2 statements. The connection pool (HikariCP) puts them in a wrapper of its own, but `isWrapperFor` confirms there are H2 statements underneath.
 
 > [!spring]
 > `JdbcTemplate` builds on this factory: it asks the `DataSource` for the connection and uses it to create the statements it needs.
-@describe: Inside the Spring context, DataSource hands out an H2 Connection, highlighted, which makes its Statement, its PreparedStatement and its DatabaseMetaData.
+@describe: DataSource, a bean in the Spring context, hands out an H2 Connection, highlighted, which makes its Statement, its PreparedStatement and its CallableStatement.
 
 ## @step:recap — Recap
 You started with three `if`s that could disagree and ended up with:
@@ -147,8 +158,8 @@ You started with three `if`s that could disagree and ended up with:
 
 Don't mix it up with its neighbours: **Factory Method** creates *one* piece with a method a subclass overrides; **Abstract Factory** is an object that creates *several* that belong together. **Builder** puts *one* complex object together step by step, and **Prototype** creates pieces by copying a model.
 
-And when you don't need it: if only one piece varies, a Strategy or a Factory Method is enough; and if the families are never going to change, a few constants are simpler.
+And when you don't need it: if only one piece varies, a Strategy or a Factory Method is enough; and if the families only differ in data (a few numbers, a few names), an `enum` with those values is simpler.
 
 > [!key-idea]
 > When several pieces must always match, have the same object make them.
-@describe: Final view: the coach, the controller, WodService, FranPlanner, DivisionKit with its three kits and the Rx pieces, all inside the Spring context.
+@describe: Final view: the coach, the controller, WodService, FranPlanner and DivisionKit with its three kits, all inside the Spring context.

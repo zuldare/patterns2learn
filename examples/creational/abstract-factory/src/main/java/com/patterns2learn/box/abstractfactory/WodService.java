@@ -20,7 +20,8 @@ public class WodService {
     }
 
     private DivisionKit kit(String division) {
-        String key = division == null || division.isBlank() ? "rx" : division.strip().toLowerCase(Locale.ROOT);
+        String key = division == null || division.isBlank()
+            ? "rx" : division.strip().toLowerCase(Locale.ROOT);     // no division: Rx
         DivisionKit kit = kits.get(key);
         if (kit == null) throw new UnknownDivisionException(abbreviate(key));
         return kit;
