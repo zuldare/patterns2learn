@@ -51,3 +51,7 @@ test('catalogue includes plus and tag', () => {
   expect(ICON_NAMES).toContain('plus');
   expect(ICON_NAMES).toContain('tag');
 });
+test('catalogue includes the heart and the plug', () => {
+  expect(ICON_NAMES).toContain('heart');
+  expect(ICON_NAMES).toContain('plug');
+});

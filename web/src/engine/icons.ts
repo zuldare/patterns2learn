@@ -9,7 +9,7 @@ import { project, type ScreenPoint } from './iso';
  * every colour is a token.
  */
 
-export const ICON_NAMES = ['gear', 'arrow-in', 'calendar', 'ten', 'ticket', 'cap', 'key', 'warning', 'leaf', 'board', 'timer', 'shield', 'db', 'file', 'bell', 'medal', 'plus', 'tag'] as const;
+export const ICON_NAMES = ['gear', 'arrow-in', 'calendar', 'ten', 'ticket', 'cap', 'key', 'warning', 'leaf', 'board', 'timer', 'shield', 'db', 'file', 'bell', 'medal', 'plus', 'tag', 'heart', 'plug'] as const;
 export type IconName = (typeof ICON_NAMES)[number];
 
 export function isIconName(v: unknown): v is IconName {
@@ -96,6 +96,13 @@ const ICONS: Record<IconName, () => string> = {
     `<path d="M.16 .2 H.52 L.86 .54 L.54 .86 L.16 .5 Z" ${st('fill:var(--surface)')}/>` +
     `<circle cx=".3" cy=".34" r=".05" ${st('fill:var(--ink)')}/>` +
     `<path d="M.46 .66 L.64 .48" ${st('fill:none;stroke:var(--danger);stroke-width:2.5px')}/>`,
+  heart: () =>
+    `<path d="M.5 .82 C.2 .6 .12 .44 .12 .34 C.12 .2 .24 .14 .34 .14 C.42 .14 .48 .2 .5 .26 C.52 .2 .58 .14 .66 .14 C.76 .14 .88 .2 .88 .34 C.88 .44 .8 .6 .5 .82 Z" ${st('fill:var(--danger)')}/>` +
+    `<path d="M.2 .46 H.36 L.42 .36 L.5 .58 L.56 .46 H.8" ${st('fill:none;stroke:var(--surface);stroke-width:2px')}/>`,
+  plug: () =>
+    `<path d="M.38 .14 V.32 M.62 .14 V.32" ${st('fill:none;stroke-width:3px')}/>` +
+    `<path d="M.26 .32 H.74 V.5 C.74 .62 .64 .7 .5 .7 C.36 .7 .26 .62 .26 .5 Z" ${st('fill:var(--accent)')}/>` +
+    `<path d="M.5 .7 V.88" ${st('fill:none;stroke-width:3px')}/>`,
   leaf: () => `<path d="M.2 .8 C.2 .35 .5 .15 .85 .15 C.85 .55 .6 .8 .2 .8 Z" ${st('fill:var(--accent)')}/><path d="M.2 .8 L.6 .4" ${st('fill:none')}/>`,
 };
 
