@@ -10,7 +10,8 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   use: { baseURL: 'http://localhost:4321', reducedMotion: 'reduce', trace: 'retain-on-failure' },
   webServer: {
-    command: 'pnpm build && pnpm preview --port 4321 --ignore-lock',
+    // CI builds in its own step right before; locally build first so tests never hit a stale dist/.
+    command: local ? 'pnpm build && pnpm preview --port 4321 --ignore-lock' : 'pnpm preview --port 4321 --ignore-lock',
     url: 'http://localhost:4321',
     reuseExistingServer: local,
     timeout: 180_000,
