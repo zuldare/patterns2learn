@@ -24,8 +24,13 @@ export const n = (v: number): string => String(Math.round(v * 100) / 100 + 0);
 const STROKE = 'stroke:var(--ink);stroke-width:1.5px;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke';
 /** Inline style attribute for a unit-square shape: ink stroke plus `extra`. */
 export const st = (extra = ''): string => `style="${STROKE}${extra ? `;${extra}` : ''}"`;
-const label = (x: number, y: number, size: number, text: string, fill = 'var(--ink)'): string =>
-  `<text x="${x}" y="${y}" text-anchor="middle" style="font-size:${size}px;font-weight:700;fill:${fill}">${text}</text>`;
+/**
+ * Text in unit-square coordinates. It is set at 100× the size and scaled back
+ * down, so browser minimum-font-size settings never inflate it.
+ */
+export const unitText = (x: number, y: number, size: number, text: string, fill = 'var(--ink)'): string =>
+  `<text transform="translate(${x} ${y}) scale(.01)" text-anchor="middle" style="font-size:${n(size * 100)}px;font-weight:700;fill:${fill}">${text}</text>`;
+const label = unitText;
 
 function gear(): string {
   const teeth = Array.from({ length: 8 }, (_, i) => {

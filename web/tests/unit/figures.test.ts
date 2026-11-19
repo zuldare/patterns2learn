@@ -75,3 +75,15 @@ test('socket draws its icon on the front instead of «i» when one is set', () =
   expect(g.querySelector('.figure-socket .fig-icon')).not.toBeNull();
   expect(g.innerHTML).not.toContain('«i»');
 });
+test('shadows and socket slots use the recess token so they read as depth on both themes', () => {
+  const g = dom(figureMarkup(ent({ id: 'i', kind: 'interface' }), { slots: 2, isImplementation: false }) + figureMarkup(ent({ id: 's', kind: 'block' }), plain));
+  for (const el of g.querySelectorAll('.fig-slot, .fig-shadow')) expect(el.getAttribute('style')).toContain('var(--recess)');
+  expect(g.querySelectorAll('.fig-slot, .fig-shadow').length).toBe(3);
+});
+test('no decal text uses a sub-pixel font size (browser minimum font sizes would blow it up)', () => {
+  const svg = ['calendar', 'ten'].map(icon => figureMarkup(ent({ id: 'b', kind: 'block', icon: icon as 'ten' }), plain)).join('') +
+    figureMarkup(ent({ id: 'i', kind: 'interface' }), plain);
+  const sizes = [...svg.matchAll(/font-size:([\d.]+)px/g)].map(m => Number(m[1]));
+  expect(sizes.length).toBeGreaterThanOrEqual(3);
+  for (const px of sizes) expect(px).toBeGreaterThanOrEqual(8);
+});

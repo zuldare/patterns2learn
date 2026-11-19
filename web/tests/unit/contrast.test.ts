@@ -1,5 +1,5 @@
 import css from '../../src/styles/tokens.css?raw';
-import { contrastRatio, readTokens } from '../../src/lib/contrast';
+import { contrastRatio, luminance, readTokens } from '../../src/lib/contrast';
 for (const theme of ['paper', 'blueprint'] as const) {
   const t = readTokens(css, theme);
   test(`${theme}: ink on bg/surface ≥ 4.5`, () => {
@@ -13,6 +13,10 @@ for (const theme of ['paper', 'blueprint'] as const) {
   test(`${theme}: accent-strong as graphic on bg/surface ≥ 3`, () => {
     expect(contrastRatio(t['--accent-strong'], t['--bg'])).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(t['--accent-strong'], t['--surface'])).toBeGreaterThanOrEqual(3);
+  });
+  test(`${theme}: recess (shadows, holes) is darker than bg and surface`, () => {
+    expect(luminance(t['--recess'])).toBeLessThan(luminance(t['--bg']));
+    expect(luminance(t['--recess'])).toBeLessThan(luminance(t['--surface']));
   });
 }
 test('known ratio', () => expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 1));

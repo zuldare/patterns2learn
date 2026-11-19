@@ -3,7 +3,8 @@ function channel(v: number): number {
   return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 }
 
-function luminance(hex: string): number {
+/** WCAG relative luminance of a #rrggbb colour (0 = black, 1 = white). */
+export function luminance(hex: string): number {
   const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) throw new Error(`Invalid hex colour: ${hex}`);
   const n = parseInt(m[1]!, 16);

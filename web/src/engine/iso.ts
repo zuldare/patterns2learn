@@ -19,9 +19,3 @@ export function project(p: IsoPoint): ScreenPoint {
 export function depth(e: Entity): number {
   return e.pos.x + e.pos.y + (e.pos.z ?? 0);
 }
-
-/** Projected centre of the entity's top face. */
-export function topCenter(e: Entity): ScreenPoint {
-  const { pos, size } = e;
-  return project({ x: pos.x + size.w / 2, y: pos.y + size.d / 2, z: (pos.z ?? 0) + size.h });
-}

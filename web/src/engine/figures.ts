@@ -1,4 +1,4 @@
-import { decal, iconMarkup, n, st, type Box3 } from './icons';
+import { decal, iconMarkup, n, st, unitText, type Box3 } from './icons';
 import { TILE_W, project, type ScreenPoint } from './iso';
 import type { Entity, Link } from './types';
 
@@ -77,7 +77,7 @@ function prism(b: Box3, f: Faces = {}, cls = ''): string {
 function shadow(b: Box3, scale = 0.62): string {
   const c = project({ x: b.x + b.w / 2, y: b.y + b.d / 2, z: b.z });
   const rx = Math.max(b.w, b.d) * scale * Math.SQRT2 * (TILE_W / 2);
-  return `<ellipse class="fig-shadow" cx="${n(c.sx)}" cy="${n(c.sy)}" rx="${n(rx)}" ry="${n(rx / 2)}" style="fill:var(--ink);opacity:.14"/>`;
+  return `<ellipse class="fig-shadow" cx="${n(c.sx)}" cy="${n(c.sy)}" rx="${n(rx)}" ry="${n(rx / 2)}" style="fill:var(--recess);opacity:.16"/>`;
 }
 
 const LEDS = [0.2, 0.35, 0.5]
@@ -114,14 +114,14 @@ function socket(e: Entity, b: Box3, slots: number): string {
   const holes = Array.from({ length: slots }, (_, i) => {
     const cx = (i + 0.5) / slots;
     const w = Math.min(0.18, 0.6 / slots);
-    return `<rect class="fig-slot" x="${n(cx - w / 2)}" y=".3" width="${n(w)}" height=".4" rx=".04" ${st('fill:var(--ink);opacity:.75')}/>`;
+    return `<rect class="fig-slot" x="${n(cx - w / 2)}" y=".3" width="${n(w)}" height=".4" rx=".04" ${st('fill:var(--recess);opacity:.8')}/>`;
   }).join('');
   return (
     prism(b) +
     (slots > 0 ? decal('top', b, holes, 'fig-slots') : '') +
     (e.icon
       ? decal('left', b, `<g transform="translate(.3 0) scale(.4 1)">${iconMarkup(e.icon)}</g>`, 'fig-icon')
-      : decal('left', b, `<text x=".5" y=".75" text-anchor="middle" style="font-size:.5px;font-weight:700;fill:var(--ink)">«i»</text>`))
+      : decal('left', b, unitText(0.5, 0.75, 0.5, '«i»')))
   );
 }
 

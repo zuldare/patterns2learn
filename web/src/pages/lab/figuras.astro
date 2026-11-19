@@ -121,31 +121,43 @@ const iconSvg = (icon: (typeof ICON_NAMES)[number]): string =>
       </div>
     </main>
 
-    <script define:vars={{ steps }} is:inline>
-      var root = document.documentElement;
-      function syncThemeButtons() {
-        document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+    <script type="application/json" id="lab-steps" set:html={JSON.stringify(steps)} />
+    <script>
+      import { itemState } from '../../engine/render';
+
+      const root = document.documentElement;
+      const syncThemeButtons = () => {
+        for (const b of document.querySelectorAll<HTMLElement>('[data-theme-set]')) {
           b.setAttribute('aria-pressed', String(b.dataset.themeSet === root.dataset.theme));
+        }
+      };
+      for (const b of document.querySelectorAll<HTMLElement>('[data-theme-set]')) {
+        b.addEventListener('click', () => {
+          root.dataset.theme = b.dataset.themeSet;
+          syncThemeButtons();
         });
       }
-      document.querySelectorAll('[data-theme-set]').forEach(function (b) {
-        b.addEventListener('click', function () { root.dataset.theme = b.dataset.themeSet; syncThemeButtons(); });
-      });
       syncThemeButtons();
 
-      document.querySelectorAll('[data-step]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          var st = steps.find(function (s) { return s.id === b.dataset.step; });
-          document.querySelectorAll('.stage [data-id]').forEach(function (el) {
-            var from = el.getAttribute('data-from');
-            var key = el.getAttribute('data-id');
-            var shown = from !== null ? st.visible.includes(from) && st.visible.includes(el.getAttribute('data-to')) : st.visible.includes(key);
-            el.classList.toggle('is-hidden', !shown);
-            el.classList.toggle('is-highlighted', st.highlight.includes(key));
-          });
-          document.querySelectorAll('[data-step]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      type LabStep = { id: string; visible: string[]; highlight: string[] };
+      const steps: LabStep[] = JSON.parse(document.getElementById('lab-steps')!.textContent ?? '[]');
+      for (const b of document.querySelectorAll<HTMLElement>('[data-step]')) {
+        b.addEventListener('click', () => {
+          const st = steps.find((s) => s.id === b.dataset.step);
+          if (!st) return;
+          // Same visibility rule as the static render and the lesson player.
+          for (const el of document.querySelectorAll<SVGGElement>('.stage [data-id]')) {
+            const { hidden, highlighted } = itemState(st, {
+              id: el.dataset.id ?? '',
+              from: el.dataset.from,
+              to: el.dataset.to,
+            });
+            el.classList.toggle('is-hidden', hidden);
+            el.classList.toggle('is-highlighted', highlighted);
+          }
+          for (const o of document.querySelectorAll('[data-step]')) o.setAttribute('aria-pressed', String(o === b));
         });
-      });
+      }
     </script>
   </body>
 </html>

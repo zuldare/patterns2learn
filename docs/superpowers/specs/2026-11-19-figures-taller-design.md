@@ -1,6 +1,6 @@
 # Figures "Taller": richer isometric figures for the engine
 
-Status: proposed (2026-11-19) · Spec: [docs/spec.md](../../spec.md) §8 (engine) · Spike: `web/src/lab/skins.ts`, `/lab/figuras/`
+Status: accepted and implemented (2026-11-19) · Spec: [docs/spec.md](../../spec.md) §8 (engine) · ADR: [0001-figuras-taller](../../adr/0001-figuras-taller.md) · Gallery: `/lab/figuras/` (the spike `web/src/lab/skins.ts` was removed once the engine took over)
 
 ## Intent
 
@@ -122,7 +122,7 @@ flowchart LR
   The demo fixture gets a couple of icons too, so the tests cover them.
 - **Sizes.** Cartridges are about 0.7 × 0.45 × 0.8 of the tile, bigger than in the spike, which looked small. Blocks keep their footprint.
 - **Lab page.** `/lab/figuras/` stays as a living gallery: every figure and every icon, in both themes, plus the Strategy scene step by step. It is rewired to the real engine, the spike's B column and `lab/skins.ts` are removed, and it keeps `noindex` and stays out of the sitemap.
-- **Docs.** Add ADR `docs/adr/0001-figures-taller.md` with the class diagram above, and update spec §8 (engine) and the content-model class diagram for `icon`.
+- **Docs.** Add ADR `docs/adr/0001-figuras-taller.md` with the class diagram above, and update spec §8 (engine) and the content-model class diagram for `icon`.
 
 ## Testing
 

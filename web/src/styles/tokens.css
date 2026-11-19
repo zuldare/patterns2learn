@@ -17,6 +17,8 @@
   --warn: #b4651d;
   --danger: #b23a2e;
   --pop-shadow: 2px 3px 0 var(--ink);
+  /* Depth in drawings (ground shadows, socket holes): always darker than --bg. */
+  --recess: #1c1f1a;
   --on-accent: var(--ink);
   /* Code (Shiki css-variables theme): every colour derives from the palette, AA on --surface and --code-hl. */
   --code-hl: var(--accent-soft);
@@ -47,6 +49,7 @@
   --warn: #ffc27a;
   --danger: #ff9a8f;
   --pop-shadow: 2px 3px 0 #061a33;
+  --recess: #061a33;
   --on-accent: var(--bg);
   --code-hl: var(--accent-soft);
   --shiki-foreground: var(--ink);

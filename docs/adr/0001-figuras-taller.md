@@ -98,4 +98,5 @@ flowchart LR
 - **Para quien escribe lecciones:** las escenas ganan expresividad sin datos nuevos, más allá del `icon` opcional. No se puede desincronizar el número de huecos con las implementaciones.
 - **Iconos nuevos:** cada uno se añade al catálogo (`engine/icons.ts`) con su test, y aparece automáticamente en `/lab/figuras/`.
 - **Móvil:** el diagrama ya se reduce al 45 %, así que los detalles pequeños (LEDs, iconos) apenas se aprecian. Las etiquetas siguen siendo lo principal.
-- **Actor:** el tono de un `actor` ya no cambia su color, porque la camiseta del atleta es siempre de acento.
+- **Actor:** el tono de un `actor` ya no cambia su color, porque la camiseta del atleta es siempre de acento. Un actor en `warn` o `danger` no se distingue por color; si una lección lo necesita, habrá que revisar esta decisión.
+- **Profundidad:** las sombras y los huecos usan el token `--recess`, que siempre es más oscuro que el fondo, para que en Blueprint no parezcan halos ni luces.
