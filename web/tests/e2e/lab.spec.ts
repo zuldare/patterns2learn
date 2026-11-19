@@ -8,7 +8,7 @@ for (const theme of ['paper', 'blueprint', 'dark'] as const) {
     });
     await page.goto(`/lab/figuras/?theme=${theme}`);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    await expect(page.locator('[data-gallery="icons"] .iso-entity')).toHaveCount(9);
+    await expect(page.locator('[data-gallery="icons"] .iso-entity')).toHaveCount(11);
     await expect(page.locator('[data-gallery="figures"] .figure-socket').first()).toBeVisible();
     await expect(page.locator('.stage .iso-entity[data-id="iface"] .fig-slot')).toHaveCount(4);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');

@@ -32,3 +32,7 @@ test.each([
 test('decal wraps the body in a transformed fig-decal group', () => {
   expect(decal('top', box, '<circle/>', 'fig-icon')).toMatch(/^<g class="fig-decal fig-icon" transform="matrix\([^"]+\)"><circle\/><\/g>$/);
 });
+test('catalogue includes the WOD board and the timer', () => {
+  expect(ICON_NAMES).toContain('board');
+  expect(ICON_NAMES).toContain('timer');
+});

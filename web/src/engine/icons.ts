@@ -9,7 +9,7 @@ import { project, type ScreenPoint } from './iso';
  * every colour is a token.
  */
 
-export const ICON_NAMES = ['gear', 'arrow-in', 'calendar', 'ten', 'ticket', 'cap', 'key', 'warning', 'leaf'] as const;
+export const ICON_NAMES = ['gear', 'arrow-in', 'calendar', 'ten', 'ticket', 'cap', 'key', 'warning', 'leaf', 'board', 'timer'] as const;
 export type IconName = (typeof ICON_NAMES)[number];
 
 export function isIconName(v: unknown): v is IconName {
@@ -61,6 +61,15 @@ const ICONS: Record<IconName, () => string> = {
   key: () => `<circle cx=".32" cy=".5" r=".14" ${st('fill:var(--surface)')}/><path d="M.46 .5 H.86 M.74 .5 V.64 M.84 .5 V.6" ${st('fill:none;stroke-width:2.5px')}/>`,
   warning: () =>
     `<path d="M.5 .16 L.88 .82 H.12 Z" ${st('fill:var(--warn)')}/><path d="M.5 .38 V.6" ${st('stroke-width:3px')}/><circle cx=".5" cy=".7" r=".03" ${st('fill:var(--ink)')}/>`,
+  board: () =>
+    `<rect x=".14" y=".16" width=".72" height=".62" rx=".04" ${st('fill:var(--surface)')}/>` +
+    `<rect x=".14" y=".16" width=".72" height=".14" ${st('fill:var(--accent)')}/>` +
+    `<path d="M.24 .42 H.7 M.24 .54 H.6 M.24 .66 H.66" ${st('fill:none;stroke-width:1px')}/>` +
+    `<path d="M.3 .78 L.24 .9 M.7 .78 L.76 .9" ${st('fill:none')}/>`,
+  timer: () =>
+    `<circle cx=".5" cy=".56" r=".3" ${st('fill:var(--surface)')}/>` +
+    `<path d="M.44 .14 H.56 M.5 .14 V.26" ${st('fill:none;stroke-width:2.5px')}/>` +
+    `<path d="M.5 .56 L.5 .38 M.5 .56 L.64 .64" ${st('fill:none;stroke:var(--accent-strong);stroke-width:2.5px')}/>`,
   leaf: () => `<path d="M.2 .8 C.2 .35 .5 .15 .85 .15 C.85 .55 .6 .8 .2 .8 Z" ${st('fill:var(--accent)')}/><path d="M.2 .8 L.6 .4" ${st('fill:none')}/>`,
 };
 
