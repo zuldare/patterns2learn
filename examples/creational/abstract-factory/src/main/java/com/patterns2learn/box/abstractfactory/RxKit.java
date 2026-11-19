@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class RxKit implements DivisionKit {
     @Override public Barbell barbell()     { return new Barbell(43); }
     @Override public PullVariant pull()    { return new PullVariant("pull-ups"); }
-    @Override public Scorecard scorecard() { return new Scorecard("Rx", 10); }
+    @Override public Scorecard scorecard() { return new TimedScorecard("Rx", 10); }
 }
 // @end

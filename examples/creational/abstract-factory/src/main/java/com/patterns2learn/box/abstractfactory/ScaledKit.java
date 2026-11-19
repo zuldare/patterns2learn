@@ -7,5 +7,5 @@ import org.springframework.stereotype.Component;
 public class ScaledKit implements DivisionKit {
     @Override public Barbell barbell()     { return new Barbell(29); }
     @Override public PullVariant pull()    { return new PullVariant("jumping pull-ups"); }
-    @Override public Scorecard scorecard() { return new Scorecard("Scaled", 12); }
+    @Override public Scorecard scorecard() { return new TimedScorecard("Scaled", 12); }
 }

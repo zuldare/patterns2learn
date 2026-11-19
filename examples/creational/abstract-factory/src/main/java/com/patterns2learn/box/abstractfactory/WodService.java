@@ -16,12 +16,20 @@ public class WodService {
     }
 
     public WodCard fran(String division) {
-        String key = division == null ? "" : division.strip().toLowerCase(Locale.ROOT);
+        return planner.plan(kit(division));
+    }
+
+    private DivisionKit kit(String division) {
+        String key = division == null || division.isBlank() ? "rx" : division.strip().toLowerCase(Locale.ROOT);
         DivisionKit kit = kits.get(key);
         if (kit == null) throw new UnknownDivisionException(abbreviate(key));
-        return planner.plan(kit);
+        return kit;
     }
     // @end
+
+    public String score(String division, int seconds, int reps) {
+        return planner.score(kit(division), seconds, reps);
+    }
 
     private static String abbreviate(String s) {
         return s.length() <= 20 ? s : s.substring(0, 20) + "…";

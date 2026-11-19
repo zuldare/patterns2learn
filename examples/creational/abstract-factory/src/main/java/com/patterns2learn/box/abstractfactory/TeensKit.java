@@ -7,5 +7,5 @@ import org.springframework.stereotype.Component;
 public class TeensKit implements DivisionKit {
     @Override public Barbell barbell()     { return new Barbell(20); }
     @Override public PullVariant pull()    { return new PullVariant("ring rows"); }
-    @Override public Scorecard scorecard() { return new Scorecard("Teens", 12); }
+    @Override public Scorecard scorecard() { return new TeensScorecard(12); }
 }

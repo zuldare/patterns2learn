@@ -8,11 +8,11 @@ class IfElseFranPlannerTest {
     final IfElseFranPlanner planner = new IfElseFranPlanner();
 
     @Test void itWorksWhenEveryoneWritesTheDivisionTheSameWay() {
-        assertThat(planner.plan("rx")).containsExactly("Fran · Rx", "thrusters 43 kg", "pull-ups");
+        assertThat(planner.plan("rx")).containsExactly("Fran · Rx", "thrusters 43 kg", "pull-ups", "cap 10'");
     }
 
     @Test void oneIfThatComparesDifferentlyMixesTwoFamilies() {
         // "RX" passes the case-insensitive weight check but not the tag check
-        assertThat(planner.plan("RX")).containsExactly("Fran · Scaled", "thrusters 43 kg", "pull-ups");
+        assertThat(planner.plan("RX")).containsExactly("Fran · Scaled", "thrusters 43 kg", "pull-ups", "cap 10'");
     }
 }

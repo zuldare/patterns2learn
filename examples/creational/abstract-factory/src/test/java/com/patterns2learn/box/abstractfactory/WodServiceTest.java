@@ -13,8 +13,9 @@ class WodServiceTest {
         assertThat(service.fran(" SCALED ").title()).isEqualTo("Fran · Scaled");
     }
 
-    @Test void unknownDivisionsAreRejected() {
+    @Test void unknownDivisionsAreRejectedAndBlankMeansRx() {
         assertThatThrownBy(() -> service.fran("masters")).isInstanceOf(UnknownDivisionException.class).hasMessage("unknown division: masters");
-        assertThatThrownBy(() -> service.fran(null)).isInstanceOf(UnknownDivisionException.class);
+        assertThat(service.fran(null).title()).isEqualTo("Fran · Rx");
+        assertThat(service.fran("  ").title()).isEqualTo("Fran · Rx");   // blank means "no division": the default
     }
 }

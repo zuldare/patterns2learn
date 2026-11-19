@@ -21,7 +21,11 @@ public class IfElseFranPlanner {
         else if (division.equals("teens")) tag = "Teens";
         else tag = "Scaled";                                // …so "RX" gets Rx weights and a Scaled tag
 
-        return List.of("Fran · " + tag, "thrusters " + kg + " kg", pull);
+        int cap;
+        if (division.equalsIgnoreCase("rx")) cap = 10;
+        else cap = 12;
+
+        return List.of("Fran · " + tag, "thrusters " + kg + " kg", pull, "cap " + cap + "'");
     }
     // @end
 }

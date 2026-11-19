@@ -21,10 +21,23 @@ class WodApiTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.title").value("Fran · Scaled"))
            .andExpect(jsonPath("$.lines[1]").value("thrusters 29 kg"))
-           .andExpect(jsonPath("$.lines[2]").value("jumping pull-ups"));
+           .andExpect(jsonPath("$.lines[2]").value("jumping pull-ups"))
+           .andExpect(jsonPath("$.timeCapMinutes").value(12));
         // @end
         mvc.perform(get("/api/wods/fran")).andExpect(jsonPath("$.title").value("Fran · Rx"));
         mvc.perform(get("/api/wods/fran").param("division", "teens")).andExpect(jsonPath("$.lines[2]").value("ring rows"));
+    }
+
+    @Test void scoringDependsOnTheDivision() throws Exception {
+        mvc.perform(get("/api/wods/fran/score").param("division", "teens").param("seconds", "412").param("reps", "90"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.score").value("90 reps Teens"));
+        mvc.perform(get("/api/wods/fran/score").param("seconds", "700").param("reps", "90"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("time must be between 1 and 600 seconds"));
+        mvc.perform(get("/api/wods/fran/score").param("seconds", "100"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("missing parameter reps"));
     }
 
     @Test void anUnknownDivisionIs400() throws Exception {
