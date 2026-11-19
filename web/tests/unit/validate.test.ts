@@ -102,3 +102,20 @@ test('isSafeSnippetPath', async () => {
   expect(isSafeSnippetPath('behavioral/strategy/src/A.java')).toBe(true);
   expect(isSafeSnippetPath('../A.java')).toBe(false);
 });
+
+function validateWithEntityPatch(id: string, patch: Partial<Scene['entities'][number]>): string[] {
+  const [scene, texts, snips] = fixture();
+  scene.entities.push({ id: 'ctx', kind: 'container', label: 'C', pos: { x: 0, y: 0 }, size: { w: 4, d: 4, h: 0.25 }, tone: 'neutral' });
+  scene.entities = scene.entities.map((e) => (e.id === id ? { ...e, ...patch } : e));
+  return validateLesson('demo', scene, texts, snips);
+}
+test('rejects unknown icons', () => {
+  expect(validateWithEntityPatch('b', { icon: 'rocket' as never })).toContain('demo/scene.ts: entity "b" has unknown icon "rocket"');
+});
+test('rejects icons on actors and containers', () => {
+  expect(validateWithEntityPatch('a', { icon: 'gear' })).toContain('demo/scene.ts: entity "a" (actor) cannot have an icon');
+  expect(validateWithEntityPatch('ctx', { icon: 'leaf' })).toContain('demo/scene.ts: entity "ctx" (container) cannot have an icon');
+});
+test('accepts known icons on blocks', () => {
+  expect(validateWithEntityPatch('b', { icon: 'gear' })).toEqual([]);
+});

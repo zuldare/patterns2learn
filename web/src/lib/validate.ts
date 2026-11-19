@@ -1,3 +1,4 @@
+import { isIconName } from '../engine/icons';
 import { locales } from '../i18n';
 import type { Locale, LessonText, Scene } from '../engine/types';
 import type { Snippet } from './snippets';
@@ -82,6 +83,13 @@ export function validateLesson(
     ['step', scene.steps.map((s) => s.id)],
   ] as const) {
     for (const id of duplicates([...ids])) errors.push(`${sceneFile}: duplicate ${what} id "${id}"`);
+  }
+
+  // Icons (ADR 0001): only from the catalogue, never on actors or containers.
+  for (const e of scene.entities) {
+    if (e.icon === undefined) continue;
+    if (!isIconName(e.icon)) errors.push(`${sceneFile}: entity "${e.id}" has unknown icon "${String(e.icon)}"`);
+    if (e.kind === 'actor' || e.kind === 'container') errors.push(`${sceneFile}: entity "${e.id}" (${e.kind}) cannot have an icon`);
   }
 
   // Rule 4: step count

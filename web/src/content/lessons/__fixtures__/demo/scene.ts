@@ -9,9 +9,9 @@ const scene: Scene = {
   entities: [
     { id: 'ctx', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 7, d: 6, h: 0.25 }, tone: 'neutral' },
     { id: 'client', kind: 'actor', label: 'Client', pos: { x: -3.5, y: 4 }, size: { w: 1, d: 1, h: 0.5 }, tone: 'neutral' },
-    { id: 'service', kind: 'block', label: 'PricingService', pos: { x: 1, y: 2, z: 0.25 }, size: { w: 1.5, d: 1.5, h: 1 }, tone: 'accent' },
+    { id: 'service', kind: 'block', label: 'PricingService', pos: { x: 1, y: 2, z: 0.25 }, size: { w: 1.5, d: 1.5, h: 1 }, tone: 'accent', icon: 'gear' },
     { id: 'strategy', kind: 'interface', label: 'PricingStrategy', pos: { x: 4.5, y: 0.5, z: 0.25 }, size: { w: 1.5, d: 1.5, h: 1 }, tone: 'neutral' },
-    { id: 'tenpack', kind: 'block', label: 'TenPackPricing', pos: { x: 4.5, y: 4, z: 0.25 }, size: { w: 1.5, d: 1.5, h: 0.75 }, tone: 'warn' },
+    { id: 'tenpack', kind: 'block', label: 'TenPackPricing', pos: { x: 4.5, y: 4, z: 0.25 }, size: { w: 1.5, d: 1.5, h: 0.75 }, tone: 'warn', icon: 'ten' },
   ],
   links: [
     { id: 'l-call', from: 'client', to: 'service', style: 'call' },

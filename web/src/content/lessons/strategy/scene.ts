@@ -30,15 +30,15 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 const entities: Entity[] = [
   { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 2.45, y: 11.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
   { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'PricingController', ...at(1.3, 6.1), tone: 'neutral' },
-  { id: 'legacy', kind: 'block', label: 'LegacyPricingService', ...at(6.15, 1.85), tone: 'danger' },
-  { id: 'service', kind: 'block', label: 'PricingService', ...at(6.15, 1.85), tone: 'accent' },
+  { id: 'controller', kind: 'block', label: 'PricingController', ...at(1.3, 6.1), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'legacy', kind: 'block', label: 'LegacyPricingService', ...at(6.15, 1.85), tone: 'danger', icon: 'warning' },
+  { id: 'service', kind: 'block', label: 'PricingService', ...at(6.15, 1.85), tone: 'accent', icon: 'gear' },
   { id: 'iface', kind: 'interface', label: 'PricingStrategy', ...at(8.85, 1.15, IFACE), tone: 'neutral' },
-  { id: 'monthly', kind: 'block', label: 'monthly', ...at(8.95, 8.6, SMALL), tone: 'neutral' },
-  { id: 'tenpack', kind: 'block', label: 'ten-pack', ...at(6.5, 5.75, SMALL), tone: 'neutral' },
-  { id: 'dropin', kind: 'block', label: 'drop-in', ...at(11.15, 0.85, SMALL), tone: 'neutral' },
-  { id: 'student', kind: 'block', label: 'student', ...at(4.25, 8, SMALL), tone: 'accent' },
-  { id: 'encoder', kind: 'block', label: 'DelegatingPasswordEncoder', ...at(6.5, 4.4), tone: 'accent' },
+  { id: 'monthly', kind: 'block', label: 'monthly', ...at(8.95, 8.6, SMALL), tone: 'neutral', icon: 'calendar' },
+  { id: 'tenpack', kind: 'block', label: 'ten-pack', ...at(6.5, 5.75, SMALL), tone: 'neutral', icon: 'ten' },
+  { id: 'dropin', kind: 'block', label: 'drop-in', ...at(11.15, 0.85, SMALL), tone: 'neutral', icon: 'ticket' },
+  { id: 'student', kind: 'block', label: 'student', ...at(4.25, 8, SMALL), tone: 'accent', icon: 'cap' },
+  { id: 'encoder', kind: 'block', label: 'DelegatingPasswordEncoder', ...at(6.5, 4.4), tone: 'accent', icon: 'key' },
 ];
 
 const STRATEGIES = ['monthly', 'tenpack', 'dropin'];
