@@ -8,7 +8,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
-  use: { baseURL: 'http://localhost:4321', trace: 'retain-on-failure' },
+  use: { baseURL: 'http://localhost:4321', reducedMotion: 'reduce', trace: 'retain-on-failure' },
   webServer: {
     command: 'pnpm build && pnpm preview --port 4321 --ignore-lock',
     url: 'http://localhost:4321',
@@ -18,7 +18,7 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      testMatch: 'lesson.spec.ts',
+      testMatch: ['lesson.spec.ts', 'cheatsheet.spec.ts'],
       use: { browserName: 'chromium', viewport: { width: 1440, height: 900 }, launchOptions },
     },
     {
