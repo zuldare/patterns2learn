@@ -11,7 +11,7 @@ public class WodService {
 
     // @step:kits
     public WodService(Map<String, DivisionKit> kits, FranPlanner planner) {
-        this.kits = Map.copyOf(kits);           // every DivisionKit bean, keyed by its bean name: rx, scaled, teens
+        this.kits = Map.copyOf(kits);   // one per DivisionKit bean, by name: rx, scaled, teens
         this.planner = planner;
     }
 

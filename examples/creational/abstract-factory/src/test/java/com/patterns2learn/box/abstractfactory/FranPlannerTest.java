@@ -8,13 +8,11 @@ class FranPlannerTest {
     final FranPlanner planner = new FranPlanner();
 
     @Test void anRxCardUsesOnlyRxPieces() {
-        // @step:card
         WodCard card = planner.plan(new RxKit());
 
         assertThat(card.lines()).containsExactly("21-15-9", "thrusters 43 kg", "pull-ups");
         assertThat(card.title()).isEqualTo("Fran · Rx");
         assertThat(card.timeCapMinutes()).isEqualTo(10);
-        // @end
     }
 
     @Test void everyKitBringsAConsistentFamily() {

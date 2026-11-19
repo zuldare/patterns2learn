@@ -16,8 +16,8 @@ class SpringDoesItTooTest {
 
     @Test void aConnectionMakesStatementsOfItsOwnDriverFamily() throws Exception {
         // @step:jdbc
-        try (Connection connection = dataSource.getConnection();               // the factory for this database…
-             Statement statement = connection.createStatement();               // …makes its statements
+        try (Connection connection = dataSource.getConnection();     // the factory for this database…
+             Statement statement = connection.createStatement();     // …makes its statements
              PreparedStatement prepared = connection.prepareStatement("select 1")) {
 
             assertThat(connection.getMetaData().getDatabaseProductName()).isEqualTo("H2");
