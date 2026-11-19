@@ -41,6 +41,7 @@
   </build>
 
   <modules>
+    <module>creational/singleton</module>
     <module>behavioral/strategy</module>
   </modules>
 </project>
