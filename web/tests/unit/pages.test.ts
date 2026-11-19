@@ -46,3 +46,24 @@ test('home lists the start-here path with only Strategy linked', () => {
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);
   }
 });
+
+test('donate placeholder URL is never published', () => {
+  for (const page of ['es/index.html', 'en/patterns/strategy/index.html', 'es/patterns/strategy/cheatsheet/index.html']) {
+    const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
+    expect(html, page).not.toContain('REPLACE_ME');
+  }
+});
+
+test('lesson and cheatsheet link to the runnable example', () => {
+  const href = 'href="https://github.com/zuldare/patterns2learn/tree/main/examples/behavioral/strategy"';
+  for (const lang of ['es', 'en']) {
+    for (const page of [`${lang}/patterns/strategy/index.html`, `${lang}/patterns/strategy/cheatsheet/index.html`]) {
+      const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
+      const link = html.match(new RegExp(`<a[^>]*${href}[^>]*>`))?.[0];
+      expect(link, page).toBeDefined();
+      expect(link).toContain('target="_blank"');
+      expect(link).toContain('rel="noopener"');
+      expect(html).toContain(lang === 'es' ? 'Ejecútalo' : 'Run it');
+    }
+  }
+});

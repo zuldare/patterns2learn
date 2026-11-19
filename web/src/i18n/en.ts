@@ -42,6 +42,4 @@ export const en = {
   ogImageAlt: 'Isometric diagram of the Strategy pattern in a CrossFit box, with the patterns2learn name',
   comingSoon: 'Coming soon',
   startHereIntro: 'Recommended order: first what Spring already uses for you, then what you implement yourself.',
-  viewCourse: 'Full course',
-  startLesson: 'Start lesson',
 } as const;

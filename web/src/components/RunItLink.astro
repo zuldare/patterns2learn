@@ -1,0 +1,16 @@
+---
+import { exampleUrl } from '../config';
+import type { Lesson } from '../engine/types';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  lesson: Pick<Lesson, 'category' | 'slug'>;
+  class?: string;
+}
+
+const { lang, lesson, class: cls } = Astro.props;
+---
+<a class:list={['run-it', cls]} href={exampleUrl(lesson.category, lesson.slug)} target="_blank" rel="noopener">
+  {t(lang, 'runIt')} <span aria-hidden="true">↗</span>
+</a>

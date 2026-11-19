@@ -242,6 +242,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 .lesson-end { display: grid; gap: 24px; max-width: 760px; }
 .step-text__sheet { margin: 12px 0 0; }
+.lesson-end__run { margin: 0; }
 
 .quiz-section__title { font-size: 1.25rem; margin-bottom: 12px; }
 .quiz { display: grid; gap: 16px; }

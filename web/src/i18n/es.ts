@@ -44,6 +44,4 @@ export const es: { [K in keyof typeof en]: string } = {
   ogImageAlt: 'Diagrama isométrico del patrón Strategy en un box de CrossFit, con el nombre patterns2learn',
   comingSoon: 'Próximamente',
   startHereIntro: 'Orden recomendado: primero lo que Spring ya usa por ti y después lo que implementas tú.',
-  viewCourse: 'Curso completo',
-  startLesson: 'Empezar lección',
 };

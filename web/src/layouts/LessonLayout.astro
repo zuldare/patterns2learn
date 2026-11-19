@@ -7,6 +7,7 @@ import IsoCanvas from '../components/IsoCanvas.astro';
 import StepBar from '../components/StepBar.astro';
 import DonateCard from '../components/DonateCard.astro';
 import Quiz from '../components/Quiz.astro';
+import RunItLink from '../components/RunItLink.astro';
 import StepPanel from '../components/StepPanel.astro';
 import type { Lesson } from '../engine/types';
 import { resolveSteps } from '../lib/lessons';
@@ -46,6 +47,7 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
       <CodePanel lang={lang} steps={steps} />
       <div class="lesson-end">
         <Quiz lang={lang} slug={lesson.slug} questions={text.quiz} />
+        <p class="lesson-end__run"><RunItLink lang={lang} lesson={lesson} class="btn" /></p>
         <DonateCard lang={lang} />
       </div>
       <script type="application/json" data-lesson-scene set:html={sceneJson} />

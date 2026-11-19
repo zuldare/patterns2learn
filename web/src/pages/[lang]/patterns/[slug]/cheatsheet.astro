@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import RunItLink from '../../../../components/RunItLink.astro';
 import printCss from '../../../../styles/print.css?url';
 import { highlightJava } from '../../../../lib/highlight';
 import { renderSceneAtStep } from '../../../../lib/cheatsheet';
@@ -74,7 +75,7 @@ const codeFile = last.snippet?.file.split('/').pop();
         <ul class="sheet__tags">{recap.related.map((r) => <li>{r}</li>)}</ul>
       </section>
     )}
-    <p class="sheet__back"><a href={`/${lang}/patterns/${lesson.slug}/`}>← {text.title}</a></p>
+    <p class="sheet__back"><a href={`/${lang}/patterns/${lesson.slug}/`}>← {text.title}</a> · <RunItLink lang={lang} lesson={lesson} /></p>
   </article>
 </BaseLayout>
 
