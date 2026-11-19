@@ -47,6 +47,7 @@
     <module>structural/proxy</module>
     <module>structural/adapter</module>
     <module>structural/decorator</module>
+    <module>structural/facade</module>
     <module>behavioral/template-method</module>
     <module>behavioral/strategy</module>
     <module>behavioral/observer</module>
