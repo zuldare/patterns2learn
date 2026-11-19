@@ -56,5 +56,6 @@
     <module>behavioral/chain-of-responsibility</module>
     <module>behavioral/command</module>
     <module>behavioral/state</module>
+    <module>behavioral/iterator</module>
   </modules>
 </project>
