@@ -15,6 +15,12 @@ function readStored(): unknown {
   }
 }
 
+/**
+ * Stored theme, else the OS preference. Reference implementation kept under
+ * unit test: the initial theme of every page is applied before first paint by
+ * the inline script in layouts/BaseLayout.astro, which is the source of truth
+ * (it also honours `?theme=`). Keep both rules in sync.
+ */
 export function getTheme(): Theme {
   const stored = readStored();
   if (isTheme(stored)) return stored;
