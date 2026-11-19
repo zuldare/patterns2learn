@@ -10,7 +10,7 @@ public class Membership {
 
     public Membership(int id, String athlete, MembershipState state, int trialVisitsUsed) {
         if (state == null) throw new IllegalArgumentException("state is required");
-        if (trialVisitsUsed < 0 || trialVisitsUsed > TRIAL_VISITS) throw new IllegalArgumentException("trial visits must be between 0 and 3");
+        if (trialVisitsUsed < 0 || trialVisitsUsed > TRIAL_VISITS) throw new IllegalArgumentException("trial visits must be between 0 and " + TRIAL_VISITS);
         this.id = id;
         this.athlete = athlete;
         this.state = state;
@@ -30,7 +30,7 @@ public class Membership {
     }
 
     public int trialVisitsLeft() {
-        return state == MembershipState.TRIAL ? TRIAL_VISITS - trialVisitsUsed : 0;
+        return state.trialVisitsLeft(this);
     }
 
     public int id() { return id; }

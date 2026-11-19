@@ -16,6 +16,9 @@ public enum MembershipState {
             m.useTrialVisit();
             return this;
         }
+        @Override int trialVisitsLeft(Membership m) {
+            return Membership.TRIAL_VISITS - m.trialVisitsUsed();
+        }
         @Override MembershipState renew(Membership m) { return ACTIVE; }
     },
     ACTIVE {
@@ -45,6 +48,7 @@ public enum MembershipState {
     MembershipState resume(Membership m) { return refuse("resume"); }
     MembershipState renew(Membership m) { return refuse("renew"); }
     MembershipState expire(Membership m) { return refuse("expire"); }
+    int trialVisitsLeft(Membership m) { return 0; }
 
     private MembershipState refuse(String action) {
         String name = name().toLowerCase(Locale.ROOT);

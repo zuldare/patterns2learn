@@ -16,7 +16,7 @@ recap:
   cons:
     - With two states and one rule, an if is clearer
     - Transitions end up spread across the states; to see the whole map you have to read them all
-    - If you store the state by name, renaming a constant means migrating the data
+    - The context has to open up to the states whatever they need to change (here, useTrialVisit()), which adds methods to it
   related:
     - Strategy
     - Singleton
@@ -37,13 +37,13 @@ quiz:
       - An if in MembershipService that checks whether the member is injured
       - The table, to store an injured boolean next to the state
     answer: 1
-    explain: INJURED decides what happens on check-in or on resume. You also need an action, say injure() on ACTIVE, that returns INJURED. The other states don't change.
+    explain: You add the INJURED constant, which decides what happens on check-in or on resume, and one new action (injure(), with its case in the service) that ACTIVE overrides to return INJURED. The methods the other states already had don't change.
   - q: Why can every frozen membership share the same FROZEN object?
     options:
       - Because the state holds no member data; that data lives in Membership
       - Because Spring registers each enum constant as a singleton bean
       - Because the database only stores one row per state
-      - Because Java doesn't allow more than one object per class
+      - Because valueOf caches the objects it has already read from the database
     answer: 0
     explain: FROZEN only has behaviour. What changes from one member to another (their trial visits, say) is in Membership, which is passed in as a parameter.
   - q: What does MembershipRepository store in the status column?
@@ -70,7 +70,7 @@ The first version, `SwitchingMembership`, keeps the state in a `String` and ever
 @describe: The athlete asks MembershipController to come in, which asks SwitchingMembership, highlighted in red, with a switch on the state.
 
 ## @step:smell — One more state, every switch
-Look at the `default` lines: every method repeats "unknown status", because a `String` accepts anything and a typo like `"activ"` only shows up in production.
+Look at the `default` lines: every method repeats "unknown status", because a `String` accepts anything and a typo like `"activ"` only shows up at runtime.
 
 And if the box adds a new state, say "injured", you have to open **every** `switch` and decide what it does in each one. Forget one and the compiler won't tell you.
 
@@ -81,19 +81,19 @@ And if the box adds a new state, say "injured", you have to open **every** `swit
 ## @step:states — One object per state
 State puts each situation in its own object. In Java, the most natural way is an `enum` where each constant overrides the methods that concern it:
 
-- `TRIAL` lets you in while visits remain, and `renew()` moves it to `ACTIVE`;
-- `ACTIVE` lets you in, and `freeze()` returns `FROZEN`;
-- `FROZEN` doesn't let you in, and `resume()` goes back to `ACTIVE`;
+- `TRIAL` lets you in while visits remain (and it's the only one that counts them), and `renew()` moves it to `ACTIVE`;
+- `ACTIVE` lets you in, `freeze()` returns `FROZEN` and `expire()`, `EXPIRED`;
+- `FROZEN` doesn't let you in, `resume()` goes back to `ACTIVE` and it can expire too;
 - `EXPIRED` doesn't let you in, and `renew()` goes back to `ACTIVE`.
 
 Each method **returns the next state**: the transitions are written in the state itself.
 
 > [!key-idea]
 > The rules for "frozen" are all in `FROZEN`. To know what it can do, you read a single place.
-@describe: The four states appear, highlighted, as a diagram: renew() goes from TRIAL to ACTIVE, freeze() from ACTIVE to FROZEN, resume() back to ACTIVE and expire() to EXPIRED.
+@describe: The four states appear, highlighted, as a diagram: renew() goes from TRIAL to ACTIVE, freeze() from ACTIVE to FROZEN, resume() back to ACTIVE, expire() to EXPIRED and renew() from EXPIRED to ACTIVE.
 
 ## @step:context — The membership delegates
-`Membership` is the **context**: it's what the rest of the app uses. It has not a single `if` on its state. Every action does the same thing: it hands it to its current state and keeps the state that comes back.
+`Membership` is the **context**: it's what the rest of the app uses. It has not a single `if` on its state: even the trial visits left are asked of the state. Every action does the same thing: it hands it to its current state and keeps the state that comes back.
 
 `state = state.freeze(this)`: if the membership is active, it becomes frozen; if it's on trial, the state refuses with an error. `Membership` doesn't need to know which of the two will happen.
 @describe: Membership appears, highlighted, handing the action to its current state, ACTIVE, with state.freeze(this).
@@ -126,7 +126,10 @@ The example test does exactly this, and another one checks that a refused action
 3. It saves the membership and answers 200 with the new state.
 
 If she then tries to come in, `POST /api/memberships/1/check-in` answers 409 with the reason `FROZEN` gives.
-@describe: POST /api/memberships/1/freeze travels from the athlete to the controller, apply() to the service and freeze() to Membership, highlighted; ACTIVE moves to FROZEN, also highlighted, and the service calls save() on the repository.
+
+> [!warning]
+> The transaction alone doesn't stop two requests from reading the same membership at once and the last one overwriting the other (two simultaneous check-ins with the last trial visit, say). That's why `save()` only updates the row if it's still as it was read, and otherwise answers 409 so the client can retry.
+@describe: POST /api/memberships/1/freeze travels from the athlete to the controller and apply() to the service, which asks the repository for find() and Membership, highlighted, for freeze(); ACTIVE moves to FROZEN, also highlighted.
 
 ## @step:persist — And Spring?
 Spring's core doesn't ship a general State. What the app does need is to **keep the state between requests**, and that's where the enum helps:
@@ -135,11 +138,11 @@ Spring's core doesn't ship a general State. What the app does need is to **keep 
 - when reading, `MembershipState.valueOf(...)` returns the constant, always the same object;
 - since a state holds no member data, every frozen membership shares the same `FROZEN`.
 
-When transitions get complicated (events, guards, actions on entering or leaving a state, history), there's **Spring Statemachine**, a separate project that defines the state machine declaratively.
+And Spring already treats enums by name in several places: Spring Data JDBC stores them with `name()`, and Spring MVC turns a URL parameter into the constant with `valueOf` (which is case-sensitive). With JPA, on the other hand, `@Enumerated` uses the position (`ORDINAL`) by default: always write `@Enumerated(EnumType.STRING)`.
 
 > [!warning]
 > If you store the state by name, renaming a constant leaves rows that can no longer be read. Treat it as a schema change and migrate the data.
-@describe: Inside the Spring context, MembershipRepository, highlighted, stores "FROZEN" in the membership table, also highlighted.
+@describe: Inside the Spring context, MembershipRepository, highlighted, stores "FROZEN" in the membership table, also highlighted, only if the row hasn't changed since it was read.
 
 ## @step:recap — Recap
 You started with a `switch` on a `String` in every method and ended up with:
@@ -151,7 +154,7 @@ You started with a `switch` on a `String` in every method and ended up with:
 
 Don't mix it up with **Strategy**: both put behaviour into interchangeable objects, but a strategy is picked by whoever uses it, whereas here it's the state itself that decides when to change to the next one.
 
-And when you don't need it: with two states and one rule, an `if` reads better; and if there are many transitions that change often, a transition table or Spring Statemachine makes them more visible.
+And when you don't need it: with two states and one rule, an `if` reads better; and if there are many transitions that change often, a transition table (state and event, next state) makes them more visible.
 
 > [!key-idea]
 > When the same object behaves differently depending on its situation, put each situation in its own object and let it decide the next one.

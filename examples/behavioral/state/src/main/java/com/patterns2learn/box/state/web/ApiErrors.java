@@ -1,5 +1,6 @@
 package com.patterns2learn.box.state.web;
 
+import com.patterns2learn.box.state.ConcurrentChangeException;
 import com.patterns2learn.box.state.MembershipRuleException;
 import com.patterns2learn.box.state.UnknownActionException;
 import com.patterns2learn.box.state.UnknownMembershipException;
@@ -12,8 +13,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @RestControllerAdvice
 public class ApiErrors {
-    @ExceptionHandler(MembershipRuleException.class)
-    public ResponseEntity<Map<String, String>> conflict(MembershipRuleException e) {
+    @ExceptionHandler({MembershipRuleException.class, ConcurrentChangeException.class})
+    public ResponseEntity<Map<String, String>> conflict(RuntimeException e) {
         return error(HttpStatus.CONFLICT, e.getMessage());
     }
 

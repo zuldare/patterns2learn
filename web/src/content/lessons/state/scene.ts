@@ -73,7 +73,7 @@ const scene: Scene = {
       visible: ['athlete', 'controller', 'switching'],
       highlight: ['switching'],
       packets: [],
-      code: { file: `${MAIN}/before/SwitchingMembership.java`, region: 'switching', highlight: [6, 13, 14, 21, 22] },
+      code: { file: `${MAIN}/before/SwitchingMembership.java`, region: 'switching', highlight: [6, 14, 22] },
     },
     {
       id: 'states',
@@ -84,8 +84,9 @@ const scene: Scene = {
         { link: 't-active-frozen', label: 'freeze()' },
         { link: 't-frozen-active', label: 'resume()' },
         { link: 't-active-expired', label: 'expire()' },
+        { link: 't-expired-active', label: 'renew()' },
       ],
-      code: { file: `${MAIN}/MembershipState.java`, region: 'states', highlight: [9, 13, 15, 21, 28] },
+      code: { file: `${MAIN}/MembershipState.java`, region: 'states', highlight: [3, 9, 12, 16, 18, 24, 25, 31] },
     },
     {
       id: 'context',
@@ -99,7 +100,7 @@ const scene: Scene = {
       visible: ['membership', ...STATES],
       highlight: ['trial', 'expired'],
       packets: [],
-      code: { file: `${MAIN}/MembershipState.java`, region: 'defaults', highlight: [1, 2, 7, 10] },
+      code: { file: `${MAIN}/MembershipState.java`, region: 'defaults', highlight: [1, 2, 6, 8, 11] },
     },
     {
       id: 'walkthrough',
@@ -109,7 +110,7 @@ const scene: Scene = {
         { link: 't-active-frozen', label: 'freeze()' },
         { link: 't-frozen-active', label: 'resume()' },
       ],
-      code: { file: `${TEST}/MembershipTest.java`, region: 'freeze', highlight: [3, 4, 5] },
+      code: { file: `${TEST}/MembershipTest.java`, region: 'freeze', highlight: [3, 4, 5, 6] },
     },
     {
       id: 'request',
@@ -118,9 +119,9 @@ const scene: Scene = {
       packets: [
         { link: 'l-athlete-controller', label: 'POST /api/memberships/1/freeze' },
         { link: 'l-controller-service', label: 'apply()' },
+        { link: 'l-service-repo', label: 'find()' },
         { link: 'l-service-membership', label: 'freeze()' },
         { link: 't-active-frozen', label: 'FROZEN' },
-        { link: 'l-service-repo', label: 'save()' },
       ],
       code: { file: `${TEST}/web/MembershipApiTest.java`, region: 'request', highlight: [1, 3, 4, 5, 6] },
     },
@@ -129,7 +130,7 @@ const scene: Scene = {
       visible: ['context', 'service', 'membership', ...STATES, 'repo', 'db'],
       highlight: ['repo', 'db'],
       packets: [{ link: 'l-repo-db', label: '"FROZEN"' }],
-      code: { file: `${MAIN}/MembershipRepository.java`, region: 'persist', highlight: [5, 12] },
+      code: { file: `${MAIN}/MembershipRepository.java`, region: 'persist', highlight: [5, 13, 14, 17] },
     },
     {
       id: 'recap',

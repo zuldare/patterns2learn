@@ -22,10 +22,14 @@ public class MembershipRepository {
             .optional();
     }
 
-    public void save(Membership m) {
-        jdbc.sql("update membership set status = ?, trial_visits = ? where id = ?")
-            .params(m.state().name(), m.trialVisitsUsed(), m.id())      // only the state's name is stored
+    /** Saves only if nobody changed the row since we read it (the values we read are the condition). */
+    public void save(Membership m, MembershipState readState, int readTrialVisits) {
+        int rows = jdbc.sql("update membership set status = ?, trial_visits = ? "
+                + "where id = ? and status = ? and trial_visits = ?")       // …and nobody changed it
+            .params(m.state().name(), m.trialVisitsUsed(),                  // only the name is stored
+                    m.id(), readState.name(), readTrialVisits)
             .update();
+        if (rows != 1) throw new ConcurrentChangeException();
     }
     // @end
 }

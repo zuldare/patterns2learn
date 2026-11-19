@@ -52,6 +52,13 @@ class MembershipTest {
         assertThat(trial.state()).isEqualTo(MembershipState.TRIAL);   // a refused action changes nothing
     }
 
+    @Test void renewingATrialLeavesNoTrialVisits() {
+        Membership leo = new Membership(2, "Leo", MembershipState.TRIAL, 1);
+        assertThat(leo.trialVisitsLeft()).isEqualTo(2);
+        leo.renew();
+        assertThat(leo.trialVisitsLeft()).isZero();
+    }
+
     @Test void trialVisitsOnlyMakeSenseForATrial() {
         assertThat(new Membership(1, "Ana", MembershipState.ACTIVE, 0).trialVisitsLeft()).isZero();
         assertThatThrownBy(() -> new Membership(2, "Leo", MembershipState.TRIAL, 4)).hasMessage("trial visits must be between 0 and 3");

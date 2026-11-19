@@ -29,8 +29,10 @@ public class MembershipService {
             default -> throw new UnknownActionException(action.length() <= 20 ? action : action.substring(0, 20) + "…");
         };
         Membership m = load(id);
+        MembershipState readState = m.state();
+        int readVisits = m.trialVisitsUsed();
         step.accept(m);
-        repository.save(m);
+        repository.save(m, readState, readVisits);   // refuses if another request got there first
         return MembershipView.of(m);
     }
 
