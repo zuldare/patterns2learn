@@ -52,6 +52,7 @@ function mountLesson(root: HTMLElement): void {
   const next = root.querySelectorAll<HTMLButtonElement>('[data-action="next"]');
   const gotos = root.querySelectorAll<HTMLButtonElement>('[data-goto]');
   const status = root.querySelector<HTMLElement>('[data-step-status]');
+  const panel = root.querySelector<HTMLElement>('.step-panel');
   let mounted = false;
 
   const indexFromHash = (): number => {
@@ -73,6 +74,8 @@ function mountLesson(root: HTMLElement): void {
       b.classList.toggle('is-done', j < i);
     });
     if (!mounted) return;
+    // The step panel scrolls on its own when capped to the viewport: start each step at its top.
+    if (panel) panel.scrollTop = 0;
     const hash = `#step-${ids[i]}`;
     if (window.location.hash !== hash) history.replaceState(history.state, '', hash);
     if (status) status.textContent = labels[i] ?? '';
@@ -90,8 +93,19 @@ function mountLesson(root: HTMLElement): void {
   if (resume > 0) player.goTo(resume);
   // A #step-<id> deep link restores the step; the lesson UI is laid out from
   // the top (diagram first), so undo the browser's jump to the text section.
-  if (start >= 0) window.addEventListener('load', () => window.scrollTo(0, 0), { once: true });
+  if (start >= 0) {
+    window.addEventListener(
+      'load',
+      () => {
+        window.scrollTo(0, 0);
+        if (panel) panel.scrollTop = 0;
+      },
+      { once: true },
+    );
+  }
   mounted = true;
+  // Two frames: the resumed snapshot is painted before step changes start to fade.
+  requestAnimationFrame(() => requestAnimationFrame(() => (root.dataset.animate = '')));
 
   for (const b of prev) b.addEventListener('click', () => player.prev());
   for (const b of next) b.addEventListener('click', () => player.next());

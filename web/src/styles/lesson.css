@@ -47,6 +47,9 @@
   background-position: -1px -1px;
 }
 .iso-canvas .iso-scene { max-height: min(62vh, 560px); }
+/* The initial (possibly resumed) snapshot snaps into place; fades start once
+   the lesson script marks the article as mounted. */
+[data-lesson]:not([data-animate]) :is(.iso-entity, .iso-link) { transition: none; }
 
 /* ---------- Step bar ---------- */
 
@@ -224,7 +227,12 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   .step-nav { grid-area: bar; }
   .code-panel { grid-area: code; }
   .lesson-end { grid-area: end; }
+  /* Capped to the viewport so Back/Next stay reachable on long steps. */
   .step-panel { grid-area: text; position: sticky; top: 16px; }
+  /* With JS one step shows at a time: cap it to the viewport so Back/Next stay
+     reachable on long steps (without JS all steps flow in the page instead). */
+  html.js .step-panel { max-height: calc(100vh - 32px); overflow-y: auto; }
+  html.js .step-panel .step-controls { position: sticky; bottom: -18px; margin-bottom: -18px; padding: 8px 0 18px; background: var(--surface); }
 }
 
 /* ---------- ≥ 1200px: tree column ---------- */

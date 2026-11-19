@@ -109,3 +109,15 @@ test.describe('first paint, before the lesson script runs', () => {
     await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'extend');
   });
 });
+
+test('on a short viewport the sticky step panel keeps Next reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 600 });
+  await page.goto('/en/patterns/strategy/#step-injection');
+  await page.evaluate(() => window.scrollTo(0, 400));
+  const panel = await page.locator('.step-panel').boundingBox();
+  expect(panel!.y + panel!.height).toBeLessThanOrEqual(600);
+  const next = await page.locator('.step-panel [data-action="next"]').boundingBox();
+  expect(next!.y + next!.height).toBeLessThanOrEqual(600);
+  await page.click('.step-panel [data-action="next"]');
+  await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'request');
+});
