@@ -50,10 +50,10 @@ quiz:
     options:
       - Siempre que el bean tenga algún campo
       - Para que el bean arranque más rápido
-      - Cuando cada uso necesita su propio estado, como el cronómetro de cada clase
+      - Cuando cada uso necesita su propio estado, como el cronómetro de cada sesión de entreno
       - Nunca, prototype está obsoleto
     answer: 2
-    explain: Con prototype, Spring crea un objeto nuevo cada vez que se lo pides. Encaja con objetos con estado propio y de vida corta, como un WodTimer por clase. Lo que se comparte, como el catálogo, se queda en singleton.
+    explain: Con prototype, Spring crea un objeto nuevo cada vez que se lo pides. Encaja con objetos con estado propio y de vida corta, como un WodTimer por sesión de entreno. Ojo, si lo inyectas en un singleton, se crea una sola vez; para uno nuevo cada vez, pídelo con ObjectProvider<WodTimer>. Lo que se comparte, como el catálogo, se queda en singleton.
 ---
 ## @step:problem — Cada uno con su catálogo
 La app del box tiene un catálogo de WODs: Fran, Cindy y los que vaya añadiendo el coach. Lo usan dos partes de la app. `WodController` los lista y deja añadir nuevos, y `BookingService` comprueba que el WOD existe antes de reservar plaza.
@@ -131,11 +131,14 @@ Por eso el catálogo guarda los WODs en un `ConcurrentHashMap` y usa `putIfAbsen
 ## @step:spring-does-it — Spring ya lo hace por ti
 Llevas usando singletons desde tu primer `@Service`. Todos tus controladores, servicios y repositorios son beans singleton, y por eso un contexto con cientos de beans arranca una vez y no vuelve a crear nada en cada petición.
 
-Cuando necesitas lo contrario, lo pides: `@Scope("prototype")` crea un objeto **nuevo** cada vez. El `WodTimer` del ejemplo es así, porque cada clase necesita su propio cronómetro.
+Cuando necesitas lo contrario, lo pides: `@Scope("prototype")` crea un objeto **nuevo** cada vez que se lo pides al contenedor. El `WodTimer` del ejemplo es así, porque cada sesión de entreno necesita su propio cronómetro.
+
+> [!warning]
+> Un prototype inyectado en el constructor de un singleton se crea **una sola vez**, cuando se crea el singleton, y a partir de ahí es tan compartido como él. Si quieres uno nuevo en cada uso, inyecta un `ObjectProvider<WodTimer>` y llama a `getObject()` cada vez.
 
 > [!spring]
 > El test del ejemplo lo comprueba: dos `getBean(WodCatalog.class)` devuelven el mismo objeto y dos `getBean(WodTimer.class)` devuelven objetos distintos. Hay más scopes (`request`, `session`), pero el que usarás el 95 % de las veces es el singleton por defecto.
-@describe: Dentro del contexto de Spring quedan el WodCatalog único y dos WodTimer distintos, resaltados, uno para cada clase.
+@describe: Dentro del contexto de Spring quedan el WodCatalog único y dos WodTimer distintos, resaltados, uno para cada sesión de entreno.
 
 ## @step:recap — Resumen
 Empezaste con dos catálogos desincronizados, probaste el Singleton de libro y acabaste dejando que Spring gestione la instancia:

@@ -5,7 +5,10 @@ import java.time.Instant;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-/** Each class gets its own clock: state per use, so prototype scope rather than a shared singleton. */
+/**
+ * Each training session gets its own clock: state per use, so prototype scope rather than a shared singleton.
+ * Injected into a singleton it would be created only once; ask for fresh ones through ObjectProvider<WodTimer>.
+ */
 @Component
 @Scope("prototype")
 public class WodTimer {
