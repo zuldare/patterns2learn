@@ -47,5 +47,6 @@
     <module>behavioral/template-method</module>
     <module>behavioral/strategy</module>
     <module>behavioral/observer</module>
+    <module>behavioral/chain-of-responsibility</module>
   </modules>
 </project>
