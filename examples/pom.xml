@@ -45,5 +45,6 @@
     <module>structural/proxy</module>
     <module>behavioral/template-method</module>
     <module>behavioral/strategy</module>
+    <module>behavioral/observer</module>
   </modules>
 </project>
