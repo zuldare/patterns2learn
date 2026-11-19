@@ -9,6 +9,11 @@ import org.springframework.core.annotation.Order;
 @Configuration
 public class AddOns {
     // @step:addon-beans
+    @Bean @Order(Ordered.LOWEST_PRECEDENCE)   // declared first on purpose: @Order, not position, puts it last
+    AddOn student() {
+        return option("student", StudentDiscount::new);
+    }
+
     @Bean @Order(10)
     AddOn physio() {
         return option("physio", PhysioAddOn::new);
@@ -22,11 +27,6 @@ public class AddOns {
     @Bean @Order(30)
     AddOn openGym() {
         return option("open-gym", OpenGymAddOn::new);
-    }
-
-    @Bean @Order(Ordered.LOWEST_PRECEDENCE)   // a discount must wrap the final price
-    AddOn student() {
-        return option("student", StudentDiscount::new);
     }
     // @end
 
