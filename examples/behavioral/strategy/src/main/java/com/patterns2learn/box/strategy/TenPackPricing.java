@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class TenPackPricing implements PricingStrategy {
     @Override
     public Money priceFor(PricingRequest request) {
-        return Money.eur("120.00").times((request.sessions() + 9) / 10);
+        return Money.eur("120.00").times(Math.ceilDiv(request.sessions(), 10));
     }
 }
 // @end

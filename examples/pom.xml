@@ -27,6 +27,12 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <configuration>
+            <!-- EnableDynamicAgentLoading: Mockito attaches its agent at runtime;
+                 JDK 21+ warns about that unless it is explicitly allowed.
+                 -Xshare:off: no CDS archive for the forked test JVM, which
+                 silences "Sharing is only supported for boot loader classes
+                 because bootstrap classpath has been appended" when the agent
+                 is added to the bootstrap classpath. -->
             <argLine>-XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
           </configuration>
         </plugin>

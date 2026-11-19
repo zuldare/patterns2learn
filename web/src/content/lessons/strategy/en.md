@@ -92,7 +92,7 @@ Each branch of the `switch` becomes a class implementing `PricingStrategy`: `Mon
 
 Look at `@Component("ten-pack")`: the bean name is **exactly** the key that comes in the URL. That's no accident, and you'll put it to work in the next step.
 
-The ten-pack logic is isolated and easy to read: with 12 sessions, `(12 + 9) / 10` gives 2 blocks, so 2 × 120.00 €.
+The ten-pack logic is isolated and easy to read: with 12 sessions, `Math.ceilDiv(12, 10)` gives 2 blocks (it rounds up), so 2 × 120.00 €.
 
 > [!key-idea]
 > Each strategy is small, independent of the others and covered by a three-line unit test.

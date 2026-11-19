@@ -92,7 +92,7 @@ Cada rama del `switch` pasa a ser una clase que implementa `PricingStrategy`: `M
 
 Fíjate en `@Component("ten-pack")`: el nombre del bean es **exactamente** la clave que llega en la URL. No es casualidad, lo vas a aprovechar en el siguiente paso.
 
-La lógica del bono queda aislada y se entiende sola: con 12 sesiones, `(12 + 9) / 10` da 2 bloques, así que 2 × 120.00 €.
+La lógica del bono queda aislada y se entiende sola: con 12 sesiones, `Math.ceilDiv(12, 10)` da 2 bloques (redondea hacia arriba), así que 2 × 120.00 €.
 
 > [!key-idea]
 > Cada estrategia es pequeña, no depende de las demás y se prueba con un test unitario de tres líneas.
