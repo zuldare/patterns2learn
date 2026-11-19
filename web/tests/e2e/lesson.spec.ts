@@ -121,3 +121,21 @@ test('on a short viewport the sticky step panel keeps Next reachable', async ({ 
   await page.click('.step-panel [data-action="next"]');
   await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'request');
 });
+
+test.describe('with motion enabled', () => {
+  test.use({ reducedMotion: 'no-preference' });
+
+  for (const [presses, step, packets] of [[5, 'request', 3], [6, 'extend', 0]] as const) {
+    test(`rapid ArrowRight ×${presses} during packets settles on ${step} with ${packets} packet(s)`, async ({ page }) => {
+      await page.goto('/en/patterns/strategy/');
+      const lesson = page.locator('[data-lesson]');
+      await lesson.focus();
+      await expect(page.locator('.iso-packets > *')).toHaveCount(1); // step 1's packet is in flight
+      for (let i = 0; i < presses; i++) await page.keyboard.press('ArrowRight', { delay: 40 });
+      await expect(lesson).toHaveAttribute('data-step', step);
+      // 3 packets × 600 ms play in sequence; wait past that, then the count must be exact.
+      await page.waitForTimeout(2500);
+      await expect(page.locator('.iso-packets > *')).toHaveCount(packets);
+    });
+  }
+});
