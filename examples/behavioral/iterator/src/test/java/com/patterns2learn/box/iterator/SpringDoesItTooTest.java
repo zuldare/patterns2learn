@@ -16,7 +16,8 @@ class SpringDoesItTooTest {
     @Test void jdbcClientCanHandYouALazyStreamOverTheResultSet() {
         // @step:stream
         List<Integer> podium;
-        try (Stream<Result> rows = jdbc.sql("select id, athlete, wod, seconds from result where wod = ? order by seconds, id")
+        try (Stream<Result> rows = jdbc.sql("select id, athlete, wod, seconds from result "
+                    + "where wod = ? order by seconds, id")
                 .param("fran")
                 .query(Result.class)
                 .stream()) {                               // rows are read as the stream is consumed…

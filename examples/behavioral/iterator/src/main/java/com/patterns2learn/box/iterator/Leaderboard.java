@@ -18,9 +18,9 @@ public class Leaderboard {
     public List<Placing> top(String wod, int n) {
         if (n < 1 || n > 100) throw new InvalidLimitException();
         List<Placing> podium = new ArrayList<>();
-        for (Result r : history.fastest(wod.toLowerCase(Locale.ROOT))) {   // no pages, no offsets, no SQL
+        for (Result r : history.fastest(wod.toLowerCase(Locale.ROOT))) {   // no pages, no SQL
             podium.add(Placing.of(podium.size() + 1, r));
-            if (podium.size() == n) break;                                  // stop early: no more pages are read
+            if (podium.size() == n) break;                                  // stop early
         }
         return podium;
     }
