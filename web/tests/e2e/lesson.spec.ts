@@ -75,3 +75,37 @@ test('a #step- deep link opens that step', async ({ page }) => {
   await expect(page.locator('.step-text[data-step-id="injection"]')).toBeVisible();
   await expect(page.locator('.step-text[data-step-id="problem"]')).toBeHidden();
 });
+
+test.describe('first paint, before the lesson script runs', () => {
+  test.beforeEach(async ({ page }) => {
+    // Simulates the window between HTML parse and module execution.
+    await page.route('**/_astro/*.js', r => r.abort());
+  });
+
+  test('shows only the first step and its diagram snapshot', async ({ page }) => {
+    await page.goto('/en/patterns/strategy/');
+    await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'problem');
+    await expect(page.locator('.step-text:visible')).toHaveCount(1);
+    await expect(page.locator('.step-text[data-step-id="problem"]')).toBeVisible();
+    await expect(page.locator('.code-snippet:visible')).toHaveCount(1);
+    const shown = await page.locator('.iso-entity:not(.is-hidden)').evaluateAll(els => els.map(e => (e as HTMLElement).dataset.id).sort());
+    expect(shown).toEqual(['athlete', 'controller', 'legacy']);
+  });
+
+  test('resolves a saved step', async ({ page }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem('p2l:progress', JSON.stringify({ lessons: { strategy: { step: 2, done: false } } })),
+    );
+    await page.goto('/en/patterns/strategy/');
+    await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'interface');
+    await expect(page.locator('.step-text:visible')).toHaveCount(1);
+  });
+
+  test('a valid hash wins over the saved step', async ({ page }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem('p2l:progress', JSON.stringify({ lessons: { strategy: { step: 2, done: false } } })),
+    );
+    await page.goto('/en/patterns/strategy/#step-extend');
+    await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'extend');
+  });
+});

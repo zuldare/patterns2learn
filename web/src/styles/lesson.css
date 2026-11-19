@@ -120,6 +120,14 @@ html:not(.js) .step-text + .step-text { border-top: 1.5px dashed var(--line); pa
 .code-panel[data-open="true"] .code-panel__head { border-bottom: 1.5px solid var(--line); }
 .code-panel__title { font-size: 0.9rem; font-weight: 700; }
 .code-panel[data-open="false"] .code-snippets { display: none; }
+/* Below 960px the panel starts collapsed with JS: keep it so until the lesson
+   script mounts it (sets data-open + data-mounted), avoiding a first-paint jump.
+   The toggle keeps its space but stays invisible until its label is right. */
+@media (max-width: 959.98px) {
+  html.js .code-panel:not([data-mounted]) .code-snippets { display: none; }
+  html.js .code-panel:not([data-mounted]) .code-panel__head { border-bottom: 0; }
+  html.js .code-panel:not([data-mounted]) [data-action="toggle-code"] { visibility: hidden; }
+}
 
 .code-snippet__file {
   margin: 0;

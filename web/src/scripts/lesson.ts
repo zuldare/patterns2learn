@@ -16,6 +16,7 @@ function mountCodePanel(root: HTMLElement): void {
     toggle.textContent = (open ? toggle.dataset.labelOpen : toggle.dataset.labelClosed) ?? toggle.textContent;
   };
   set(!window.matchMedia(CODE_BREAKPOINT).matches);
+  panel.dataset.mounted = '';
   toggle?.addEventListener('click', () => set(panel.dataset.open !== 'true'));
 }
 

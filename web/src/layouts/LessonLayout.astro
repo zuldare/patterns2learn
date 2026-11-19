@@ -24,11 +24,14 @@ const text = lesson.texts[lang];
 const steps = resolveSteps(lesson, lang);
 const ids = steps.map((s) => s.id);
 
-// Progressive enhancement: without JS every step is shown in order. Once the
-// player sets data-step on the article, only the current step stays visible.
-const stepCss = ids
-  .map((id) => `[data-lesson][data-step]:not([data-step="${id}"]) [data-step-id="${id}"]{display:none}`)
-  .join('\n');
+// Progressive enhancement: without JS every step is shown in order. With JS,
+// the inline script at the top of the article sets data-step before the steps
+// are parsed (so the first paint already shows a single step) and the player
+// keeps it in sync; only the current step stays visible.
+const stepCss = [
+  ...ids.map((id) => `[data-lesson][data-step]:not([data-step="${id}"]) [data-step-id="${id}"]{display:none}`),
+  `html.js [data-lesson]:not([data-step]) [data-step-id]:not([data-step-id="${ids[0]}"]){display:none}`,
+].join('\n');
 // `<` is escaped so the JSON can never close the script element.
 const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
 ---
@@ -37,6 +40,22 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
   <div class="lesson-shell">
     <CourseTree lang={lang} lessons={lessons} current={lesson.slug} />
     <article class="lesson" data-lesson={lesson.slug} data-steps={steps.length} tabindex="0" aria-labelledby="lesson-title">
+      {/* Initial step before first paint; mirrors the resume rule in scripts/lesson.ts:
+          a valid #step-<id> wins, else the saved step (0 < step < n), else the first. */}
+      <script is:inline define:vars={{ ids, slug: lesson.slug }}>
+        var root = document.currentScript.parentElement, id = ids[0], fromHash = null;
+        try {
+          var m = /^#step-(.+)$/.exec(location.hash);
+          if (m && ids.indexOf(decodeURIComponent(m[1])) >= 0) fromHash = decodeURIComponent(m[1]);
+        } catch (e) {}
+        if (fromHash !== null) id = fromHash;
+        else try {
+          var p = JSON.parse(localStorage.getItem('p2l:progress'));
+          var n = p && p.lessons && p.lessons[slug] && p.lessons[slug].step;
+          if (typeof n === 'number' && n % 1 === 0 && n > 0 && n < ids.length) id = ids[n];
+        } catch (e) {}
+        root.dataset.step = id;
+      </script>
       <header class="lesson__head">
         <h1 class="lesson__title" id="lesson-title">{text.title}</h1>
         <p class="lesson__summary">{text.summary}</p>
