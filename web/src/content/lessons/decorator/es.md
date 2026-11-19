@@ -13,7 +13,7 @@ recap:
   pros:
     - Las combinaciones se arman en tiempo de ejecución, sin una clase por combinación
     - Cada extra vive en una clase pequeña y se prueba por separado
-    - El cliente sigue viendo un Membership, venga con cero o con cinco capas
+    - El cliente sigue viendo un Membership, venga sin capas o con las cuatro
   cons:
     - Si un decorador no es puramente aditivo, el orden de las capas cambia el resultado
     - Muchas capas pequeñas cuestan más de depurar que una clase
@@ -30,7 +30,7 @@ quiz:
       - 8 y 8
       - 16 y 16
     answer: 1
-    explain: Cada extra puede estar o no estar, así que hay 2⁴ = 16 combinaciones, cada una una subclase. Con decoradores basta el plan base y una clase por extra, y las combinaciones se arman al vuelo.
+    explain: Cada extra puede estar o no estar, así que hay 2⁴ = 16 combinaciones, cada una una subclase. Con decoradores basta el plan base y una clase por extra (sin contar la interfaz ni la clase abstracta que comparten), y las combinaciones se arman al vuelo.
   - q: StudentDiscount resta un 20 % a lo que envuelve. ¿Por qué tiene que ser la capa de fuera?
     options:
       - Porque Java no permite otro orden
@@ -54,10 +54,10 @@ quiz:
       - El Decorator añade comportamiento que el cliente ve y compone a propósito; el Proxy controla el acceso y suele ser transparente
       - Son el mismo patrón con distinto nombre
     answer: 2
-    explain: La forma es la misma, envolver un objeto con su misma interfaz. Cambia la intención. Aquí cada capa cambia el precio y la descripción a la vista del cliente; un proxy de @Transactional no cambia lo que devuelves, solo lo protege.
+    explain: La forma es la misma, envolver un objeto con su misma interfaz. Cambia la intención. Aquí cada capa cambia el precio y la descripción a la vista del cliente; un proxy de @Transactional no cambia lo que devuelves, solo ejecuta la llamada dentro de una transacción.
 ---
 ## @step:problem — Una clase por combinación
-El plan básico del box cuesta 59 € al mes. Encima, cada atleta puede añadir extras: **fisio** (+25 €), **nutrición** (+15 €) y **open gym** (+10 €).
+El plan básico del box cuesta 59 € al mes. Encima, cada atleta puede añadir extras: **fisio** (+25 €) y **nutrición** (+15 €).
 
 La primera versión crea una subclase por cada combinación: `BasicWithPhysio`, `BasicWithNutrition`, `BasicWithPhysioAndNutrition`… Una atleta pide fisio y nutrición, y el controlador tiene que encontrar la clase exacta para esa combinación.
 
@@ -66,7 +66,7 @@ La primera versión crea una subclase por cada combinación: `BasicWithPhysio`, 
 @describe: El atleta envía physio + nutrition al controlador, que está unido a tres clases de plan; BasicWithPhysioAndNutrition está resaltada en rojo.
 
 ## @step:smell — Y llega el open gym
-Con 2 extras ya hay 4 clases. Añade el open gym y son 8. Con el descuento de estudiante, 16. Cada extra nuevo **duplica** las clases.
+Con 2 extras ya hay 4 clases. Añade el **open gym** (+10 €) y son 8. Con el descuento de estudiante, 16. Cada extra nuevo **duplica** las clases.
 
 Y si fisio sube de precio, toca encontrar y cambiar todas las clases que lo incluyen. Basta saltarse una para cobrar mal.
 
@@ -101,10 +101,10 @@ Al pedir el precio, cada capa pregunta a la de dentro y suma lo suyo: el básico
 ## @step:spring-addons — Cada extra, un bean
 En Spring, cada opción es un bean `AddOn`: un nombre (`physio`, `nutrition`, `open-gym`, `student`) y cómo envolver un plan. `MembershipQuoter` los recibe **todos** en una `List<AddOn>`.
 
-Fíjate en el `@Order` de cada bean: Spring ordena la lista inyectada según él. Los extras van primero y el descuento de estudiante, con `Ordered.LOWEST_PRECEDENCE`, siempre el último.
+Fíjate en el `@Order` de cada bean: Spring ordena la lista inyectada según él. Los extras van primero (10, 20, 30) y el descuento de estudiante, con `@Order(DISCOUNTS)`, que vale 1000, siempre el último. Los decoradores en sí no son beans: el quoter los crea en cada presupuesto, envolviendo el plan con cada opción pedida.
 
 > [!spring]
-> ¿Una opción nueva, por ejemplo un taquillero? Un `@Bean` más con su `@Order`. Ni el quoter ni el controlador cambian.
+> ¿Una opción nueva, por ejemplo una taquilla? Un `@Bean` más con su `@Order`. Ni el quoter ni el controlador cambian. Ponle siempre un orden explícito: un bean sin `@Order` iría al final, empatado con el descuento.
 @describe: Aparece el contexto de Spring. MembershipQuoter, resaltado junto al contexto, está unido a la cadena de decoradores y a StudentDiscount.
 
 ## @step:request — Un presupuesto de principio a fin
@@ -112,7 +112,8 @@ Una atleta pide `GET /api/memberships/quote?addOns=physio,nutrition`:
 
 1. El quoter comprueba que existen los dos y que no se repiten. Si no, la API responde con un 400.
 2. Parte del plan básico y recorre la lista de `AddOn` en orden: envuelve con fisio y después con nutrición.
-3. La API devuelve `{"description": "Basic + Physio + Nutrition", "monthlyFee": "99.00"}`.
+3. Pide el precio a la capa de fuera, que se lo pregunta a la de dentro, y esta al plan básico.
+4. La API devuelve `{"description": "Basic + Physio + Nutrition", "monthlyFee": "99.00"}`.
 
 > [!key-idea]
 > El quoter no sabe sumar precios: solo apila capas. Cada capa sabe lo suyo.
@@ -128,15 +129,15 @@ Gracias al `@Order`, el quoter siempre pone el descuento como capa exterior, y d
 
 > [!warning]
 > En cuanto un decorador no es puramente aditivo, el orden de las capas forma parte de la lógica de negocio. Fíjalo en un único sitio y pruébalo.
-@describe: El quoter pide el precio a StudentDiscount, resaltado, que envuelve a todo lo demás y se lo pregunta a NutritionAddOn.
+@describe: El quoter pide el precio a StudentDiscount, resaltado, que se lo pregunta a PhysioAddOn; vuelven 84.00 de Physio y 67.20 del descuento.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-Spring tiene un enganche para envolver beans: un `BeanPostProcessor` ve pasar cada bean recién creado y puede devolver **otro objeto** en su lugar. Si devuelves un decorador, eso es lo que se inyecta en todas partes.
+Spring tiene un enganche para envolver beans: un `BeanPostProcessor` ve pasar cada bean recién creado y puede devolver **otro objeto** en su lugar. Si devuelves un decorador, eso es lo que se inyecta en todas partes… siempre que se pida por la interfaz `Membership`. Quien pida la clase concreta `BasicMembership` ya no la encontrará. Así es como Spring crea los proxies de la lección de Proxy: el creador de auto-proxies de AOP es un `BeanPostProcessor` que devuelve un envoltorio.
 
 En el ejemplo, `AuditEveryMembership` envuelve cualquier `Membership` en un `AuditedMembership` que anota cada vez que alguien pregunta el precio.
 
 > [!spring]
-> La misma idea la verás con nombre propio. `TaskDecorator` envuelve cada tarea de `@Async` (por ejemplo, para copiar el contexto de log), y `ContentCachingRequestWrapper` envuelve la petición HTTP para poder leer el cuerpo dos veces.
+> La misma idea la verás con nombre propio. `TaskDecorator` envuelve cada tarea del executor en el que lo registras, por ejemplo el de `@Async`, para copiar el contexto de log. `ContentCachingRequestWrapper` envuelve la petición HTTP y guarda una copia de los bytes del cuerpo según se leen, para usarla después, por ejemplo en un log, con `getContentAsByteArray()`.
 @describe: Dentro del contexto de Spring, BeanPostProcessor, resaltado, envuelve el plan en AuditedMembership, también resaltado, que pregunta el precio a BasicMembership.
 
 ## @step:recap — Resumen

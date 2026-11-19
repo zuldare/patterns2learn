@@ -22,7 +22,9 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  *   NutritionAddOn → PhysioAddOn → BasicMembership, each wrapping the next.
  * - The "one subclass per combination" blocks of the before steps reuse those
  *   three spots, so the explosion and the chain occupy the same place.
- * - StudentDiscount sits in front of the chain; Membership below it.
+ * - StudentDiscount sits in front of the chain; Membership below it. The
+ *   decorators are drawn on the platform for readability, but they're plain
+ *   objects the quoter creates per quote, not beans (the text says so).
  * - BeanPostProcessor and AuditedMembership only appear in spring-does-it.
  */
 const entities: Entity[] = [
@@ -57,6 +59,7 @@ const scene: Scene = {
     { id: 'l-quoter-nutrition', from: 'quoter', to: 'nutrition', style: 'call' },
     { id: 'l-quoter-student', from: 'quoter', to: 'student', style: 'call' },
     { id: 'l-student-nutrition', from: 'student', to: 'nutrition', style: 'call' },
+    { id: 'l-student-physio', from: 'student', to: 'physio', style: 'call' },
     { id: 'l-nutrition-physio', from: 'nutrition', to: 'physio', style: 'call' },
     { id: 'l-physio-basic', from: 'physio', to: 'basic', style: 'call' },
     { id: 'l-nutrition-iface', from: 'nutrition', to: 'iface', style: 'implements' },
@@ -72,14 +75,14 @@ const scene: Scene = {
       visible: BEFORE,
       highlight: ['c3'],
       packets: [{ link: 'l-athlete-controller', label: 'physio + nutrition' }],
-      code: { file: `${MAIN}/before/SubclassedPlans.java`, region: 'explosion', highlight: [1, 5] },
+      code: { file: `${MAIN}/before/SubclassedPlans.java`, region: 'explosion', highlight: [6, 7] },
     },
     {
       id: 'smell',
       visible: BEFORE,
       highlight: ['c1', 'c2', 'c3'],
       packets: [],
-      code: { file: `${MAIN}/before/SubclassedPlans.java`, region: 'explosion', highlight: [6, 7] },
+      code: { file: `${MAIN}/before/SubclassedPlans.java`, region: 'explosion', highlight: [1, 5] },
     },
     {
       id: 'decorator',
@@ -122,11 +125,13 @@ const scene: Scene = {
     },
     {
       id: 'order',
-      visible: SPRING,
+      visible: SPRING.filter((id) => id !== 'nutrition'),
       highlight: ['student'],
       packets: [
         { link: 'l-quoter-student', label: 'monthlyFee()' },
-        { link: 'l-student-nutrition', label: 'monthlyFee()' },
+        { link: 'l-student-physio', label: 'monthlyFee()' },
+        { link: 'l-student-physio', label: '84.00', reverse: true },
+        { link: 'l-quoter-student', label: '67.20', reverse: true },
       ],
       code: { file: `${TEST}/MembershipTest.java`, region: 'order-matters', highlight: [1, 2, 4, 5] },
     },

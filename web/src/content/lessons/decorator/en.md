@@ -13,7 +13,7 @@ recap:
   pros:
     - Combinations are assembled at runtime, with no class per combination
     - Each extra lives in a small class and is tested on its own
-    - The client still sees a Membership, whether it has zero layers or five
+    - The client still sees a Membership, with no layers or with all four
   cons:
     - If a decorator isn't purely additive, the order of the layers changes the result
     - Many small layers are harder to debug than one class
@@ -30,7 +30,7 @@ quiz:
       - 8 and 8
       - 16 and 16
     answer: 1
-    explain: Each extra is either in or out, so there are 2⁴ = 16 combinations, each a subclass. With decorators you need the base plan and one class per extra, and combinations are assembled on the fly.
+    explain: Each extra is either in or out, so there are 2⁴ = 16 combinations, each a subclass. With decorators you need the base plan and one class per extra (not counting the interface and the abstract class they share), and combinations are assembled on the fly.
   - q: StudentDiscount takes 20% off whatever it wraps. Why must it be the outer layer?
     options:
       - Because Java doesn't allow any other order
@@ -54,10 +54,10 @@ quiz:
       - A Decorator adds behaviour the client sees and composes it on purpose; a Proxy controls access and is usually transparent
       - They're the same pattern with a different name
     answer: 2
-    explain: The shape is the same, wrapping an object with its own interface. The intent differs. Here each layer changes the price and the description in plain sight; a @Transactional proxy doesn't change what you return, it only protects it.
+    explain: The shape is the same, wrapping an object with its own interface. The intent differs. Here each layer changes the price and the description in plain sight; a @Transactional proxy doesn't change what you return, it only runs the call inside a transaction.
 ---
 ## @step:problem — One class per combination
-The box's basic plan costs €59 a month. On top of it, each athlete can add extras: **physio** (+€25), **nutrition** (+€15) and **open gym** (+€10).
+The box's basic plan costs €59 a month. On top of it, each athlete can add extras: **physio** (+€25) and **nutrition** (+€15).
 
 The first version creates a subclass for every combination: `BasicWithPhysio`, `BasicWithNutrition`, `BasicWithPhysioAndNutrition`… An athlete asks for physio and nutrition, and the controller has to find the exact class for that combination.
 
@@ -66,7 +66,7 @@ The first version creates a subclass for every combination: `BasicWithPhysio`, `
 @describe: The athlete sends physio + nutrition to the controller, which is wired to three plan classes; BasicWithPhysioAndNutrition is highlighted in red.
 
 ## @step:smell — Then open gym arrives
-With 2 extras you already have 4 classes. Add open gym and it's 8. Add the student discount and it's 16. Every new extra **doubles** the classes.
+With 2 extras you already have 4 classes. Add **open gym** (+€10) and it's 8. Add the student discount and it's 16. Every new extra **doubles** the classes.
 
 And if physio gets more expensive, you have to find and change every class that includes it. Miss one and you charge the wrong price.
 
@@ -101,10 +101,10 @@ When asked for the price, each layer asks the one inside and adds its own: basic
 ## @step:spring-addons — Every extra, a bean
 In Spring, each option is an `AddOn` bean: a name (`physio`, `nutrition`, `open-gym`, `student`) and how to wrap a plan. `MembershipQuoter` gets **all of them** in a `List<AddOn>`.
 
-Look at each bean's `@Order`: Spring sorts the injected list by it. The extras go first and the student discount, with `Ordered.LOWEST_PRECEDENCE`, always last.
+Look at each bean's `@Order`: Spring sorts the injected list by it. The extras go first (10, 20, 30) and the student discount, with `@Order(DISCOUNTS)`, which is 1000, always last. The decorators themselves aren't beans: the quoter creates them on every quote, wrapping the plan with each requested option.
 
 > [!spring]
-> A new option, say a locker? One more `@Bean` with its `@Order`. Neither the quoter nor the controller changes.
+> A new option, say a locker? One more `@Bean` with its `@Order`. Neither the quoter nor the controller changes. Always give it an explicit order: a bean without `@Order` would go last, tied with the discount.
 @describe: The Spring context appears. MembershipQuoter, highlighted together with the context, is wired to the decorator chain and to StudentDiscount.
 
 ## @step:request — A quote start to finish
@@ -112,7 +112,8 @@ An athlete asks for `GET /api/memberships/quote?addOns=physio,nutrition`:
 
 1. The quoter checks that both exist and aren't repeated. If not, the API answers 400.
 2. It starts from the basic plan and walks the `AddOn` list in order: wrap with physio, then with nutrition.
-3. The API returns `{"description": "Basic + Physio + Nutrition", "monthlyFee": "99.00"}`.
+3. It asks the outer layer for the price, which asks the one inside, which asks the basic plan.
+4. The API returns `{"description": "Basic + Physio + Nutrition", "monthlyFee": "99.00"}`.
 
 > [!key-idea]
 > The quoter doesn't know how to add up prices: it only stacks layers. Each layer knows its own part.
@@ -128,15 +129,15 @@ Thanks to `@Order`, the quoter always puts the discount as the outer layer, whet
 
 > [!warning]
 > As soon as a decorator isn't purely additive, the order of the layers is part of the business logic. Pin it down in a single place and test it.
-@describe: The quoter asks StudentDiscount, highlighted, for the price; it wraps everything else and asks NutritionAddOn.
+@describe: The quoter asks StudentDiscount, highlighted, for the price; it asks PhysioAddOn, and 84.00 comes back from Physio and 67.20 from the discount.
 
 ## @step:spring-does-it — Spring already does it for you
-Spring has a hook for wrapping beans: a `BeanPostProcessor` sees every freshly created bean go by and can return **another object** instead. Return a decorator and that's what gets injected everywhere.
+Spring has a hook for wrapping beans: a `BeanPostProcessor` sees every freshly created bean go by and can return **another object** instead. Return a decorator and that's what gets injected everywhere… as long as it's asked for by the `Membership` interface. Anyone asking for the concrete `BasicMembership` class won't find it anymore. That's how Spring builds the proxies from the Proxy lesson: the AOP auto-proxy creator is a `BeanPostProcessor` that returns a wrapper.
 
 In the example, `AuditEveryMembership` wraps any `Membership` in an `AuditedMembership` that notes every time someone asks for the price.
 
 > [!spring]
-> You'll see the same idea under its own name. `TaskDecorator` wraps every `@Async` task (for example to copy the logging context), and `ContentCachingRequestWrapper` wraps the HTTP request so you can read its body twice.
+> You'll see the same idea under its own name. `TaskDecorator` wraps every task of the executor you register it on, for example the `@Async` one, to copy the logging context. `ContentCachingRequestWrapper` wraps the HTTP request and keeps a copy of the body's bytes as they're read, to use later, for example in a log, through `getContentAsByteArray()`.
 @describe: Inside the Spring context, BeanPostProcessor, highlighted, wraps the plan in AuditedMembership, also highlighted, which asks BasicMembership for the price.
 
 ## @step:recap — Recap

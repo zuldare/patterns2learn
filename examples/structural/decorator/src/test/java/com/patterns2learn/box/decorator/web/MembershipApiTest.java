@@ -33,4 +33,26 @@ class MembershipApiTest {
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.error").value("unknown add-on: sauna"));
     }
+
+    @Test void commaSeparatedFormWorks() throws Exception {
+        mvc.perform(get("/api/memberships/quote").param("addOns", "physio,nutrition"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.monthlyFee").value("99.00"));
+    }
+
+    @Test void studentDiscountShowsInTheDescription() throws Exception {
+        mvc.perform(get("/api/memberships/quote").param("addOns", "student,physio"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.description").value("Basic + Physio (student -20%)"))
+           .andExpect(jsonPath("$.monthlyFee").value("67.20"));
+    }
+
+    @Test void repeatedOrEmptyNamesAre400() throws Exception {
+        mvc.perform(get("/api/memberships/quote").param("addOns", "physio,physio"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("repeated add-on: physio"));
+        mvc.perform(get("/api/memberships/quote").param("addOns", "physio,"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("empty add-on name"));
+    }
 }

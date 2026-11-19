@@ -2,14 +2,16 @@ package com.patterns2learn.box.decorator;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 /** The catalogue of options. Paid extras first; the student discount always last, around everything. */
 @Configuration
 public class AddOns {
+    /** Discounts wrap the final price: give them an order no extra will ever use. */
+    public static final int DISCOUNTS = 1000;
+
     // @step:addon-beans
-    @Bean @Order(Ordered.LOWEST_PRECEDENCE)   // declared first on purpose: @Order, not position, puts it last
+    @Bean @Order(DISCOUNTS)   // declared first on purpose: @Order, not position, puts it last
     AddOn student() {
         return option("student", StudentDiscount::new);
     }

@@ -1,6 +1,6 @@
 package com.patterns2learn.box.decorator;
 
-/** Not an add-on but the same shape: 20% off whatever it wraps. */
+/** Not an extra but a discount, with the same decorator shape: 20% off whatever it wraps. Offered as the "student" option. */
 public class StudentDiscount extends MembershipDecorator {
     public StudentDiscount(Membership inner) {
         super(inner);
@@ -8,7 +8,7 @@ public class StudentDiscount extends MembershipDecorator {
 
     @Override
     public String description() {
-        return inner.description() + " (student −20%)";
+        return inner.description() + " (student -20%)";
     }
 
     @Override

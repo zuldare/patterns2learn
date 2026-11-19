@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class MembershipQuoterTest {
     @Autowired MembershipQuoter quoter;
+    @Autowired List<AddOn> addOns;
 
     @Test void wrapsTheBasicPlanWithTheRequestedAddOns() {
         Membership plan = quoter.quote(List.of("physio", "nutrition"));
@@ -30,5 +31,19 @@ class MembershipQuoterTest {
     @Test void unknownOrRepeatedAddOnsAreRejected() {
         assertThatThrownBy(() -> quoter.quote(List.of("sauna"))).isInstanceOf(IllegalArgumentException.class).hasMessage("unknown add-on: sauna");
         assertThatThrownBy(() -> quoter.quote(List.of("physio", "physio"))).isInstanceOf(IllegalArgumentException.class).hasMessage("repeated add-on: physio");
+    }
+
+    @Test void theDiscountIsTheLastAddOnInTheInjectedList() {
+        assertThat(addOns.getLast().name()).isEqualTo("student");
+    }
+
+    @Test void namesAreTrimmedAndCaseInsensitiveButNeverBlank() {
+        assertThat(quoter.quote(List.of(" Physio ", "NUTRITION")).monthlyFee()).isEqualTo(Money.eur("99.00"));
+        assertThatThrownBy(() -> quoter.quote(List.of("physio", ""))).isInstanceOf(IllegalArgumentException.class).hasMessage("empty add-on name");
+    }
+
+    @Test void thePriceIsReadFromTheOuterLayer() {
+        assertThat(quoter.price(List.of("student", "physio")))
+            .isEqualTo(new MembershipQuoter.Quote("Basic + Physio (student -20%)", Money.eur("67.20")));
     }
 }
