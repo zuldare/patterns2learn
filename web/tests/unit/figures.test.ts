@@ -70,3 +70,8 @@ test('no literal colours in any figure', () => {
     expect(figureMarkup(ent({ id: 'x', kind, tone: 'danger' }), { slots: 3, isImplementation: false })).not.toMatch(/#[0-9a-f]{3,6}\b|rgb\(|hsl\(/i);
   }
 });
+test('socket draws its icon on the front instead of «i» when one is set', () => {
+  const g = dom(figureMarkup(ent({ id: 'i', kind: 'interface', icon: 'key' }), { slots: 2, isImplementation: false }));
+  expect(g.querySelector('.figure-socket .fig-icon')).not.toBeNull();
+  expect(g.innerHTML).not.toContain('«i»');
+});

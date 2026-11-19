@@ -110,7 +110,7 @@ function cartridge(e: Entity, b: Box3): string {
   );
 }
 
-function socket(b: Box3, slots: number): string {
+function socket(e: Entity, b: Box3, slots: number): string {
   const holes = Array.from({ length: slots }, (_, i) => {
     const cx = (i + 0.5) / slots;
     const w = Math.min(0.18, 0.6 / slots);
@@ -119,7 +119,9 @@ function socket(b: Box3, slots: number): string {
   return (
     prism(b) +
     (slots > 0 ? decal('top', b, holes, 'fig-slots') : '') +
-    decal('left', b, `<text x=".5" y=".75" text-anchor="middle" style="font-size:.5px;font-weight:700;fill:var(--ink)">«i»</text>`)
+    (e.icon
+      ? decal('left', b, `<g transform="translate(.3 0) scale(.4 1)">${iconMarkup(e.icon)}</g>`, 'fig-icon')
+      : decal('left', b, `<text x=".5" y=".75" text-anchor="middle" style="font-size:.5px;font-weight:700;fill:var(--ink)">«i»</text>`))
   );
 }
 
@@ -167,7 +169,7 @@ export function figureMarkup(e: Entity, ctx: FigureCtx): string {
   const body =
     shape === 'voxel' ? voxel(b)
     : shape === 'platform' ? platform(b)
-    : shape === 'socket' ? socket(b, ctx.slots)
+    : shape === 'socket' ? socket(e, b, ctx.slots)
     : shape === 'cartridge' ? cartridge(e, b)
     : block(e, b);
   return `<g class="iso-figure figure-${shape}">${body}</g>`;
