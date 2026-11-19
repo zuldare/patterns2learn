@@ -1,5 +1,6 @@
 import type { Locale } from '../i18n';
 import type { Snippet } from '../lib/snippets';
+import type { IconName } from './icons';
 
 export type { Locale };
 export type Category = 'creational' | 'structural' | 'behavioral' | 'spring';
@@ -18,6 +19,8 @@ export type Entity = {
   pos: IsoPoint;
   size: IsoSize;
   tone: Tone;
+  /** Decal on blocks, cartridges and sockets (ADR 0001); not allowed on actors or containers. */
+  icon?: IconName;
 };
 
 export type Link = { id: string; from: string; to: string; style: LinkStyle };
