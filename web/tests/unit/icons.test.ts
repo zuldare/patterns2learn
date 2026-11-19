@@ -36,3 +36,7 @@ test('catalogue includes the WOD board and the timer', () => {
   expect(ICON_NAMES).toContain('board');
   expect(ICON_NAMES).toContain('timer');
 });
+test('catalogue includes the proxy shield and the database', () => {
+  expect(ICON_NAMES).toContain('shield');
+  expect(ICON_NAMES).toContain('db');
+});
