@@ -41,3 +41,19 @@ test('root redirects by browser language', async ({ browser }) => {
   await expect(page).toHaveURL(/\/es\/$/);
   await ctx.close();
 });
+
+test('arrow keys on quiz radios move the selection, not the lesson step', async ({ page }) => {
+  await page.goto('/en/patterns/strategy/');
+  const lesson = page.locator('[data-lesson]');
+  await expect(lesson).toHaveAttribute('data-step', 'problem');
+  const first = page.locator('input[name="q0"]').first();
+  await first.check();
+  await first.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(lesson).toHaveAttribute('data-step', 'problem');
+  await expect(page.locator('input[name="q0"]').nth(1)).toBeChecked();
+  await expect(page.locator('input[name="q0"]').nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(lesson).toHaveAttribute('data-step', 'problem');
+  await expect(page.locator('input[name="q0"]').nth(2)).toBeChecked();
+});

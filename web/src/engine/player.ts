@@ -14,6 +14,9 @@ export type LessonPlayerOptions = {
 
 type Pt = { x: number; y: number };
 
+/** Key events from inside these keep their native meaning instead of changing step. */
+const NATIVE_KEYS_SELECTOR = 'input, select, textarea, [contenteditable]:not([contenteditable="false"]), form, pre';
+
 /**
  * Drives a scene rendered by `renderScene` (spec §8.3).
  *
@@ -75,6 +78,12 @@ export class LessonPlayer {
   }
 
   private handleKey(ev: KeyboardEvent): void {
+    // Modified keys belong to the browser (Alt+←/→ is history navigation), and
+    // keys typed inside controls, forms or code keep their native behaviour
+    // (radio groups move with arrows, wide <pre> blocks scroll sideways).
+    if (ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
+    const native = ev.target instanceof Element ? ev.target.closest(NATIVE_KEYS_SELECTOR) : null;
+    if (native && native !== this.root && this.root.contains(native)) return;
     const target: Record<string, number> = {
       ArrowRight: this.current + 1,
       ArrowLeft: this.current - 1,

@@ -96,13 +96,6 @@ function mountLesson(root: HTMLElement): void {
     if (i >= 0 && i !== player.index) player.goTo(i);
   });
 
-  // Let arrow keys scroll wide code horizontally instead of changing step.
-  for (const pre of root.querySelectorAll('pre')) {
-    pre.addEventListener('keydown', (ev) => {
-      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') ev.stopPropagation();
-    });
-  }
-
   mountCodePanel(root);
 }
 
