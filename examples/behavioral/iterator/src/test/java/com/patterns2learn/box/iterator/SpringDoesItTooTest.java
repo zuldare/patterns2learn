@@ -20,10 +20,10 @@ class SpringDoesItTooTest {
                     + "where wod = ? order by seconds, id")
                 .param("fran")
                 .query(Result.class)
-                .stream()) {                               // rows are read as the stream is consumed…
+                .stream()) {                               // rows are mapped as the stream is consumed…
             podium = rows.limit(3).map(Result::seconds).toList();
         }                                                  // …and closing it releases the ResultSet
         // @end
-        assertThat(podium).containsExactly(151, 153, 155);
+        assertThat(podium).containsExactly(151, 151, 152);
     }
 }

@@ -14,10 +14,10 @@ class BeforeTest {
     @Test void loadingEverythingWorksButReadsEveryRow() {
         LoadEverythingLeaderboard board = new LoadEverythingLeaderboard(jdbc);
         assertThat(board.top("fran", 3)).hasSize(3);
-        assertThat(board.rowsRead()).isEqualTo(230);    // all of them, for a podium of 3
+        assertThat(board.rowsRead()).isEqualTo(233);    // all of them, for a podium of 3
     }
 
     @Test void theOffsetLoopIsCopiedIntoEveryReport() {
-        assertThat(new OffsetLoopReport(jdbc).count("fran")).isEqualTo(230);
+        assertThat(new OffsetLoopReport(jdbc).count("fran")).isEqualTo(233);
     }
 }

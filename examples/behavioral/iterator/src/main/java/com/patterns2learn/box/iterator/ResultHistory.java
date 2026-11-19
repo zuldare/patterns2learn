@@ -39,13 +39,13 @@ public class ResultHistory {
         }
         return jdbc.sql("""
                 select id, athlete, wod, seconds from result
-                where wod = ? and (seconds > ? or (seconds = ? and id > ?))
+                where wod = ? and (seconds, id) > (?, ?)
                 order by seconds, id limit ?""")
-            .params(wod, after.seconds(), after.seconds(), after.id(), size)
+            .params(wod, after.seconds(), after.id(), size)
             .query(Result.class).list();
     }
 
-    /** How many pages have been read from the database (to show the walk is lazy). */
+    /** How many pages this instance has read; only the tests use it, to show the walk is lazy. */
     int pagesFetched() {
         return pagesFetched.get();
     }

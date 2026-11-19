@@ -60,7 +60,7 @@ const scene: Scene = {
       highlight: ['loadAll'],
       packets: [
         { link: 'l-coach-controller', label: 'top 3 · Fran' },
-        { link: 'l-loadall-db', label: '230 rows' },
+        { link: 'l-loadall-db', label: '233 rows' },
       ],
       code: { file: `${MAIN}/before/LoadEverythingLeaderboard.java`, region: 'load-all', highlight: [2, 3, 5] },
     },
@@ -69,7 +69,7 @@ const scene: Scene = {
       visible: ['offsetLoop', 'db'],
       highlight: ['offsetLoop'],
       packets: [{ link: 'l-offset-db', label: 'limit 50 offset ?' }],
-      code: { file: `${MAIN}/before/OffsetLoopReport.java`, region: 'offset-loop', highlight: [3, 4, 5, 7, 8] },
+      code: { file: `${MAIN}/before/OffsetLoopReport.java`, region: 'offset-loop', highlight: [3, 5, 6, 7] },
     },
     {
       id: 'iterator',
@@ -93,13 +93,13 @@ const scene: Scene = {
         { link: 'l-leaderboard-history', label: 'fastest("fran")' },
         { link: 'l-leaderboard-iterator', label: 'next()' },
       ],
-      code: { file: `${MAIN}/Leaderboard.java`, region: 'client', highlight: [4, 5, 6] },
+      code: { file: `${MAIN}/Leaderboard.java`, region: 'client', highlight: [5, 6, 8] },
     },
     {
       id: 'lazy',
       visible: ['leaderboard', 'history', 'iterator', 'db'],
       highlight: ['iterator', 'db'],
-      packets: [{ link: 'l-iterator-db', label: '1 page of 5' }],
+      packets: [{ link: 'l-iterator-db', label: 'page 1 only' }],
       code: { file: `${TEST}/ResultHistoryTest.java`, region: 'lazy', highlight: [3, 5, 7] },
     },
     {
@@ -120,7 +120,7 @@ const scene: Scene = {
       highlight: ['jdbc', 'stream'],
       packets: [
         { link: 'l-jdbc-stream', label: 'stream()' },
-        { link: 'l-stream-db', label: 'rows as needed' },
+        { link: 'l-stream-db', label: 'rows → objects' },
       ],
       code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'stream', highlight: [2, 6, 7, 8] },
     },

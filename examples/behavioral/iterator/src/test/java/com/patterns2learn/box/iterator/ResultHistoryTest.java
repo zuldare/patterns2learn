@@ -21,9 +21,9 @@ class ResultHistoryTest {
         List<Result> all = new ArrayList<>();
         for (Result r : history.fastest("fran")) all.add(r);
 
-        assertThat(all).hasSize(230);
+        assertThat(all).hasSize(233);
         assertThat(all).isSortedAccordingTo(java.util.Comparator.comparingInt(Result::seconds).thenComparingInt(Result::id));
-        assertThat(history.pagesFetched()).isEqualTo(5);   // 50 + 50 + 50 + 50 + 30: a short page means there is no next one
+        assertThat(history.pagesFetched()).isEqualTo(5);   // 50 + 50 + 50 + 50 + 33: a short page means there is no next one
     }
 
     @Test void stoppingEarlyMeansNoMorePagesAreFetched() {
@@ -36,7 +36,23 @@ class ResultHistoryTest {
         }
         assertThat(history.pagesFetched()).isEqualTo(1);    // …and only one page was ever read
         // @end
-        assertThat(podium).extracting(Result::seconds).containsExactly(151, 153, 155);
+        assertThat(podium).extracting(Result::seconds).containsExactly(151, 151, 152);
+    }
+
+    @Test void tiesThatFallAcrossPagesAreNeitherRepeatedNorLost() {
+        for (int size : new int[] {1, 2, 7}) {
+            List<Integer> ids = new ArrayList<>();
+            for (Result r : new ResultHistory(jdbc, size).fastest("fran")) ids.add(r.id());
+            assertThat(ids).as("page size %d", size).hasSize(233).doesNotHaveDuplicates();
+        }
+    }
+
+    @Test void whenTheTotalIsAMultipleOfThePageSizeOneEmptyPageEndsTheWalk() {
+        ResultHistory history = new ResultHistory(jdbc, 233);
+        int n = 0;
+        for (Result r : history.fastest("fran")) n++;
+        assertThat(n).isEqualTo(233);
+        assertThat(history.pagesFetched()).isEqualTo(2);   // a full page can't tell it was the last one
     }
 
     @Test void anIteratorFollowsTheJavaContract() {
