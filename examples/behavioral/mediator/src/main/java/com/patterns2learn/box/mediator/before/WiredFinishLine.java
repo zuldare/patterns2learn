@@ -25,11 +25,13 @@ public class WiredFinishLine {
 
     // @step:wired
     public void finish(String athlete, int seconds) {
-        if (!timer.isRunning()) throw new IllegalStateException("the WOD hasn't started");   // asks the timer
+        if (!timer.isRunning()) {                                  // asks the timer
+            throw new IllegalStateException("the WOD hasn't started");
+        }
         names.add(athlete);
         times.add(new int[] {seconds, names.size() - 1});
-        screen.showFinish(athlete, Times.format(seconds));                                   // drives the screen
-        music.cue("bell");                                                                   // and the music
+        screen.showFinish(athlete, Times.format(seconds));         // drives the screen
+        music.cue("bell");                                         // and the music
     }
     // @end
 

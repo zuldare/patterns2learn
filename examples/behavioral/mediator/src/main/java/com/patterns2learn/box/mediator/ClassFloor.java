@@ -39,7 +39,9 @@ public class ClassFloor implements FloorMediator {
     public synchronized void athleteFinished(String athlete, int seconds) {
         if (!running) throw new FloorRuleException("the WOD hasn't started");
         String key = athlete.toLowerCase(Locale.ROOT);
-        if (finishes.containsKey(key)) throw new FloorRuleException(finishes.get(key).athlete() + " already finished");
+        if (finishes.containsKey(key)) {
+            throw new FloorRuleException(finishes.get(key).athlete() + " already finished");
+        }
         finishes.put(key, new Finish(athlete, seconds));
         screen.showFinish(athlete, Times.format(seconds));
         music.cue("bell");
