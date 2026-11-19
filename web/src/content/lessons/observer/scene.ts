@@ -22,7 +22,9 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  *   column on the right; whatever notifies them (the coupled service, the GoF
  *   observer interface or Spring's event publisher) sits in the middle.
  * - coupled / subject / service share one spot; iface / bus share another.
- * - SpringApplication only appears in spring-does-it, in an empty corner.
+ * - The coupled collaborators (Notifier, Leaderboard, Badges) and the two GoF
+ *   observers reuse the listeners' spots: never visible together with them.
+ * - ApplicationContext only appears in spring-does-it, in an empty corner.
  */
 const entities: Entity[] = [
   { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
@@ -36,10 +38,16 @@ const entities: Entity[] = [
   { id: 'notif', kind: 'block', label: 'NotificationListener', ...at(10.5, 1.2), tone: 'neutral', icon: 'bell' },
   { id: 'board', kind: 'block', label: 'LeaderboardListener', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
   { id: 'badges', kind: 'block', label: 'BadgeListener', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
-  { id: 'app', kind: 'block', label: 'SpringApplication', ...at(2.0, 1.6), tone: 'accent', icon: 'gear' },
+  { id: 'cNotifier', kind: 'block', label: 'Notifier', ...at(10.5, 1.2), tone: 'neutral', icon: 'bell' },
+  { id: 'cBoard', kind: 'block', label: 'Leaderboard', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
+  { id: 'cBadges', kind: 'block', label: 'Badges', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
+  { id: 'oBoard', kind: 'block', label: 'leaderboard observer', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
+  { id: 'oBadges', kind: 'block', label: 'badges observer', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
+  { id: 'app', kind: 'block', label: 'ApplicationContext', ...at(2.0, 1.6), tone: 'accent', icon: 'gear' },
 ];
 
 const PARTIES = ['notif', 'board', 'badges'];
+const COUPLED = ['cNotifier', 'cBoard', 'cBadges'];
 const SPRING = ['context', 'athlete', 'controller', 'service', 'bus', ...PARTIES];
 
 const scene: Scene = {
@@ -47,14 +55,12 @@ const scene: Scene = {
   links: [
     { id: 'l-athlete-controller', from: 'athlete', to: 'controller', style: 'call' },
     { id: 'l-controller-coupled', from: 'controller', to: 'coupled', style: 'call' },
-    { id: 'l-coupled-notif', from: 'coupled', to: 'notif', style: 'call' },
-    { id: 'l-coupled-board', from: 'coupled', to: 'board', style: 'call' },
-    { id: 'l-coupled-badges', from: 'coupled', to: 'badges', style: 'call' },
-    { id: 'l-controller-subject', from: 'controller', to: 'subject', style: 'call' },
+    { id: 'l-coupled-notif', from: 'coupled', to: 'cNotifier', style: 'call' },
+    { id: 'l-coupled-board', from: 'coupled', to: 'cBoard', style: 'call' },
+    { id: 'l-coupled-badges', from: 'coupled', to: 'cBadges', style: 'call' },
     { id: 'l-subject-iface', from: 'subject', to: 'iface', style: 'call' },
-    { id: 'l-notif-iface', from: 'notif', to: 'iface', style: 'implements' },
-    { id: 'l-board-iface', from: 'board', to: 'iface', style: 'implements' },
-    { id: 'l-badges-iface', from: 'badges', to: 'iface', style: 'implements' },
+    { id: 'l-oboard-iface', from: 'oBoard', to: 'iface', style: 'implements' },
+    { id: 'l-obadges-iface', from: 'oBadges', to: 'iface', style: 'implements' },
     { id: 'l-controller-service', from: 'controller', to: 'service', style: 'call' },
     { id: 'l-service-bus', from: 'service', to: 'bus', style: 'call' },
     { id: 'l-bus-notif', from: 'bus', to: 'notif', style: 'call' },
@@ -65,24 +71,24 @@ const scene: Scene = {
   steps: [
     {
       id: 'problem',
-      visible: ['athlete', 'controller', 'coupled', ...PARTIES],
+      visible: ['athlete', 'controller', 'coupled', ...COUPLED],
       highlight: ['coupled'],
       packets: [{ link: 'l-athlete-controller', label: '105 kg' }],
       code: { file: `${MAIN}/before/CoupledResultService.java`, region: 'coupled', highlight: [5, 6, 7] },
     },
     {
       id: 'smell',
-      visible: ['athlete', 'controller', 'coupled', ...PARTIES],
-      highlight: ['badges'],
+      visible: ['athlete', 'controller', 'coupled', ...COUPLED],
+      highlight: ['cBadges'],
       packets: [{ link: 'l-coupled-badges', label: 'award() ✗' }],
       code: { file: `${MAIN}/before/CoupledResultService.java`, region: 'coupled', highlight: [7, 8] },
     },
     {
       id: 'gof',
-      visible: ['athlete', 'controller', 'subject', 'iface', ...PARTIES],
+      visible: ['subject', 'iface', 'oBoard', 'oBadges'],
       highlight: ['subject', 'iface'],
       packets: [{ link: 'l-subject-iface', label: 'onRecord()' }],
-      code: { file: `${MAIN}/before/ManualPrSubject.java`, region: 'gof-subject', highlight: [1, 3, 13, 14] },
+      code: { file: `${MAIN}/before/ManualPrSubject.java`, region: 'gof-subject', highlight: [1, 3, 14, 15] },
     },
     {
       id: 'spring-events',

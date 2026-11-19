@@ -5,24 +5,27 @@ import com.patterns2learn.box.observer.PersonalRecordEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.ArrayList;
 
-/** GoF Subject written by hand: it keeps its own list of observers and notifies them in a loop. */
+/** GoF Subject written by hand: it keeps its own list of observers and notifies them in a loop. Not thread-safe: a teaching sketch. */
 public class ManualPrSubject {
-    private final Map<String, Integer> best = new HashMap<>();
+    private record Key(String athlete, String lift) {}
+
+    private final Map<Key, Integer> best = new HashMap<>();
 
     // @step:gof-subject
-    private final List<PrObserver> observers = new CopyOnWriteArrayList<>();
+    private final List<PrObserver> observers = new ArrayList<>();
 
     public void subscribe(PrObserver observer) {
         observers.add(observer);
     }
 
     public boolean record(LiftResult r) {
-        Integer previous = best.get(r.athlete() + "|" + r.lift());
+        var key = new Key(r.athlete(), r.lift());
+        Integer previous = best.get(key);
         boolean pr = previous == null || r.kg() > previous;
         if (pr) {
-            best.put(r.athlete() + "|" + r.lift(), r.kg());
+            best.put(key, r.kg());
             var event = new PersonalRecordEvent(r.athlete(), r.lift(), r.kg(), previous);
             for (PrObserver o : observers) {
                 o.onRecord(event);   // the subject only knows the interface

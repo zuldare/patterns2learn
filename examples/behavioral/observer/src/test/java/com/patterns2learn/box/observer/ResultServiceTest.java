@@ -46,6 +46,10 @@ class ResultServiceTest {
         assertThatThrownBy(() -> new LiftResult(" ", "Clean", 70)).isInstanceOf(IllegalArgumentException.class).hasMessage("athlete is required");
         assertThatThrownBy(() -> new LiftResult("Ana", "", 70)).isInstanceOf(IllegalArgumentException.class).hasMessage("lift is required");
         assertThatThrownBy(() -> new LiftResult("Ana", "Clean", 0)).isInstanceOf(IllegalArgumentException.class).hasMessage("kg must be > 0");
+        assertThatThrownBy(() -> new LiftResult("Ana", "Clean", -5)).isInstanceOf(IllegalArgumentException.class).hasMessage("kg must be > 0");
+        assertThatThrownBy(() -> new LiftResult("Ana", "Clean", 1001)).isInstanceOf(IllegalArgumentException.class).hasMessage("kg must be <= 1000");
+        assertThatThrownBy(() -> new LiftResult("x".repeat(81), "Clean", 70)).isInstanceOf(IllegalArgumentException.class).hasMessage("athlete is too long (max 80)");
+        assertThatThrownBy(() -> new LiftResult("Ana", "x".repeat(81), 70)).isInstanceOf(IllegalArgumentException.class).hasMessage("lift is too long (max 80)");
     }
 
     /** Waits (up to 2 s) for the async notification starting with {@code prefix}, skipping earlier ones. */
@@ -56,5 +60,16 @@ class ResultServiceTest {
             if (message != null && message.startsWith(prefix)) return message;
         }
         return null;
+    }
+
+    @Test void athleteAndLiftNamesCannotCollide() {
+        results.record(new LiftResult("A|B", "C", 100));
+        assertThat(results.record(new LiftResult("A", "B|C", 50))).isTrue(); // a different athlete and lift
+    }
+
+    @Test void theSentQueueKeepsOnlyTheLatestMessages() throws Exception {
+        for (int kg = 1; kg <= 150; kg++) results.record(new LiftResult("Ana", "Row", kg));
+        assertThat(nextMessageLike("Ana: new PR in Row, 150")).isNotNull();
+        assertThat(notifications.sent().size()).isLessThanOrEqualTo(NotificationListener.KEEP);
     }
 }

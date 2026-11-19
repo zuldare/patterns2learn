@@ -3,6 +3,7 @@ package com.patterns2learn.box.observer.web;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -17,5 +18,10 @@ public class ApiErrors {
         }
         String reason = cause instanceof IllegalArgumentException ? cause.getMessage() : "malformed request body";
         return ResponseEntity.badRequest().body(Map.of("error", reason));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> missing(MissingServletRequestParameterException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", "missing parameter: " + e.getParameterName()));
     }
 }

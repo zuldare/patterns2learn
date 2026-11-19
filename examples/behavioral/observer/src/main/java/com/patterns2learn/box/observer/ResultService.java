@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ResultService {
-    private final Map<String, Integer> best = new ConcurrentHashMap<>();
+    /** Athlete and lift as a real key: no string joining, so names can't collide. */
+    private record Key(String athlete, String lift) {}
+
+    private final Map<Key, Integer> best = new ConcurrentHashMap<>();
     private final ApplicationEventPublisher events;
 
     public ResultService(ApplicationEventPublisher events) {
@@ -30,7 +33,7 @@ public class ResultService {
     /** Stores the new best atomically and returns the previous one (null if this was the first lift). */
     private Integer keepBest(LiftResult r) {
         var previous = new AtomicReference<Integer>();
-        best.compute(r.athlete() + "|" + r.lift(), (key, old) -> {
+        best.compute(new Key(r.athlete(), r.lift()), (key, old) -> {
             previous.set(old);
             return old == null || r.kg() > old ? r.kg() : old;
         });

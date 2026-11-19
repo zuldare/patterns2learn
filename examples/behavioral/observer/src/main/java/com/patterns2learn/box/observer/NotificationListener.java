@@ -9,14 +9,18 @@ import org.springframework.stereotype.Component;
 /** Sends the "new PR!" message. Here it only queues the text; a real one would call a push or email service. */
 @Component
 public class NotificationListener {
-    private final BlockingQueue<String> sent = new LinkedBlockingQueue<>();
+    /** Only the latest messages are kept, so a long-running app doesn't grow this forever. */
+    public static final int KEEP = 100;
+
+    private final BlockingQueue<String> sent = new LinkedBlockingQueue<>(KEEP);
 
     // @step:async
     @Async          // slow I/O: run it on another thread so record() doesn't wait for it
     @EventListener
     public void on(PersonalRecordEvent e) {
         String delta = e.previousKg() == null ? "first" : "+" + (e.kg() - e.previousKg());
-        sent.add(e.athlete() + ": new PR in " + e.lift() + ", " + e.kg() + " kg (" + delta + ")");
+        String message = e.athlete() + ": new PR in " + e.lift() + ", " + e.kg() + " kg (" + delta + ")";
+        while (!sent.offer(message)) sent.poll(); // full: drop the oldest
     }
     // @end
 

@@ -33,4 +33,27 @@ class LiftApiTest {
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.error").value("kg must be > 0"));
     }
+
+    @Test void missingFieldNegativeOrFractionalKgAndMalformedJsonAre400() throws Exception {
+        mvc.perform(post("/api/lifts").contentType(MediaType.APPLICATION_JSON).content("{\"lift\":\"Clean\",\"kg\":70}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("athlete is required"));
+        mvc.perform(post("/api/lifts").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Ana\",\"lift\":\"Clean\",\"kg\":-5}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("kg must be > 0"));
+        mvc.perform(post("/api/lifts").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Ana\",\"lift\":\"Clean\",\"kg\":105.5}"))
+           .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/lifts").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("malformed request body"));
+    }
+
+    @Test void leaderboardNeedsALift() throws Exception {
+        mvc.perform(get("/api/leaderboard"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("missing parameter: lift"));
+        mvc.perform(get("/api/leaderboard").param("lift", "Snatch"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$").isEmpty());
+    }
 }

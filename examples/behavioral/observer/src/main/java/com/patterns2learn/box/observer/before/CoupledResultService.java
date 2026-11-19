@@ -6,7 +6,9 @@ import java.util.Map;
 
 /** Before: the service knows, builds and calls every party interested in a PR. */
 public class CoupledResultService {
-    private final Map<String, Integer> best = new HashMap<>();
+    private record Key(String athlete, String lift) {}
+
+    private final Map<Key, Integer> best = new HashMap<>();
     private final Notifier notifier;
     private final Leaderboard leaderboard;
     private final Badges badges;
@@ -19,7 +21,7 @@ public class CoupledResultService {
 
     // @step:coupled
     public boolean record(LiftResult r) {
-        String key = r.athlete() + "|" + r.lift();
+        var key = new Key(r.athlete(), r.lift());
         boolean pr = r.kg() > best.getOrDefault(key, 0);
         if (pr) {
             notifier.send(r.athlete() + ": new PR!");   // one more line for every new feature...
@@ -32,7 +34,7 @@ public class CoupledResultService {
     // @end
 
     public int bestOf(String athlete, String lift) {
-        return best.getOrDefault(athlete + "|" + lift, 0);
+        return best.getOrDefault(new Key(athlete, lift), 0);
     }
 
     public static class Notifier {

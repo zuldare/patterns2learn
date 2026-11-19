@@ -38,7 +38,7 @@ quiz:
       - Put @Order(1) on the listener
       - Annotate the listener with @Async and enable @EnableAsync
     answer: 3
-    explain: With @Async, Spring hands the event to the listener on another thread and publishEvent() returns right away. Perfect for slow I/O work like sending notifications.
+    explain: With @Async, Spring hands the event to that listener on another thread, so publishEvent() no longer waits for it (synchronous listeners still run before it returns). Perfect for slow I/O work like sending notifications.
   - q: Tomorrow you also want to email the coach on every PR. What do you change?
     options:
       - Just a new class with an @EventListener method taking PersonalRecordEvent
@@ -66,8 +66,8 @@ Ana just back-squatted 105 kg, five more than her best. A personal record means 
 In the coupled version, `CoupledResultService` does all three by calling each service directly, one after another.
 
 > [!problem]
-> The results service knows, receives and calls every interested party. Each new reaction is another dependency and another line in this method.
-@describe: The athlete sends 105 kg to LiftController, which calls CoupledResultService, highlighted in red; it's wired to NotificationListener, LeaderboardListener and BadgeListener.
+> The results service depends on every interested party and calls them one by one. Each new reaction is another dependency and another line in this method.
+@describe: The athlete sends 105 kg to LiftController, which calls CoupledResultService, highlighted in red; it calls Notifier, Leaderboard and Badges directly.
 
 ## @step:smell — If the badge fails, the PR is lost
 The badge service is down and `award()` throws. Since everything happens in the same method, the `best.put(...)` on the next line **never runs**: Ana's PR isn't stored.
@@ -76,7 +76,7 @@ The example test proves it. A side feature (a badge) has taken down the main one
 
 > [!warning]
 > The more a class knows about its neighbours, the more ways it has to break because of them.
-@describe: The award() ✗ packet goes from CoupledResultService to BadgeListener, highlighted: the call fails.
+@describe: The award() ✗ packet goes from CoupledResultService to Badges, highlighted: the call fails.
 
 ## @step:gof — Observer: announce, don't call
 The Observer pattern flips the relationship:
@@ -89,7 +89,7 @@ The subject no longer knows whether there's one, three or none, or what each one
 
 > [!key-idea]
 > Whoever changes announces *that* something happened; the interested parties decide *what* to do about it.
-@describe: ManualPrSubject and the PrObserver interface appear, highlighted; the three listeners implement it and the subject sends onRecord() to the interface.
+@describe: ManualPrSubject and the PrObserver interface appear, highlighted; two observers, the leaderboard one and the badges one, implement it and the subject sends onRecord() to the interface.
 
 ## @step:spring-events — The context already is a publisher
 You don't need to write the subscriber list: the **Spring context** already has one. `ResultService` gets an `ApplicationEventPublisher` and, when it detects a PR, does:
@@ -99,7 +99,7 @@ You don't need to write the subscriber list: the **Spring context** already has 
 And that's it. No fields for notifications, leaderboard or badges.
 
 > [!spring]
-> Any object can be an event: here, a plain `record`. Spring delivers it to every method that expects it.
+> Any object can be an event: here, a plain `record`, with no need to extend `ApplicationEvent` (years ago you had to). Spring delivers it to every method that expects it.
 @describe: The Spring context appears with ResultService and ApplicationEventPublisher, highlighted together with the context, wired to the three listeners.
 
 ## @step:listeners — Listening is an annotation
@@ -132,8 +132,10 @@ A detail that surprises people: by default `publishEvent()` calls each listener 
 
 So if a listener throws, the publisher gets the exception. The example test uses a broken badge printer and `record()` fails along with it.
 
+Careful, because step 2's problem **isn't completely gone**. The mark is already stored (the event is published afterwards), but the `POST` answers 500, the listeners after the broken one don't run and, if the athlete retries, it no longer counts as a PR.
+
 > [!warning]
-> If the listener should only run once the operation has committed to the database, use `@TransactionalEventListener`. If it mustn't block or break the publisher, make it asynchronous (next step) or catch its errors inside.
+> Three remedies, depending on the case. Catch errors inside the listener if its failure shouldn't affect anyone. Make it asynchronous (next step) if it's also slow. And if you work with a database, `@TransactionalEventListener` runs it only once the transaction commits; with no active transaction it doesn't run at all, unless you set `fallbackExecution = true`.
 @describe: The event goes from the service to the publisher and an exception comes back from BadgeListener, highlighted, to the publisher.
 
 ## @step:async — The slow stuff, on another thread
@@ -141,21 +143,24 @@ Sending a notification is slow: there's a network and an external service involv
 
 > [!spring]
 > The leaderboard and the badge stay synchronous because they're fast and in memory. Choose per listener: synchronous if it must happen before responding, `@Async` if it can happen afterwards.
+
+> [!warning]
+> An exception in an `@Async` listener no longer reaches anyone: it goes to the `AsyncUncaughtExceptionHandler`, which by default only logs it. If the message matters, retry inside the listener or store it to send again later.
 @describe: The event travels from the publisher to NotificationListener, highlighted, which handles it on another thread.
 
 ## @step:spring-does-it — Spring already does it for you
-Spring talks to itself this way. At startup it publishes `ContextRefreshedEvent`, on shutdown `ContextClosedEvent`, and Spring Boot adds `ApplicationReadyEvent`, `WebServerInitializedEvent`… Your code hooks in with the same `@EventListener`.
+Spring talks to itself this way. The `ApplicationContext` publishes `ContextRefreshedEvent` at startup and `ContextClosedEvent` on shutdown, and Spring Boot adds `ApplicationReadyEvent`, `WebServerInitializedEvent`… Your code hooks in with the same `@EventListener`.
 
 > [!spring]
 > The example test listens to the context starting and closing: "context ready" when it opens and "save today's leaderboard" when it closes, without anyone calling those methods.
-@describe: Inside the Spring context, SpringApplication, highlighted, sends ContextRefreshedEvent to the event publisher, also highlighted.
+@describe: Inside the Spring context, ApplicationContext, highlighted, sends ContextRefreshedEvent to the event publisher, also highlighted.
 
 ## @step:recap — Recap
 You started with a service that called everyone and ended up with:
 
 - **One event**, `PersonalRecordEvent`, published in one line.
 - **Independent listeners**, each with its own `@EventListener`.
-- **Synchronous by default**, with `@Async` or `@TransactionalEventListener` when you need them.
+- **Synchronous by default**, with `@Async` or `@TransactionalEventListener` when you need them, knowing where errors go in each case.
 - **Zero coupling**: adding a reaction doesn't touch the service.
 
 > [!key-idea]

@@ -38,7 +38,7 @@ quiz:
       - Usar @Order(1) en el listener
       - Anotar el listener con @Async y activar @EnableAsync
     answer: 3
-    explain: Con @Async, Spring entrega el evento al listener en otro hilo y publishEvent() vuelve enseguida. Ideal para trabajo lento de entrada/salida, como mandar notificaciones.
+    explain: Con @Async, Spring entrega el evento a ese listener en otro hilo, así que publishEvent() ya no espera por él (los listeners síncronos sí se ejecutan antes de volver). Ideal para trabajo lento de entrada/salida, como mandar notificaciones.
   - q: Mañana quieres además mandar un email al coach con cada PR. ¿Qué tocas?
     options:
       - Solo una clase nueva con un método @EventListener que reciba PersonalRecordEvent
@@ -66,8 +66,8 @@ Ana acaba de hacer 105 kg de sentadilla trasera, cinco más que su mejor marca. 
 En la versión acoplada, `CoupledResultService` hace las tres cosas llamando directamente a cada servicio, uno detrás de otro.
 
 > [!problem]
-> El servicio de resultados conoce, recibe y llama a todos los interesados. Cada reacción nueva es una dependencia y una línea más en este método.
-@describe: El atleta envía 105 kg a LiftController, que llama a CoupledResultService, resaltado en rojo; este está unido a NotificationListener, LeaderboardListener y BadgeListener.
+> El servicio de resultados depende de todos los interesados y los llama uno a uno. Cada reacción nueva es una dependencia y una línea más en este método.
+@describe: El atleta envía 105 kg a LiftController, que llama a CoupledResultService, resaltado en rojo; este llama directamente a Notifier, Leaderboard y Badges.
 
 ## @step:smell — Si falla la insignia, se pierde el PR
 El servicio de insignias está caído y `award()` lanza una excepción. Como todo va en el mismo método, el `best.put(...)` de la línea siguiente **no llega a ejecutarse**: el PR de Ana no queda guardado.
@@ -76,7 +76,7 @@ El test del ejemplo lo demuestra. Una función secundaria (una insignia) ha tumb
 
 > [!warning]
 > Cuanto más sabe una clase de sus vecinos, más formas tiene de romperse por culpa de ellos.
-@describe: El paquete award() ✗ sale de CoupledResultService hacia BadgeListener, resaltado: la llamada falla.
+@describe: El paquete award() ✗ sale de CoupledResultService hacia Badges, resaltado: la llamada falla.
 
 ## @step:gof — Observer: avisa, no llames
 El patrón Observer invierte la relación:
@@ -89,7 +89,7 @@ El subject ya no sabe si hay uno, tres o ninguno, ni qué hace cada uno.
 
 > [!key-idea]
 > El que cambia publica *que* ha pasado algo; los interesados deciden *qué* hacer con ello.
-@describe: Aparecen ManualPrSubject y la interfaz PrObserver, resaltados; los tres listeners la implementan y el subject envía onRecord() a la interfaz.
+@describe: Aparecen ManualPrSubject y la interfaz PrObserver, resaltados; dos observers, el del ranking y el de las insignias, la implementan y el subject envía onRecord() a la interfaz.
 
 ## @step:spring-events — El contexto ya es un publicador
 No hace falta escribir la lista de suscriptores: el **contexto de Spring** ya la tiene. `ResultService` recibe un `ApplicationEventPublisher` y, cuando detecta un PR, hace:
@@ -99,7 +99,7 @@ No hace falta escribir la lista de suscriptores: el **contexto de Spring** ya la
 Y nada más. No hay campos para notificaciones, ranking ni insignias.
 
 > [!spring]
-> Cualquier objeto puede ser un evento: aquí, un `record` normal. Spring lo entrega a todos los métodos que lo esperan.
+> Cualquier objeto puede ser un evento: aquí, un `record` normal, sin heredar de `ApplicationEvent` (hace años era obligatorio). Spring lo entrega a todos los métodos que lo esperan.
 @describe: Aparece el contexto de Spring con ResultService y ApplicationEventPublisher, resaltado junto al contexto, que está unido a los tres listeners.
 
 ## @step:listeners — Escuchar es una anotación
@@ -132,8 +132,10 @@ Un detalle que sorprende: por defecto, `publishEvent()` llama a cada listener **
 
 Así que si un listener lanza una excepción, le llega a quien publicó. El test del ejemplo usa una impresora de insignias rota y `record()` falla con ella.
 
+Ojo, porque el problema del paso 2 **no ha desaparecido del todo**. La marca ya está guardada (el evento se publica después), pero el `POST` responde con un 500, los listeners que iban detrás no se ejecutan y, si el atleta reintenta, ya no cuenta como PR.
+
 > [!warning]
-> Si el listener debe ejecutarse solo cuando la operación se haya confirmado en base de datos, usa `@TransactionalEventListener`. Si no debe bloquear ni romper al que publica, hazlo asíncrono (siguiente paso) o captura sus errores dentro.
+> Tres remedios, según el caso. Captura los errores dentro del listener si su fallo no debe afectar a nadie. Hazlo asíncrono (siguiente paso) si además es lento. Y si trabajas con base de datos, `@TransactionalEventListener` lo ejecuta solo cuando la transacción se confirma; sin transacción activa no se ejecuta, salvo que pongas `fallbackExecution = true`.
 @describe: El evento llega del servicio al publicador y una excepción vuelve desde BadgeListener, resaltado, hacia el publicador.
 
 ## @step:async — Lo lento, en otro hilo
@@ -141,21 +143,24 @@ Mandar una notificación es lento: hay red y un servicio externo de por medio. C
 
 > [!spring]
 > El ranking y la insignia siguen siendo síncronos porque son rápidos y en memoria. Elige por listener: síncrono si debe pasar antes de responder, `@Async` si puede pasar después.
+
+> [!warning]
+> Una excepción en un listener `@Async` ya no le llega a nadie: la recibe el `AsyncUncaughtExceptionHandler`, que por defecto solo la escribe en el log. Si el aviso importa, reintenta dentro del listener o guárdalo para reenviarlo.
 @describe: El evento viaja del publicador a NotificationListener, resaltado, que lo procesa en otro hilo.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-El propio Spring se comunica así. Al arrancar publica `ContextRefreshedEvent`, al cerrar `ContextClosedEvent`, y Spring Boot añade `ApplicationReadyEvent`, `WebServerInitializedEvent`… Tu código se engancha con el mismo `@EventListener`.
+El propio Spring se comunica así. El `ApplicationContext` publica `ContextRefreshedEvent` al arrancar y `ContextClosedEvent` al cerrar, y Spring Boot añade `ApplicationReadyEvent`, `WebServerInitializedEvent`… Tu código se engancha con el mismo `@EventListener`.
 
 > [!spring]
 > El test del ejemplo escucha el arranque y el cierre del contexto: "context ready" al abrir y "save today's leaderboard" al cerrar, sin que nadie llame a esos métodos.
-@describe: Dentro del contexto de Spring, SpringApplication, resaltado, envía ContextRefreshedEvent al publicador de eventos, también resaltado.
+@describe: Dentro del contexto de Spring, ApplicationContext, resaltado, envía ContextRefreshedEvent al publicador de eventos, también resaltado.
 
 ## @step:recap — Resumen
 Empezaste con un servicio que llamaba a todos y acabaste con:
 
 - **Un evento**, `PersonalRecordEvent`, publicado con una línea.
 - **Listeners independientes**, cada uno con su `@EventListener`.
-- **Síncrono por defecto**, con `@Async` o `@TransactionalEventListener` cuando haga falta.
+- **Síncrono por defecto**, con `@Async` o `@TransactionalEventListener` cuando haga falta, y sabiendo adónde van los errores en cada caso.
 - **Cero acoplamiento**: añadir una reacción no toca el servicio.
 
 > [!key-idea]
