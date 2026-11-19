@@ -43,6 +43,7 @@
   <modules>
     <module>creational/singleton</module>
     <module>creational/factory-method</module>
+    <module>creational/builder</module>
     <module>structural/proxy</module>
     <module>structural/decorator</module>
     <module>behavioral/template-method</module>
