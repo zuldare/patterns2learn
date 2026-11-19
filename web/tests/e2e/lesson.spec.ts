@@ -158,3 +158,20 @@ test('the theme button cycles paper → blueprint → dark → paper and remembe
   await btn.click();
   await expect(html).toHaveAttribute('data-theme', 'paper');
 });
+
+test('no step text overflows its panel sideways, in any lesson', async ({ page }) => {
+  const { readdirSync } = await import('node:fs');
+  const slugs = readdirSync('src/content/lessons').filter((d) => !d.startsWith('_'));
+  const offenders: string[] = [];
+  for (const slug of slugs) {
+    await page.goto(`/es/patterns/${slug}/`);
+    const ids = await page.locator('.step-text').evaluateAll((els) => els.map((e) => e.getAttribute('data-step-id')));
+    for (const id of ids) {
+      await page.locator('[data-lesson]').evaluate((el, step) => { location.hash = `step-${step}`; }, id);
+      await expect(page.locator(`.step-text[data-step-id="${id}"]`)).toBeVisible();
+      const over = await page.locator('.step-panel').evaluate((p) => p.scrollWidth - p.clientWidth);
+      if (over > 1) offenders.push(`${slug}#${id} (+${over}px)`);
+    }
+  }
+  expect(offenders).toEqual([]);
+});

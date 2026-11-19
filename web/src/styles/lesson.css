@@ -102,6 +102,8 @@ html:not(.js) .step-text + .step-text { border-top: 1.5px dashed var(--line); pa
   letter-spacing: 0.06em;
 }
 .step-text__title { font-size: 1.15rem; margin-bottom: 0.6rem; }
+/* Long inline code (method chains, CGLIB names) may break anywhere rather than push the panel sideways. */
+.step-text code { overflow-wrap: anywhere; }
 .step-controls { display: flex; justify-content: space-between; gap: 12px; }
 
 /* ---------- Code ---------- */
