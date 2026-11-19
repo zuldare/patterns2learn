@@ -54,6 +54,14 @@ quiz:
       - Nunca, prototype está obsoleto
     answer: 2
     explain: Con prototype, Spring crea un objeto nuevo cada vez que se lo pides. Encaja con objetos con estado propio y de vida corta, como un WodTimer por sesión de entreno. Ojo, si lo inyectas en un singleton, se crea una sola vez; para uno nuevo cada vez, pídelo con ObjectProvider<WodTimer>. Lo que se comparte, como el catálogo, se queda en singleton.
+  - q: El box solo tiene una Assault Bike y hay que controlar quién la usa en cada momento. ¿Qué harías?
+    options:
+      - Una clase AssaultBike singleton, con getInstance() y un candado dentro
+      - Un bean AssaultBike con scope prototype, uno para cada atleta
+      - Guardar la bici en una variable estática del controlador
+      - Un servicio de reservas que gestione los turnos; la bici es un dato
+    answer: 3
+    explain: Singleton garantiza una instancia en el programa, no una en el mundo real. Si el box compra otra bici, la clase singleton se rompe; un servicio de reservas (que sí será un bean singleton) funciona igual con una bici o con diez.
 ---
 ## @step:problem — Cada uno con su catálogo
 La app del box tiene un catálogo de WODs: Fran, Cindy y los que vaya añadiendo el coach. Lo usan dos partes de la app. `WodController` los lista y deja añadir nuevos, y `BookingService` comprueba que el WOD existe antes de reservar plaza.
@@ -147,6 +155,9 @@ Empezaste con dos catálogos desincronizados, probaste el Singleton de libro y a
 - **Dependencias visibles** en el constructor y fáciles de sustituir en tests.
 - **Estado seguro entre hilos**, porque compartido significa concurrente.
 - **`prototype`** cuando cada uso necesita su propia copia.
+
+> [!warning]
+> No confundas "solo hay una" con Singleton. Que el box tenga una única Assault Bike es un dato del negocio, no una regla del código: si mañana compráis otra, una clase `AssaultBike` singleton se rompe. Y controlar quién la usa (turnos, colas, que no la cojan dos a la vez) es trabajo de un servicio de reservas, no de que exista un solo objeto. Ese servicio sí será un bean singleton; las bicis, datos que gestiona.
 
 > [!key-idea]
 > En Spring casi nunca escribes un Singleton: declaras un bean y el contenedor garantiza que sea único.
