@@ -1,0 +1,47 @@
+---
+import type { QuizQuestion } from '../engine/types';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  lang: Locale;
+  slug: string;
+  questions: QuizQuestion[];
+}
+
+const { lang, slug, questions } = Astro.props;
+---
+{questions.length > 0 && (
+<section class="quiz-section" aria-labelledby="quiz-title">
+  <h2 id="quiz-title" class="quiz-section__title">{t(lang, 'quiz')}</h2>
+  <form
+    class="quiz"
+    data-slug={slug}
+    data-total={questions.length}
+    data-msg-correct={t(lang, 'correct')}
+    data-msg-incorrect={t(lang, 'incorrect')}
+    data-msg-score={t(lang, 'score')}
+    novalidate
+  >
+    {questions.map((q, i) => (
+      <fieldset class="quiz-q" data-q={i} data-answer={q.answer}>
+        <legend class="quiz-q__legend">{i + 1}. {q.q}</legend>
+        {q.options.map((opt, j) => (
+          <label class="quiz-option">
+            <input type="radio" name={`q${i}`} value={j} />
+            <span>{opt}</span>
+          </label>
+        ))}
+        <p class="quiz-status" data-status></p>
+        <p class="quiz-explain" hidden>{q.explain}</p>
+      </fieldset>
+    ))}
+    <div class="quiz__actions">
+      <button class="btn btn--accent" type="submit">{t(lang, 'check')}</button>
+      <p class="quiz-result" role="status" aria-live="polite" data-result></p>
+    </div>
+  </form>
+  <p class="quiz-section__sheet">
+    <a href={`/${lang}/patterns/${slug}/cheatsheet/`}>{t(lang, 'cheatsheet')} →</a>
+  </p>
+</section>
+)}

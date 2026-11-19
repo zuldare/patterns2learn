@@ -1,5 +1,6 @@
 import { LessonPlayer } from '../engine/player';
 import type { Scene } from '../engine/types';
+import { loadProgress, saveStep } from '../lib/progress';
 
 const CODE_BREAKPOINT = '(max-width: 959.98px)';
 
@@ -41,6 +42,7 @@ function mountLesson(root: HTMLElement): void {
   if (!data) return;
   const scene = JSON.parse(data) as Scene;
   const ids = scene.steps.map((s) => s.id);
+  const slug = root.dataset.lesson ?? '';
   const labels = [...root.querySelectorAll<HTMLElement>('.step-text')].map(
     (sec) => `${sec.querySelector('.step-text__count')?.textContent ?? ''}: ${sec.querySelector('.step-text__title')?.textContent ?? ''}`,
   );
@@ -67,6 +69,7 @@ function mountLesson(root: HTMLElement): void {
     const hash = `#step-${ids[i]}`;
     if (window.location.hash !== hash) history.replaceState(history.state, '', hash);
     if (status) status.textContent = labels[i] ?? '';
+    saveStep(slug, i, ids.length);
   };
 
   const player = new LessonPlayer(root, scene, {
@@ -74,7 +77,10 @@ function mountLesson(root: HTMLElement): void {
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   });
   const start = indexFromHash();
-  if (start > 0) player.goTo(start);
+  // A #step-<id> link wins; otherwise resume where the reader left off.
+  const saved = loadProgress().lessons[slug]?.step;
+  const resume = start >= 0 ? start : Number.isInteger(saved) && saved! > 0 && saved! < ids.length ? saved! : 0;
+  if (resume > 0) player.goTo(resume);
   // A #step-<id> deep link restores the step; the lesson UI is laid out from
   // the top (diagram first), so undo the browser's jump to the text section.
   if (start >= 0) window.addEventListener('load', () => window.scrollTo(0, 0), { once: true });
@@ -99,6 +105,19 @@ function mountLesson(root: HTMLElement): void {
   mountCodePanel(root);
 }
 
+/** Marks completed lessons in the course tree (static HTML carries no progress). */
+function hydrateCourseTree(): void {
+  const { lessons } = loadProgress();
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-lesson-link]')) {
+    const slug = link.dataset.lessonLink ?? '';
+    if (!lessons[slug]?.done) continue;
+    link.classList.add('is-done');
+    const mark = link.querySelector<HTMLElement>('[data-done-mark]');
+    if (mark) mark.hidden = false;
+  }
+}
+
 const root = document.querySelector<HTMLElement>('[data-lesson]');
 if (root) mountLesson(root);
 mountTreeDrawer();
+hydrateCourseTree();

@@ -1,0 +1,55 @@
+/* Printable cheatsheet (applied via media="print"): A4 portrait, one page,
+   white paper and black ink in both themes. */
+
+@page { size: A4 portrait; margin: 12mm; }
+
+html:root[data-theme] {
+  --bg: #fff;
+  --surface: #fff;
+  --ink: #000;
+  --muted: #333;
+  --line: #999;
+  --grid: #ddd;
+  --accent: #555;
+  --accent-strong: #000;
+  --accent-ink: #000;
+  --accent-soft: #eee;
+  --warn: #000;
+  --danger: #000;
+  --pop-shadow: none;
+  --code-hl: #e8e8e8;
+  --shiki-foreground: #000;
+  --shiki-background: #fff;
+  --shiki-token-keyword: #000;
+  --shiki-token-string: #333;
+  --shiki-token-string-expression: #333;
+  --shiki-token-constant: #000;
+  --shiki-token-function: #000;
+  --shiki-token-parameter: #000;
+  --shiki-token-comment: #444;
+  --shiki-token-punctuation: #333;
+  --shiki-token-link: #000;
+}
+
+html, body { background: #fff !important; color: #000 !important; }
+body { font-size: 9.5pt; line-height: 1.35; }
+
+/* No chrome: header, skip link, buttons, back link. */
+.site-header, .skip-link, .donate, .donate-card, .course-tree, .sheet__actions, .sheet__back, .btn { display: none !important; }
+.sheet__actions { display: none !important; }
+
+.sheet { max-width: none; padding: 0; gap: 7pt; }
+.sheet__title { font-size: 16pt; }
+.sheet h2 { font-size: 8pt; margin-bottom: 2pt; }
+.sheet ul { gap: 1pt; }
+.sheet__cols { gap: 10pt; }
+.sheet__svg { padding: 2pt; border-color: #999; }
+.sheet__svg svg { max-height: 62mm; }
+.sheet__code, .sheet__svg, .sheet section { break-inside: avoid; }
+.sheet__code { border-color: #000; box-shadow: none; }
+.sheet .code-snippet pre.shiki { font-size: 7pt; line-height: 1.4; padding: 4pt 0 6pt; overflow: visible; white-space: pre-wrap; }
+.sheet .code-snippet pre.shiki code { display: flex; flex-direction: column; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sheet .code-snippet .line { display: block; min-width: 0; padding: 0 8pt; }
+.sheet .code-snippet .line.is-hl { background: #e8e8e8; box-shadow: inset 2pt 0 0 #000; }
+.sheet .code-snippet__file { padding: 3pt 8pt 0; font-size: 7pt; }
+.sheet a { color: #000; }

@@ -32,5 +32,13 @@ export const es: { [K in keyof typeof en]: string } = {
   behavioral: 'De comportamiento',
   spring: 'Spring',
   close: 'Cerrar',
+  intent: 'Intención',
+  participants: 'Participantes',
+  pros: 'Ventajas',
+  cons: 'Inconvenientes',
+  related: 'Patrones relacionados',
+  score: 'Puntuación',
+  completed: 'Completada',
+  donateText: 'patterns2learn es gratis y de código abierto. Si te ha servido, un café ayuda a mantenerlo.',
   runIt: 'Ejecútalo',
 };

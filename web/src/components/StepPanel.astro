@@ -5,9 +5,11 @@ import { t, type Locale } from '../i18n';
 interface Props {
   lang: Locale;
   steps: ResolvedStep[];
+  /** Shown under the last (recap) step. */
+  cheatsheetHref?: string;
 }
 
-const { lang, steps } = Astro.props;
+const { lang, steps, cheatsheetHref } = Astro.props;
 const n = steps.length;
 ---
 <div class="step-panel">
@@ -16,6 +18,9 @@ const n = steps.length;
       <p class="step-text__count">{t(lang, 'step')} {i + 1} {t(lang, 'of')} {n}</p>
       <h2 class="step-text__title" id={`step-title-${s.id}`}>{s.text.title}</h2>
       <div class="step-text__body prose" set:html={s.text.html} />
+      {cheatsheetHref && i === n - 1 && (
+        <p class="step-text__sheet"><a class="btn btn--small" href={cheatsheetHref}>{t(lang, 'cheatsheet')} →</a></p>
+      )}
     </section>
   ))}
   <div class="step-controls" data-js-only>

@@ -30,5 +30,13 @@ export const en = {
   behavioral: 'Behavioral',
   spring: 'Spring',
   close: 'Close',
+  intent: 'Intent',
+  participants: 'Participants',
+  pros: 'Pros',
+  cons: 'Cons',
+  related: 'Related patterns',
+  score: 'Score',
+  completed: 'Completed',
+  donateText: 'patterns2learn is free and open source. If it helped you, a coffee keeps it going.',
   runIt: 'Run it',
 } as const;

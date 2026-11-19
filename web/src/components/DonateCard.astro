@@ -1,0 +1,12 @@
+---
+import { DONATE_URL } from '../config';
+import { t, type Locale } from '../i18n';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+---
+<aside class="donate-card" aria-labelledby="donate-card-title">
+  <h2 id="donate-card-title" class="donate-card__title"><span aria-hidden="true">♥ </span>{t(lang, 'donate')}</h2>
+  <p class="donate-card__text">{t(lang, 'donateText')}</p>
+  <a class="btn btn--accent" href={DONATE_URL} target="_blank" rel="noopener">{t(lang, 'donateCta')}</a>
+</aside>

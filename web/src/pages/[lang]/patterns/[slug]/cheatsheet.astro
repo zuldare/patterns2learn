@@ -1,0 +1,112 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import printCss from '../../../../styles/print.css?url';
+import { highlightJava } from '../../../../lib/highlight';
+import { renderSceneAtStep } from '../../../../lib/cheatsheet';
+import { listLessons, resolveSteps } from '../../../../lib/lessons';
+import type { Lesson } from '../../../../engine/types';
+import { t, type Locale } from '../../../../i18n';
+
+export const getStaticPaths = (async () => {
+  const lessons = await listLessons();
+  return (['es', 'en'] as const).flatMap((lang) =>
+    lessons.map((lesson) => ({ params: { lang, slug: lesson.slug }, props: { lesson } })),
+  );
+}) satisfies GetStaticPaths;
+
+interface Props { lesson: Lesson }
+
+const lang = Astro.params.lang as Locale;
+const { lesson } = Astro.props;
+const text = lesson.texts[lang];
+const { recap } = text;
+const steps = resolveSteps(lesson, lang);
+const last = steps.find((s) => s.id === 'recap') ?? steps[steps.length - 1]!;
+const svg = renderSceneAtStep(lesson.scene, last, text.title);
+const codeHtml = last.snippet ? await highlightJava(last.snippet.code, last.code?.highlight ?? []) : undefined;
+const codeFile = last.snippet?.file.split('/').pop();
+---
+<BaseLayout lang={lang} title={`${t(lang, 'cheatsheet')}: ${text.title} — patterns2learn`} description={recap.intent} path={`/patterns/${lesson.slug}/cheatsheet/`}>
+  <link slot="head" rel="stylesheet" href={printCss} media="print" />
+  <article class="sheet">
+    <header class="sheet__head">
+      <div>
+        <p class="sheet__kicker">{t(lang, 'cheatsheet')}</p>
+        <h1 class="sheet__title">{text.title}</h1>
+      </div>
+      <div class="sheet__actions" data-js-only>
+        <button class="btn" type="button" data-action="print">{t(lang, 'print')}</button>
+      </div>
+    </header>
+    <section class="sheet__intent">
+      <h2>{t(lang, 'intent')}</h2>
+      <p>{recap.intent}</p>
+    </section>
+    <div class="sheet__cols">
+      <section class="sheet__diagram">
+        <div class="sheet__svg" set:html={svg} />
+      </section>
+      <section class="sheet__parts">
+        <h2>{t(lang, 'participants')}</h2>
+        <ul>{recap.participants.map((p) => <li>{p}</li>)}</ul>
+      </section>
+    </div>
+    {codeHtml && (
+      <section class="sheet__code code-snippet">
+        <p class="code-snippet__file">{codeFile}</p>
+        <Fragment set:html={codeHtml} />
+      </section>
+    )}
+    <div class="sheet__cols sheet__cols--even">
+      <section>
+        <h2>{t(lang, 'pros')}</h2>
+        <ul class="sheet__pros">{recap.pros.map((p) => <li>{p}</li>)}</ul>
+      </section>
+      <section>
+        <h2>{t(lang, 'cons')}</h2>
+        <ul class="sheet__cons">{recap.cons.map((p) => <li>{p}</li>)}</ul>
+      </section>
+    </div>
+    {recap.related.length > 0 && (
+      <section class="sheet__related">
+        <h2>{t(lang, 'related')}</h2>
+        <ul class="sheet__tags">{recap.related.map((r) => <li>{r}</li>)}</ul>
+      </section>
+    )}
+    <p class="sheet__back"><a href={`/${lang}/patterns/${lesson.slug}/`}>← {text.title}</a></p>
+  </article>
+</BaseLayout>
+
+<script>
+  document.querySelector<HTMLButtonElement>('[data-action="print"]')?.addEventListener('click', () => window.print());
+</script>
+
+<style is:global>
+  .sheet { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 18px; }
+  .sheet__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+  .sheet__kicker { margin: 0; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .sheet__title { font-size: 1.8rem; }
+  .sheet h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+  .sheet p { margin: 0; }
+  .sheet ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+  .sheet__cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .sheet__cols--even { grid-template-columns: 1fr 1fr; }
+  .sheet__svg { border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg); padding: 8px; }
+  .sheet__svg svg { display: block; width: 100%; height: auto; max-height: 280px; }
+  .sheet__code { border: 1.5px solid var(--ink); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  @media screen {
+    .sheet__code .code-snippet__file { padding: 8px 14px 0; color: var(--muted); font-size: 0.8rem; }
+    .sheet__code pre.shiki { margin: 0; padding: 10px 0 14px; overflow-x: auto; font-family: var(--font); font-size: 13px; line-height: 1.6; }
+    .sheet__code pre.shiki code { display: block; min-width: max-content; }
+    .sheet__code .line { display: inline-block; min-width: 100%; padding: 0 14px; }
+    .sheet__code .line.is-hl { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent-strong); }
+  }
+  .sheet__tags { list-style: none; padding: 0 !important; display: flex !important; flex-wrap: wrap; gap: 8px !important; }
+  .sheet__tags li { border: 1.5px solid var(--line); border-radius: 999px; padding: 0 10px; background: var(--surface); }
+  .sheet__pros li::marker { content: '+ '; color: var(--accent-ink); font-weight: 700; }
+  .sheet__cons li::marker { content: '- '; color: var(--danger); font-weight: 700; }
+  @media (max-width: 699.98px) {
+    .sheet__cols, .sheet__cols--even { grid-template-columns: 1fr; }
+  }
+</style>

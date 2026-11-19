@@ -5,6 +5,8 @@ import CodePanel from '../components/CodePanel.astro';
 import CourseTree from '../components/CourseTree.astro';
 import IsoCanvas from '../components/IsoCanvas.astro';
 import StepBar from '../components/StepBar.astro';
+import DonateCard from '../components/DonateCard.astro';
+import Quiz from '../components/Quiz.astro';
 import StepPanel from '../components/StepPanel.astro';
 import type { Lesson } from '../engine/types';
 import { resolveSteps } from '../lib/lessons';
@@ -40,8 +42,12 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
       </header>
       <IsoCanvas scene={lesson.scene} steps={steps} label={text.title} />
       <StepBar lang={lang} steps={steps} />
-      <StepPanel lang={lang} steps={steps} />
+      <StepPanel lang={lang} steps={steps} cheatsheetHref={`/${lang}/patterns/${lesson.slug}/cheatsheet/`} />
       <CodePanel lang={lang} steps={steps} />
+      <div class="lesson-end">
+        <Quiz lang={lang} slug={lesson.slug} questions={text.quiz} />
+        <DonateCard lang={lang} />
+      </div>
       <script type="application/json" data-lesson-scene set:html={sceneJson} />
     </article>
   </div>
@@ -49,4 +55,5 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
 
 <script>
   import '../scripts/lesson';
+  import '../scripts/quiz';
 </script>
