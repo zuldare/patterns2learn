@@ -57,3 +57,21 @@ test('arrow keys on quiz radios move the selection, not the lesson step', async 
   await expect(lesson).toHaveAttribute('data-step', 'problem');
   await expect(page.locator('input[name="q0"]').nth(2)).toBeChecked();
 });
+
+test('a malformed #step- hash does not break the lesson', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto('/en/patterns/strategy/#step-%E0%A4%A');
+  const lesson = page.locator('[data-lesson]');
+  await expect(lesson).toHaveAttribute('data-step', 'problem');
+  await page.click('[data-action="next"]');
+  await expect(lesson).toHaveAttribute('data-step', 'smell');
+  expect(errors).toEqual([]);
+});
+
+test('a #step- deep link opens that step', async ({ page }) => {
+  await page.goto('/en/patterns/strategy/#step-injection');
+  await expect(page.locator('[data-lesson]')).toHaveAttribute('data-step', 'injection');
+  await expect(page.locator('.step-text[data-step-id="injection"]')).toBeVisible();
+  await expect(page.locator('.step-text[data-step-id="problem"]')).toBeHidden();
+});

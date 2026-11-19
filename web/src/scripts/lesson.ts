@@ -55,7 +55,12 @@ function mountLesson(root: HTMLElement): void {
 
   const indexFromHash = (): number => {
     const m = /^#step-(.+)$/.exec(window.location.hash);
-    return m ? ids.indexOf(decodeURIComponent(m[1]!)) : -1;
+    if (!m) return -1;
+    try {
+      return ids.indexOf(decodeURIComponent(m[1]!));
+    } catch {
+      return -1; // malformed percent-encoding: ignore the hash
+    }
   };
 
   const sync = (i: number) => {
