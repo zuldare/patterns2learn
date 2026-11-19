@@ -10,7 +10,9 @@ public enum MembershipState {
     // @step:states
     TRIAL {
         @Override MembershipState checkIn(Membership m) {
-            if (m.trialVisitsLeft() == 0) throw new MembershipRuleException("trial used up: renew to keep training");
+            if (m.trialVisitsLeft() == 0) {
+                throw new MembershipRuleException("trial used up: renew to keep training");
+            }
             m.useTrialVisit();
             return this;
         }
