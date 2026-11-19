@@ -108,3 +108,28 @@ describe('renderScene at a step', () => {
     player.destroy();
   });
 });
+
+test('entities render their Taller figure inside the entity group', () => {
+  const svg = renderScene(scene); // fixture: ctx container, client actor, service block, strategy interface, monthly implements strategy
+  const root = document.createElement('div');
+  root.innerHTML = svg;
+  const shape = (id: string) => root.querySelector(`.iso-entity[data-id="${id}"] .iso-figure`)!.getAttribute('class');
+  expect(shape('ctx')).toContain('figure-platform');
+  expect(shape('client')).toContain('figure-voxel');
+  expect(shape('strategy')).toContain('figure-socket');
+  expect(shape('monthly')).toContain('figure-cartridge');
+  expect(shape('service')).toContain('figure-block');
+  expect(root.querySelectorAll('.iso-entity[data-id="strategy"] .fig-slot')).toHaveLength(1);
+  expect(svg).not.toContain('NaN');
+});
+test('label pills sit above the top of taller figures', () => {
+  const root = document.createElement('div');
+  root.innerHTML = renderScene(scene);
+  for (const id of ['client', 'monthly']) {
+    const g = root.querySelector(`.iso-entity[data-id="${id}"]`)!;
+    const labelY = Number(g.querySelector('.iso-label')!.getAttribute('transform')!.match(/translate\([^ ]+ ([^)]+)\)/)![1]);
+    const ys = [...g.querySelector('.iso-figure')!.innerHTML.matchAll(/(?:points="|[ML ])(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g)].map(m => Number(m[2]));
+    const circles = [...g.querySelectorAll('.iso-figure circle.fig-head')].map(c => Number(c.getAttribute('cy')) - Number(c.getAttribute('r')));
+    expect(labelY + 10).toBeLessThanOrEqual(Math.min(...ys, ...circles)); // PILL_H/2 = 10
+  }
+});

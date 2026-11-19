@@ -1,25 +1,22 @@
-import { TILE_H, TILE_W, depth, project, topCenter, type ScreenPoint } from './iso';
+import { figureBox, figureCtx, figureMarkup, type FigureCtx } from './figures';
+import type { Box3 } from './icons';
+import { depth, project, type ScreenPoint } from './iso';
 import type { Entity, Link, Scene, SceneStep } from './types';
 
 /**
  * Pure SVG string renderer for an isometric scene (spec §8.2).
  *
- * Painting rules: every colour is a `var(--…)` token. Fills that depend on the
- * entity tone are written inline (`--tone` is set per `.tone-*` class in
- * engine.css); outlines, dashes and state (`is-hidden`, `is-highlighted`) live
- * in engine.css so the player only toggles classes.
+ * Painting rules: every colour is a `var(--…)` token. Entity shapes come from
+ * figures.ts (ADR 0001); fills that depend on the entity tone are written
+ * inline (`--tone` is set per `.tone-*` class in engine.css); outlines, dashes
+ * and state (`is-hidden`, `is-highlighted`) live in engine.css so the player
+ * only toggles classes.
  */
 
 export const MARGIN = 32;
 const LABEL_FONT = 11;
 const CHAR_W = LABEL_FONT * 0.62; // monospace advance
 const LINK_GAP = 6; // px between a link end and the entity rim
-
-const FILL_TOP = 'fill:var(--surface)';
-/** Platforms sit a step below the blocks they hold. */
-const FILL_FLOOR = 'fill:color-mix(in srgb, var(--tone) 10%, var(--bg))';
-const FILL_LEFT = 'fill:color-mix(in srgb, var(--tone) 35%, var(--surface))';
-const FILL_RIGHT = 'fill:color-mix(in srgb, var(--tone) 55%, var(--surface))';
 
 const n = (v: number): string => String(Math.round(v * 100) / 100 + 0);
 const pt = (p: ScreenPoint): string => `${n(p.sx)},${n(p.sy)}`;
@@ -84,11 +81,10 @@ function growPill(box: Box, c: ScreenPoint, text: string): void {
   grow(box, { sx: c.sx + w / 2, sy: c.sy + PILL_H / 2 });
 }
 
-/** The 4 projected corners of the top face, in order back, right, front, left. */
-function topFace(e: Entity): ScreenPoint[] {
-  const { x, y } = e.pos;
-  const top = (e.pos.z ?? 0) + e.size.h;
-  const { w, d } = e.size;
+/** The 4 projected corners of a box's top face, in order back, right, front, left. */
+function topFace(b: Box3): ScreenPoint[] {
+  const { x, y, w, d } = b;
+  const top = b.z + b.h;
   return [
     project({ x, y, z: top }),
     project({ x: x + w, y, z: top }),
@@ -97,86 +93,41 @@ function topFace(e: Entity): ScreenPoint[] {
   ];
 }
 
-function actorRadii(e: Entity): { rx: number; ry: number } {
-  const r = Math.min(e.size.w, e.size.d) / 2;
-  const rx = r * Math.SQRT2 * (TILE_W / 2);
-  return { rx, ry: rx * (TILE_H / TILE_W) };
+/** Projected centre of a box's top face: where links attach. */
+function topMid(b: Box3): ScreenPoint {
+  return project({ x: b.x + b.w / 2, y: b.y + b.d / 2, z: b.z + b.h });
 }
 
-/** Where the label pill of an entity is centred. */
-function labelAnchor(e: Entity): ScreenPoint {
-  const face = topFace(e);
+type Placed = { e: Entity; ctx: FigureCtx; box: Box3 };
+
+/** Where the label pill of an entity is centred: just above the highest point of its figure. */
+function labelAnchor({ e, box }: Placed): ScreenPoint {
   if (e.kind === 'container') {
     // Just below the middle of the front-left edge, clear of the blocks it holds.
     const edge = project({ x: e.pos.x + e.size.w / 2, y: e.pos.y + e.size.d, z: e.pos.z ?? 0 });
     return { sx: edge.sx, sy: edge.sy + PILL_H / 2 + 10 };
   }
-  const c = topCenter(e);
-  const topY = e.kind === 'actor' ? c.sy - actorRadii(e).ry - 16 : face[0].sy;
-  return { sx: c.sx, sy: topY - PILL_H / 2 - 6 };
+  return { sx: topMid(box).sx, sy: topFace(box)[0].sy - PILL_H / 2 - 6 };
 }
 
-function prismMarkup(e: Entity): string {
-  const { x, y } = e.pos;
-  const z = e.pos.z ?? 0;
-  const { w, d } = e.size;
-  const face = topFace(e);
-  const [, right, front, left] = face;
-  const rightB = project({ x: x + w, y, z });
-  const frontB = project({ x: x + w, y: y + d, z });
-  const leftB = project({ x, y: y + d, z });
-  return (
-    `<polygon class="iso-face face-left" points="${[left, front, frontB, leftB].map(pt).join(' ')}" style="${FILL_LEFT}"/>` +
-    `<polygon class="iso-face face-right" points="${[front, right, rightB, frontB].map(pt).join(' ')}" style="${FILL_RIGHT}"/>` +
-    `<polygon class="iso-face face-top" points="${face.map(pt).join(' ')}" style="${e.kind === 'container' ? FILL_FLOOR : FILL_TOP}"/>`
-  );
-}
-
-function actorMarkup(e: Entity): string {
-  const z = e.pos.z ?? 0;
-  const c = topCenter(e);
-  const base = project({ x: e.pos.x + e.size.w / 2, y: e.pos.y + e.size.d / 2, z });
-  const { rx, ry } = actorRadii(e);
-  const side =
-    `M${n(c.sx - rx)},${n(c.sy)} L${n(base.sx - rx)},${n(base.sy)} ` +
-    `A${n(rx)},${n(ry)} 0 0 0 ${n(base.sx + rx)},${n(base.sy)} L${n(c.sx + rx)},${n(c.sy)} Z`;
-  // Person glyph standing on the token: shoulders + head.
-  const s = Math.max(6, ry * 0.75);
-  const feet = c.sy + ry * 0.15;
-  const glyph =
-    `<path class="iso-glyph" d="M${n(c.sx - s)},${n(feet)} Q${n(c.sx - s)},${n(feet - s * 1.2)} ${n(c.sx)},${n(feet - s * 1.2)} ` +
-    `Q${n(c.sx + s)},${n(feet - s * 1.2)} ${n(c.sx + s)},${n(feet)} Z" style="fill:var(--ink)"/>` +
-    `<circle class="iso-glyph" cx="${n(c.sx)}" cy="${n(feet - s * 1.85)}" r="${n(s * 0.55)}" style="fill:var(--ink)"/>`;
-  return (
-    `<path class="iso-face face-side" d="${side}" style="${FILL_RIGHT}"/>` +
-    `<ellipse class="iso-face face-top" cx="${n(c.sx)}" cy="${n(c.sy)}" rx="${n(rx)}" ry="${n(ry)}" style="${FILL_TOP}"/>` +
-    glyph
-  );
-}
-
-function entityMarkup(e: Entity, step?: StepState): string {
-  const shape = e.kind === 'actor' ? actorMarkup(e) : prismMarkup(e);
-  const a = labelAnchor(e);
+function entityMarkup(p: Placed, step?: StepState): string {
+  const { e, ctx } = p;
+  const a = labelAnchor(p);
   const fill = e.kind === 'container' ? 'var(--bg)' : 'var(--surface)';
   return (
     `<g class="iso-entity${stateClasses(step, { id: e.id })} kind-${e.kind} tone-${e.tone}" data-id="${escapeXml(e.id)}">` +
-    shape +
+    figureMarkup(e, ctx) +
     `<g class="iso-label" transform="translate(${n(a.sx)} ${n(a.sy)})">${pillMarkup(e.label, 'iso-label', fill)}</g>` +
     `</g>`
   );
 }
 
-/** Ray from `c` towards `to`: parameter (0..1] where it leaves the entity's top face. */
-function rimT(e: Entity, c: ScreenPoint, to: ScreenPoint): number {
+/** Ray from `c` towards `to`: parameter (0..1] where it leaves the figure's top face. */
+function rimT(box: Box3, c: ScreenPoint, to: ScreenPoint): number {
   const dx = to.sx - c.sx;
   const dy = to.sy - c.sy;
-  if (e.kind === 'actor') {
-    const { rx, ry } = actorRadii(e);
-    const k = Math.hypot(dx / rx, dy / ry);
-    return k === 0 ? 0 : 1 / k;
-  }
   let best = 1;
-  const face = topFace(e);
+  const face = topFace(box);
   for (let i = 0; i < face.length; i++) {
     const a = face[i];
     const b = face[(i + 1) % face.length];
@@ -197,16 +148,16 @@ const MARKER: Record<Link['style'], string> = {
   injects: 'url(#iso-diamond)',
 };
 
-function linkMarkup(l: Link, byId: Map<string, Entity>, step?: StepState): string {
+function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState): string {
   const from = byId.get(l.from);
   const to = byId.get(l.to);
   if (!from || !to) throw new Error(`link "${l.id}" references a missing entity`);
-  const c1 = topCenter(from);
-  const c2 = topCenter(to);
+  const c1 = topMid(from.box);
+  const c2 = topMid(to.box);
   const len = Math.hypot(c2.sx - c1.sx, c2.sy - c1.sy) || 1;
   const gap = LINK_GAP / len;
-  const t1 = Math.min(0.45, rimT(from, c1, c2) + gap);
-  const t2 = Math.max(0.55, 1 - rimT(to, c2, c1) - gap);
+  const t1 = Math.min(0.45, rimT(from.box, c1, c2) + gap);
+  const t2 = Math.max(0.55, 1 - rimT(to.box, c2, c1) - gap);
   const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t, sy: c1.sy + (c2.sy - c1.sy) * t });
   const p1 = at(t1);
   const p2 = at(t2);
@@ -247,27 +198,24 @@ export type RenderOptions = {
 
 export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
   const { step, label, describedBy } = opts;
-  const byId = new Map(scene.entities.map(e => [e.id, e]));
-  const ordered = scene.entities
-    .map((e, i) => ({ e, i }))
-    .sort((a, b) => depth(a.e) - depth(b.e) || a.i - b.i)
-    .map(({ e }) => e);
+  const placed: Placed[] = scene.entities.map(e => {
+    const ctx = figureCtx(e, scene.links);
+    return { e, ctx, box: figureBox(e, ctx) };
+  });
+  const byId = new Map(placed.map(p => [p.e.id, p]));
+  const ordered = placed
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => depth(a.p.e) - depth(b.p.e) || a.i - b.i)
+    .map(({ p }) => p);
 
   const box: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-  for (const e of scene.entities) {
-    const { x, y } = e.pos;
-    const z = e.pos.z ?? 0;
-    const { w, d, h } = e.size;
-    for (const [dx, dy, dz] of [[0, 0, 0], [w, 0, 0], [0, d, 0], [w, d, 0], [0, 0, h], [w, 0, h], [0, d, h], [w, d, h]]) {
-      grow(box, project({ x: x + dx, y: y + dy, z: z + dz }));
+  for (const p of placed) {
+    for (const b of [p.box, { ...p.e.pos, z: p.e.pos.z ?? 0, ...p.e.size }]) {
+      for (const [dx, dy, dz] of [[0, 0, 0], [b.w, 0, 0], [0, b.d, 0], [b.w, b.d, 0], [0, 0, b.h], [b.w, 0, b.h], [0, b.d, b.h], [b.w, b.d, b.h]]) {
+        grow(box, project({ x: b.x + dx, y: b.y + dy, z: b.z + dz }));
+      }
     }
-    if (e.kind === 'actor') {
-      const c = topCenter(e);
-      const { rx, ry } = actorRadii(e);
-      grow(box, { sx: c.sx - rx, sy: c.sy - ry });
-      grow(box, { sx: c.sx + rx, sy: c.sy + ry + e.size.h * TILE_H });
-    }
-    growPill(box, labelAnchor(e), e.label);
+    growPill(box, labelAnchor(p), p.e.label);
   }
   if (!Number.isFinite(box.minX)) Object.assign(box, { minX: 0, minY: 0, maxX: 0, maxY: 0 });
 
@@ -278,7 +226,7 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     (describedBy !== undefined ? ` aria-describedby="${escapeXml(describedBy)}"` : '') +
     ` viewBox="${vb.map(n).join(' ')}">` +
     DEFS +
-    `<g class="iso-entities">${ordered.map(e => entityMarkup(e, step)).join('')}</g>` +
+    `<g class="iso-entities">${ordered.map(p => entityMarkup(p, step)).join('')}</g>` +
     `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step)).join('')}</g>` +
     `<g class="iso-packets"></g>` +
     `</svg>`
