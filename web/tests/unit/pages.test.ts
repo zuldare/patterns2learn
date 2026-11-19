@@ -43,8 +43,9 @@ test('home lists the start-here path with the finished lessons linked', () => {
     expect(home).toContain(`href="/${lang}/patterns/observer/"`);
     expect(home).toContain(`href="/${lang}/patterns/decorator/"`);
     expect(home).toContain(`href="/${lang}/patterns/chain-of-responsibility/"`);
+    expect(home).toContain(`href="/${lang}/patterns/factory-method/"`);
     expect(home).toContain(lang === 'es' ? 'Empieza aquí' : 'Start here');
-    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length).toBe(1);
+    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)).toBeNull();
     const order = ['Singleton', 'Proxy', 'Template Method', 'Strategy', 'Observer', 'Decorator', 'Chain of Responsibility', 'Factory Method'];
     const start = home.slice(home.indexOf('class="start-here"'));
     const idx = order.map((n) => start.indexOf(n));
@@ -68,6 +69,7 @@ test.each([
   ['observer', 'behavioral'],
   ['decorator', 'structural'],
   ['chain-of-responsibility', 'behavioral'],
+  ['factory-method', 'creational'],
 ])('%s lesson and cheatsheet link to the runnable example', (slug, category) => {
   const href = `href="https://github.com/zuldare/patterns2learn/tree/main/examples/${category}/${slug}"`;
   for (const lang of ['es', 'en']) {
