@@ -19,7 +19,7 @@ export function contrastRatio(hexA: string, hexB: string): number {
 }
 
 /** Extracts the `--name: value` declarations of `:root[data-theme="<theme>"]`. */
-export function readTokens(css: string, theme: 'paper' | 'blueprint'): Record<string, string> {
+export function readTokens(css: string, theme: 'paper' | 'blueprint' | 'dark'): Record<string, string> {
   const block = new RegExp(`:root\\[data-theme="${theme}"\\]\\s*\\{([^}]*)\\}`).exec(css);
   if (!block) throw new Error(`Theme block not found: ${theme}`);
   const out: Record<string, string> = {};

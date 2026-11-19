@@ -1,4 +1,4 @@
-import { getTheme, setTheme } from '../../src/lib/theme';
+import { THEMES, getTheme, nextTheme, setTheme } from '../../src/lib/theme';
 
 // happy-dom's Storage is a Proxy whose spied methods leak between tests,
 // so each test gets a fresh in-memory fake installed on window.localStorage.
@@ -34,7 +34,7 @@ test('setTheme and getTheme survive a throwing localStorage getter', () => {
 test('getTheme falls back to prefers-color-scheme', () => {
   window.localStorage.getItem = vi.fn(() => null);
   window.matchMedia = vi.fn().mockReturnValue({ matches: true }) as any;
-  expect(getTheme()).toBe('blueprint');
+  expect(getTheme()).toBe('dark');
 });
 test('stores theme as JSON string and reads it back', () => {
   setTheme('blueprint');
@@ -45,4 +45,16 @@ test('invalid stored value falls back to media query', () => {
   window.localStorage.setItem('p2l:theme', 'garbage');
   window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as any;
   expect(getTheme()).toBe('paper');
+});
+
+test('the toggle cycles paper → blueprint → dark → paper', () => {
+  expect(THEMES).toEqual(['paper', 'blueprint', 'dark']);
+  expect(nextTheme('paper')).toBe('blueprint');
+  expect(nextTheme('blueprint')).toBe('dark');
+  expect(nextTheme('dark')).toBe('paper');
+});
+test('a stored dark theme is read back', () => {
+  setTheme('dark');
+  expect(getTheme()).toBe('dark');
+  expect(document.documentElement.dataset.theme).toBe('dark');
 });

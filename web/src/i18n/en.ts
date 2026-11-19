@@ -17,6 +17,7 @@ export const en = {
   startHere: 'Start here',
   themePaper: 'Paper theme',
   themeBlueprint: 'Blueprint theme',
+  themeDark: 'Dark theme',
   language: 'Language',
   course: 'Course',
   minutes: 'min',

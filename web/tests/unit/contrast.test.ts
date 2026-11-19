@@ -1,6 +1,6 @@
 import css from '../../src/styles/tokens.css?raw';
 import { contrastRatio, luminance, readTokens } from '../../src/lib/contrast';
-for (const theme of ['paper', 'blueprint'] as const) {
+for (const theme of ['paper', 'blueprint', 'dark'] as const) {
   const t = readTokens(css, theme);
   test(`${theme}: ink on bg/surface ≥ 4.5`, () => {
     expect(contrastRatio(t['--ink'], t['--bg'])).toBeGreaterThanOrEqual(4.5);
@@ -40,7 +40,7 @@ function resolveColour(value: string, t: Record<string, string>): string {
   throw new Error(`Unresolvable colour: ${value}`);
 }
 
-for (const theme of ['paper', 'blueprint'] as const) {
+for (const theme of ['paper', 'blueprint', 'dark'] as const) {
   const t = readTokens(css, theme);
   const shiki = Object.keys(t).filter((k) => k.startsWith('--shiki-') && k !== '--shiki-background');
   test(`${theme}: defines the shiki token colours`, () => {
@@ -54,7 +54,7 @@ for (const theme of ['paper', 'blueprint'] as const) {
   });
 }
 
-for (const theme of ['paper', 'blueprint'] as const) {
+for (const theme of ['paper', 'blueprint', 'dark'] as const) {
   const t = readTokens(css, theme);
   test(`${theme}: text on accent fill ≥ 4.5`, () => {
     expect(contrastRatio(resolveColour(t['--on-accent']!, t), t['--accent']!)).toBeGreaterThanOrEqual(4.5);

@@ -31,9 +31,11 @@ const { lang, path, hasTree = false } = Astro.props;
       ))}
     </ul>
     </nav>
-    <button class="btn theme-toggle" type="button" data-action="toggle-theme" data-label-paper={t(lang, 'themePaper')} data-label-blueprint={t(lang, 'themeBlueprint')} data-js-only>
+    {/* Cycles paper → blueprint → dark; the visible label names the theme it switches to. */}
+    <button class="btn theme-toggle" type="button" data-action="toggle-theme" data-js-only>
       <span class="theme-toggle__icon" aria-hidden="true"></span>
       <span class="theme-toggle__label theme-toggle__label--to-blueprint">{t(lang, 'themeBlueprint')}</span>
+      <span class="theme-toggle__label theme-toggle__label--to-dark">{t(lang, 'themeDark')}</span>
       <span class="theme-toggle__label theme-toggle__label--to-paper">{t(lang, 'themePaper')}</span>
     </button>
     {DONATE_ENABLED && (

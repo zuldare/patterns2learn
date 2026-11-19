@@ -19,6 +19,7 @@ export const es: { [K in keyof typeof en]: string } = {
   startHere: 'Empieza aquí',
   themePaper: 'Tema papel',
   themeBlueprint: 'Tema blueprint',
+  themeDark: 'Tema oscuro',
   language: 'Idioma',
   course: 'Curso',
   minutes: 'min',

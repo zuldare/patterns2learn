@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const theme of ['paper', 'blueprint'] as const) {
+for (const theme of ['paper', 'blueprint', 'dark'] as const) {
   test(`lab gallery renders on ${theme} without console errors`, async ({ page }) => {
     const errors: string[] = [];
     page.on('console', (m) => {

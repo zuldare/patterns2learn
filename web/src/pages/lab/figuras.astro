@@ -56,7 +56,7 @@ const iconSvg = (icon: (typeof ICON_NAMES)[number]): string =>
       (function () {
         var t = null;
         try { t = new URLSearchParams(location.search).get('theme') || JSON.parse(localStorage.getItem('p2l:theme')); } catch (e) {}
-        if (t !== 'paper' && t !== 'blueprint') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'paper';
+        if (t !== 'paper' && t !== 'blueprint' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'paper';
         document.documentElement.dataset.theme = t;
       })();
     </script>
@@ -93,6 +93,7 @@ const iconSvg = (icon: (typeof ICON_NAMES)[number]): string =>
         <span>Tema:</span>
         <button type="button" data-theme-set="paper">Papel</button>
         <button type="button" data-theme-set="blueprint">Blueprint</button>
+        <button type="button" data-theme-set="dark">Oscuro</button>
       </div>
 
       <h2>Escena de Strategy</h2>

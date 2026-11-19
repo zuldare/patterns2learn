@@ -154,8 +154,10 @@ main:focus { outline: none; }
   border: 1.5px solid var(--ink);
   background: linear-gradient(90deg, var(--ink) 50%, transparent 50%);
 }
-:root[data-theme="paper"] .theme-toggle__label--to-paper,
-:root[data-theme="blueprint"] .theme-toggle__label--to-blueprint { display: none; }
+/* Only the label of the next theme in the cycle is shown. */
+:root[data-theme="paper"] .theme-toggle__label:not(.theme-toggle__label--to-blueprint),
+:root[data-theme="blueprint"] .theme-toggle__label:not(.theme-toggle__label--to-dark),
+:root[data-theme="dark"] .theme-toggle__label:not(.theme-toggle__label--to-paper) { display: none; }
 
 @media (max-width: 599.98px) {
   .theme-toggle__label,

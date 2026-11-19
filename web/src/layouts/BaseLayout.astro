@@ -28,7 +28,7 @@ const { lang, title, description, path, hasTree = false } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     {/* Anti-flicker: applies the stored theme (or prefers-color-scheme) before first paint.
-        `?theme=paper|blueprint` overrides for one page view without being stored. */}
+        `?theme=paper|blueprint|dark` overrides for one page view without being stored. */}
     <script is:inline>
       (function () {
         var d = document.documentElement;
@@ -36,10 +36,10 @@ const { lang, title, description, path, hasTree = false } = Astro.props;
         var t = null;
         try {
           var q = new URLSearchParams(location.search).get('theme');
-          t = q === 'paper' || q === 'blueprint' ? q : JSON.parse(localStorage.getItem('p2l:theme'));
+          t = q === 'paper' || q === 'blueprint' || q === 'dark' ? q : JSON.parse(localStorage.getItem('p2l:theme'));
         } catch (e) {}
-        if (t !== 'paper' && t !== 'blueprint') {
-          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'paper';
+        if (t !== 'paper' && t !== 'blueprint' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'paper';
         }
         d.dataset.theme = t;
       })();

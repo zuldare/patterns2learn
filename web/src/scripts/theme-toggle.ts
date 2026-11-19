@@ -1,11 +1,12 @@
-import { setTheme, type Theme } from '../lib/theme';
+import { getTheme, isTheme, nextTheme, setTheme } from '../lib/theme';
 
-function current(): Theme {
-  return document.documentElement.dataset.theme === 'blueprint' ? 'blueprint' : 'paper';
+function current() {
+  const t = document.documentElement.dataset.theme;
+  return isTheme(t) ? t : getTheme();
 }
 
 for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-action="toggle-theme"]')) {
   btn.addEventListener('click', () => {
-    setTheme(current() === 'blueprint' ? 'paper' : 'blueprint');
+    setTheme(nextTheme(current()));
   });
 }

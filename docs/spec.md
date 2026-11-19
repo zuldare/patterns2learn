@@ -123,29 +123,30 @@ Todos los ejemplos comparten un dominio para que los patrones se conecten entre 
 
 ### 5.2 Temas
 
-Hay dos temas, definidos con tokens CSS en `:root[data-theme]`. La elección se guarda en `localStorage`; si no hay elección, se usa `prefers-color-scheme`.
+Hay tres temas, definidos con tokens CSS en `:root[data-theme]`: Papel (`paper`), Blueprint (`blueprint`) y Oscuro (`dark`). El botón de la cabecera los recorre en ese orden y muestra el nombre del siguiente. La elección se guarda en `localStorage`; si no hay elección, se usa `prefers-color-scheme` (oscuro → Oscuro, claro → Papel).
 
-| Token | Papel (claro) | Blueprint (oscuro) |
-|---|---|---|
-| `--bg` | `#f3efe6` | `#0e2f57` |
-| `--surface` | `#faf7f0` | `#123a69` |
-| `--ink` | `#1c1f1a` | `#eaf2ff` |
-| `--muted` | `#5f6359` | `#a9c3e6` |
-| `--line` | `#d9d3c4` | `#3a6194` |
-| `--grid` | `#e6e0d2` | `#1d4a80` |
-| `--accent` | `#6db33f` (verde Spring, solo relleno y siempre con contorno `--ink`) | `#8fdc5a` |
-| `--accent-strong` | `#4a8a26` (líneas, resaltados, anillo de foco) | `#8fdc5a` |
-| `--accent-ink` | `#2f5d17` | `#c9f2a8` |
-| `--accent-soft` | `#e3f0d5` | `#1f4d3a` |
-| `--warn` | `#b4651d` | `#ffc27a` |
-| `--danger` | `#b23a2e` | `#ff9a8f` |
-| `--pop-shadow` | `2px 3px 0 var(--ink)` | `2px 3px 0 #061a33` |
+| Token | Papel (claro) | Blueprint (azul) | Oscuro |
+|---|---|---|---|
+| `--bg` | `#f3efe6` | `#0e2f57` | `#2b2b2b` |
+| `--surface` | `#faf7f0` | `#123a69` | `#313335` |
+| `--ink` | `#1c1f1a` | `#eaf2ff` | `#c9cdd2` |
+| `--muted` | `#5f6359` | `#a9c3e6` | `#a0a4a8` |
+| `--line` | `#d9d3c4` | `#3a6194` | `#4e5254` |
+| `--grid` | `#e6e0d2` | `#1d4a80` | `#353739` |
+| `--accent` | `#6db33f` (verde Spring, solo relleno y siempre con contorno `--ink`) | `#8fdc5a` | `#6db33f` |
+| `--accent-strong` | `#4a8a26` (líneas, resaltados, anillo de foco) | `#8fdc5a` | `#7cc24d` |
+| `--accent-ink` | `#2f5d17` | `#c9f2a8` | `#b5e08f` |
+| `--accent-soft` | `#e3f0d5` | `#1f4d3a` | `#2e3d26` |
+| `--warn` | `#b4651d` | `#ffc27a` | `#e0a05a` |
+| `--danger` | `#b23a2e` | `#ff9a8f` | `#ff8a85` |
+| `--pop-shadow` | `2px 3px 0 var(--ink)` | `2px 3px 0 #061a33` | `2px 3px 0 #1b1b1b` |
 
 Detalles de cada tema:
 - **Tipografía:** IBM Plex Mono, autoalojada con `@fontsource`.
 - **Bordes:** radio de 10 px.
 - **Elementos activos:** borde de 1.5 px en `--ink` y `--pop-shadow`.
 - **Blueprint:** cuadrícula técnica de fondo en el lienzo y contornos claros sobre azul.
+- **Oscuro:** gris carbón al estilo de los temas oscuros de los IDE; el código usa su propia paleta (`--syntax-*`: naranja para palabras clave, verde para cadenas, azul para números, amarillo para métodos), siempre AA sobre `--surface` y `--code-hl`.
 - **Contraste:** todas las parejas texto/fondo cumplen **WCAG AA**: ≥ 4.5:1 para texto normal y ≥ 3:1 para `--accent-strong` como elemento gráfico sobre `--bg` y `--surface`. El verde Spring `#6db33f` sobre crema solo alcanza 2.24:1, por eso se usa únicamente como relleno con contorno `--ink`, nunca como línea o texto.
 
 ### 5.3 Idiomas
@@ -490,7 +491,7 @@ sequenceDiagram
   end
 ```
 
-Shiki usa un **tema de variables CSS**, así que el resaltado sigue al tema Papel o Blueprint sin generar dos versiones del HTML.
+Shiki usa un **tema de variables CSS**, así que el resaltado sigue al tema activo (Papel, Blueprint u Oscuro) sin generar dos versiones del HTML.
 
 ---
 
@@ -598,7 +599,7 @@ sequenceDiagram
 |---|---|---|
 | Ejemplos | JUnit 5, `@SpringBootTest`, MockMvc (`./mvnw verify`) | precios, inyección del mapa, errores 400, `DelegatingPasswordEncoder` |
 | Web, unidad | Vitest (+ happy-dom) | proyección, renderer, extractor de fragmentos, validador, reproductor, progreso y contraste de tokens |
-| Web, e2e | Playwright | recorrer la lección en `es`/`en` × `paper`/`blueprint`, teclado, móvil a 360 px y cheatsheet |
+| Web, e2e | Playwright | recorrer la lección en `es`/`en` × `paper`/`blueprint`/`dark`, teclado, móvil a 360 px y cheatsheet |
 | CI | GitHub Actions | los tres anteriores más `pnpm build` en cada push y PR |
 | Despliegue | Vercel, con integración de Git y raíz en `web/` | preview por PR y producción desde `main` |
 
@@ -622,5 +623,6 @@ sequenceDiagram
 | D12 | Pasos como snapshots | deltas | Determinista y testeable |
 | D13 | UML con Mermaid para todos los diagramas | PlantUML, imágenes | GitHub lo renderiza sin servidor |
 | D14 | Figuras «Taller»: la forma se deriva de `kind` y de los enlaces `implements`; las lecciones solo eligen `icon` | nuevos `EntityKind`, pieles intercambiables, objetos del box | Más expresivo sin datos duplicados ([ADR 0001](adr/0001-figuras-taller.md)) |
+| D15 | Tercer tema, Oscuro (gris carbón tipo IDE), y botón que recorre los tres | sustituir Blueprint por oscuro | Blueprint es la identidad; Oscuro es lo que espera quien programa de noche |
 
 Las decisiones nuevas se registran como ADR en `docs/adr/NNNN-titulo.md`, con un diagrama UML cuando ayude a entenderlas.

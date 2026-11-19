@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 for (const lang of ['es', 'en'])
-  for (const theme of ['paper', 'blueprint'])
+  for (const theme of ['paper', 'blueprint', 'dark'])
     test(`${lang}/${theme}: walk all steps with keyboard`, async ({ page }) => {
       await page.addInitScript(t => localStorage.setItem('p2l:theme', JSON.stringify(t)), theme);
       await page.goto(`/${lang}/patterns/strategy/`);
@@ -138,4 +138,23 @@ test.describe('with motion enabled', () => {
       await expect(page.locator('.iso-packets > *')).toHaveCount(packets);
     });
   }
+});
+
+test('the theme button cycles paper → blueprint → dark → paper and remembers it', async ({ page }) => {
+  await page.addInitScript(() => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('p2l:theme', '"paper"'); sessionStorage.setItem('seeded', '1'); } });
+  await page.goto('/es/patterns/strategy/');
+  const html = page.locator('html');
+  const btn = page.locator('[data-action="toggle-theme"]');
+  await expect(html).toHaveAttribute('data-theme', 'paper');
+  await expect(btn).toContainText('Tema blueprint');
+  await btn.click();
+  await expect(html).toHaveAttribute('data-theme', 'blueprint');
+  await expect(btn).toContainText('Tema oscuro');
+  await btn.click();
+  await expect(html).toHaveAttribute('data-theme', 'dark');
+  await expect(btn).toContainText('Tema papel');
+  await page.reload();
+  await expect(html).toHaveAttribute('data-theme', 'dark');
+  await btn.click();
+  await expect(html).toHaveAttribute('data-theme', 'paper');
 });
