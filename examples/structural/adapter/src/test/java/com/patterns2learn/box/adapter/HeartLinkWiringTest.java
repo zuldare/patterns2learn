@@ -19,6 +19,7 @@ class HeartLinkWiringTest {
 
     @Test void theHeartLinkAdapterReplacesPulseBand() {
         assertThat(monitor).isInstanceOf(HeartLinkMonitor.class);
+        assertThat(context.getBeanNamesForType(HeartRateMonitor.class)).containsExactly("heartLinkMonitor");
         assertThat(context.getBeanNamesForType(PulseBandClient.class)).isEmpty();
     }
 

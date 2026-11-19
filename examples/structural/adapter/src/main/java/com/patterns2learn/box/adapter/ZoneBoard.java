@@ -1,6 +1,5 @@
 package com.patterns2learn.box.adapter;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,7 @@ public class ZoneBoard {
     // @step:board
     public Optional<ZoneReading> zoneOf(String athleteId) {
         Athlete a = roster.find(athleteId)
-            .orElseThrow(() -> new NoSuchElementException("unknown athlete: " + abbreviate(athleteId)));
+            .orElseThrow(() -> new UnknownAthleteException(abbreviate(athleteId)));
         return monitor.current(a.id())
             .map(hr -> new ZoneReading(a.name(), hr.bpm(), Zone.of(hr.bpm(), a.maxHr()), hr.at()));
     }

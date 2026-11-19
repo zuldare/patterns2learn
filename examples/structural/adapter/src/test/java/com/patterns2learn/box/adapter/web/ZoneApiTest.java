@@ -38,7 +38,6 @@ class ZoneApiTest {
         hub.simulate(3, "garbage");
         mvc.perform(get("/api/zones/ana"))
            .andExpect(status().isBadGateway())
-           .andExpect(jsonPath("$.error").value("unreadable HeartLink sample on channel 3"));
-        hub.simulate(3, "HR=171;T=1700000000");
+           .andExpect(jsonPath("$.error").value("the heart-rate band sent an unreadable reading"));
     }
 }

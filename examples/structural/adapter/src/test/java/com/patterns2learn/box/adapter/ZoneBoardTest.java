@@ -5,15 +5,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.patterns2learn.box.adapter.vendor.pulseband.PulseBandClient;
 import java.time.Instant;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
 /** Default wiring: no property set, so the box still uses PulseBand. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@DirtiesContext
 class ZoneBoardTest {
     @Autowired ZoneBoard board;
     @Autowired HeartRateMonitor monitor;
@@ -37,7 +34,7 @@ class ZoneBoardTest {
     }
 
     @Test void unknownAthletesAreRejectedAndSilentBandsAreEmpty() {
-        assertThatThrownBy(() -> board.zoneOf("nobody")).isInstanceOf(NoSuchElementException.class).hasMessage("unknown athlete: nobody");
+        assertThatThrownBy(() -> board.zoneOf("nobody")).isInstanceOf(UnknownAthleteException.class).hasMessage("unknown athlete: nobody");
         assertThat(board.zoneOf("leo")).isEmpty();
     }
 

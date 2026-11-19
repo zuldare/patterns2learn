@@ -4,7 +4,7 @@ summary: El box cambia de bandas de pulso y el nuevo fabricante habla otro idiom
 minutes: 11
 level: beginner
 recap:
-  intent: Convierte la interfaz de una clase en la que espera el cliente, para que colaboren clases que de otro modo no podrían por tener interfaces incompatibles.
+  intent: Pon un traductor entre tu código y una clase que no puedes cambiar, para que tu código solo hable con la interfaz que él ha diseñado y el traductor convierta cada llamada en algo que esa clase entienda.
   participants:
     - Target (HeartRateMonitor), la interfaz que el cliente necesita, en sus propios términos
     - Adaptee (PulseBandClient, HeartLinkHub), la clase existente con otra interfaz, que no puedes cambiar
@@ -25,34 +25,34 @@ recap:
 quiz:
   - q: ¿Qué hace exactamente PulseBandMonitor?
     options:
-      - Hereda de PulseBandClient y sobrescribe sus métodos
-      - Añade funciones nuevas a PulseBandClient sin cambiar su interfaz
-      - Implementa HeartRateMonitor y traduce cada llamada al PulseBandClient que envuelve, con sus unidades y sus errores
-      - Sustituye a PulseBandClient, que deja de usarse
+      - Hereda de PulseBandClient y sobrescribe latestBeat para que devuelva latidos por minuto
+      - Envuelve PulseBandClient y le añade caché y reintentos sin cambiar su interfaz
+      - Implementa HeartRateMonitor y traduce cada llamada al PulseBandClient que envuelve
+      - Sustituye a PulseBandClient con una implementación propia que habla con la banda
     answer: 2
     explain: Es un adaptador de objeto. Recibe "current(ana)" en el idioma del box, lo convierte en latestBeat con el número de serie, pasa de latidos por segundo a por minuto y convierte el error del fabricante en "sin señal".
   - q: El box cambia las bandas PulseBand por correas HeartLink. ¿Qué cambias?
     options:
-      - Un adaptador nuevo, HeartLinkMonitor, y una propiedad de configuración; ZoneBoard y el controlador no cambian
-      - ZoneBoard, para que sepa leer el texto de HeartLink
-      - HeartRateMonitor, para añadir los métodos de HeartLink
-      - El SDK de HeartLink, para que se parezca al de PulseBand
+      - Un adaptador nuevo, HeartLinkMonitor, y una propiedad de configuración
+      - ZoneBoard, para que sepa leer el texto y los canales de HeartLink
+      - HeartRateMonitor, para añadirle readSample y los canales de radio
+      - El SDK de HeartLink, para que devuelva lo mismo que el de PulseBand
     answer: 0
-    explain: El cliente solo conoce HeartRateMonitor. Con box.monitors.vendor=heartlink, Spring registra el otro adaptador y el resto del código ni se entera.
+    explain: El cliente solo conoce HeartRateMonitor. Con box.monitors.vendor=heartlink, Spring registra el otro adaptador y ni ZoneBoard ni el controlador se enteran.
   - q: ¿Por qué el adaptador envuelve el SDK en lugar de heredar de él?
     options:
-      - Porque es más rápido en tiempo de ejecución
-      - Porque Spring no puede inyectar clases que heredan de otras
+      - Porque envolver es más rápido que heredar en tiempo de ejecución
+      - Porque Spring no puede inyectar beans cuya clase hereda de otra
       - Porque en Java no se puede heredar de clases de otro paquete
-      - Porque solo se puede heredar de una clase, la del SDK puede ser final y, al heredar, todos sus métodos quedarían a la vista del resto del código
+      - Porque la clase del SDK puede ser final, heredar expondría todos sus métodos y ataría el adaptador a esa clase concreta
     answer: 3
-    explain: El GoF describe también el adaptador de clase, que hereda del adaptee. En Java casi siempre se usa el de objeto, que lo envuelve y solo expone la interfaz que tú has decidido.
+    explain: Aquí un adaptador de clase sería posible (extends PulseBandClient implements HeartRateMonitor), pero rara vez compensa. El de objeto solo expone tu interfaz y puede recibir cualquier instancia, también un doble en los tests.
   - q: ¿Para qué usa el DispatcherServlet los HandlerAdapter?
     options:
-      - Para convertir el JSON de la petición en objetos
-      - Para llamar del mismo modo a handlers de tipos distintos, como métodos @GetMapping o un HttpRequestHandler, preguntando a cada adaptador si lo soporta
-      - Para elegir qué controlador atiende cada URL
-      - Para adaptar las respuestas a cada navegador
+      - Para convertir el cuerpo JSON de la petición en los objetos que recibe cada método
+      - Para llamar del mismo modo a handlers de tipos distintos, preguntando a cada adaptador si lo soporta
+      - Para elegir qué controlador atiende cada URL según su ruta y su método HTTP
+      - Para adaptar el formato de la respuesta a lo que pide la cabecera Accept
     answer: 1
     explain: Elegir el handler para cada URL es trabajo de los HandlerMapping. Una vez elegido, el DispatcherServlet busca el HandlerAdapter que dice supports(handler) y le pide handle(), sin saber de qué tipo es el handler.
 ---
@@ -63,7 +63,7 @@ La primera versión, `VendorBoundZoneBoard`, llama al SDK directamente: busca el
 
 > [!problem]
 > La pizarra habla el idioma de PulseBand: sus números de serie, sus unidades y sus excepciones.
-@describe: El coach pide GET /zones/ana a ZoneController, que llama a VendorBoundZoneBoard, resaltado en rojo; este llama directamente a PulseBandClient con latestBeat("PB-0042").
+@describe: El coach pide GET /api/zones/ana a ZoneController, que llama a VendorBoundZoneBoard, resaltado en rojo; este llama directamente a PulseBandClient con latestBeat("PB-0042").
 
 ## @step:smell — Llegan las correas nuevas
 El box cambia a correas **HeartLink**, que se leen desde un hub en la pared. Su SDK no se parece en nada:
@@ -107,7 +107,7 @@ El SDK no cambia y la pizarra tampoco. Toda la traducción vive en esta clase.
 ## @step:client — La pizarra ya no sabe de fabricantes
 En Spring, `ZoneBoard` recibe un `HeartRateMonitor` por el constructor. Pide el pulso, calcula la zona con el pulso máximo del atleta y ya está.
 
-No importa nada de `vendor.pulseband` ni de `vendor.heartlink`. El SDK y su adaptador se declaran como beans en una clase `@Configuration` aparte, que es el único sitio donde aparece el nombre del fabricante.
+No importa nada de `vendor.pulseband` ni de `vendor.heartlink`. El SDK y su adaptador se declaran como beans en una clase `@Configuration` aparte, que es, junto al propio adaptador, el único sitio donde aparece el nombre del fabricante.
 @describe: Aparece el contexto de Spring. ZoneBoard, resaltado junto al contexto, está unido a HeartRateMonitor, en el que está enchufado PulseBandMonitor, que usa PulseBandClient.
 
 ## @step:request — Ana, en zona 4
@@ -120,7 +120,7 @@ La banda de Ana marca 2,6 latidos por segundo:
 
 > [!key-idea]
 > El cálculo de la zona usa bpm y nada más. Las unidades del fabricante se quedaron en el adaptador.
-@describe: GET /zones/ana viaja del coach al controlador, zoneOf("ana") a ZoneBoard, current() a la interfaz, y PulseBandMonitor, resaltado con ZoneBoard, lee 2.6 beats/s de PulseBandClient.
+@describe: GET /api/zones/ana viaja del coach al controlador, zoneOf("ana") a ZoneBoard, current() a la interfaz, y PulseBandMonitor, resaltado con ZoneBoard, lee 2.6 beats/s de PulseBandClient.
 
 ## @step:heartlink — El segundo adaptador
 Para HeartLink escribes `HeartLinkMonitor`, otro adaptador del mismo Target:
@@ -129,7 +129,7 @@ Para HeartLink escribes `HeartLinkMonitor`, otro adaptador del mismo Target:
 - si recibe `"NO_SIGNAL"`, devuelve vacío;
 - si no, interpreta `"HR=171;T=1700000000"` y convierte los segundos en un `Instant`.
 
-Y si el texto no se puede leer, no se inventa un pulso: lanza `MonitorException`, que la API devuelve como 502 porque el fallo es del dispositivo, no de quien pregunta.
+Y si el texto no se puede leer, no se inventa un pulso: lanza `MonitorException`. La API responde 502, porque el fallo es del dispositivo y no de quien pregunta, con un mensaje neutro; los detalles del fabricante van al log.
 
 > [!warning]
 > Un adaptador también traduce los **errores**. Si deja pasar las excepciones del fabricante, el cliente vuelve a depender de él.
@@ -141,20 +141,20 @@ Cada fabricante tiene su `@Configuration` con `@ConditionalOnProperty`:
 - `PulseBandConfig` está activa si no se dice nada (`matchIfMissing = true`).
 - `HeartLinkConfig`, con `box.monitors.vendor=heartlink`.
 
-Cambias una línea de `application.properties`, Spring registra el otro SDK y el otro adaptador, y `ZoneBoard` recibe un `HeartRateMonitor` distinto sin enterarse. El test `HeartLinkWiringTest` lo comprueba.
+Cambias una línea de `application.properties`, Spring registra el otro SDK y el otro adaptador, y `ZoneBoard` recibe un `HeartRateMonitor` distinto sin enterarse. El test `HeartLinkWiringTest` lo comprueba. Y si alguien escribe mal el nombre del fabricante, no se activa ningún adaptador y la aplicación falla al arrancar, no con la primera lectura.
 
 > [!spring]
 > Con un adaptador por proveedor y una condición en la configuración, el proveedor se elige al desplegar, no al programar.
-@describe: Con la propiedad heartlink, el contexto de Spring tiene HeartLinkMonitor, resaltado, enchufado en lugar de PulseBandMonitor. GET /zones/ana llega igual y el adaptador lee "HR=171;T=…" de HeartLinkHub.
+@describe: Con la propiedad heartlink, el contexto de Spring tiene HeartLinkMonitor, resaltado, enchufado en lugar de PulseBandMonitor. GET /api/zones/ana llega igual y el adaptador lee "HR=171;T=…" de HeartLinkHub.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-El `DispatcherServlet` atiende handlers muy distintos: métodos `@GetMapping` de un `@RestController`, un `HttpRequestHandler` de los de antes, funciones de rutas… No sabe llamar a ninguno directamente. Para cada handler busca el **`HandlerAdapter`** que responde `true` a `supports(handler)` y le pide `handle(...)`:
+El `DispatcherServlet` atiende handlers muy distintos: métodos `@GetMapping` de un `@RestController`, un `HttpRequestHandler` de los de antes, funciones de router (`RouterFunction`)… No sabe llamar a ninguno directamente. Para cada handler busca el **`HandlerAdapter`** que responde `true` a `supports(handler)` y le pide `handle(...)`:
 
 - `RequestMappingHandlerAdapter` para los métodos `@RequestMapping` (y `@GetMapping`, `@PostMapping`…);
 - `HttpRequestHandlerAdapter` para un `HttpRequestHandler`;
 - y otros, como `SimpleControllerHandlerAdapter` o `HandlerFunctionAdapter`.
 
-El test del ejemplo registra un `HttpRequestHandler` llamado `"/legacy/ping"` y lo llama junto a la API de zonas. El mismo servlet atiende a los dos.
+El test del ejemplo registra un `HttpRequestHandler` con el nombre de bean `"/legacy/ping"`. `BeanNameUrlHandlerMapping`, que Spring MVC registra por defecto, asocia a una URL los beans cuyo nombre empieza por `/`. Después lo llama junto a la API de zonas, y el mismo servlet atiende a los dos.
 
 > [!spring]
 > Elegir **qué** handler atiende una URL es trabajo de los `HandlerMapping`. Los `HandlerAdapter` resuelven **cómo** llamarlo.
@@ -168,7 +168,9 @@ Empezaste con una pizarra atada a un fabricante y acabaste con:
 - **Un cliente**, `ZoneBoard`, que no sabe qué banda lleva nadie.
 - **La elección del fabricante** en la configuración.
 
-No lo confundas con sus vecinos: **Decorator** mantiene la interfaz y añade comportamiento; **Facade** ofrece una interfaz más sencilla para un subsistema entero; **Adapter** convierte una interfaz en otra que ya existe.
+No lo confundas con sus vecinos: **Decorator** mantiene la interfaz y añade comportamiento; **Proxy** mantiene la interfaz y controla el acceso al objeto; **Facade** ofrece una interfaz más sencilla para un subsistema entero; **Adapter** convierte una interfaz en otra que ya existe.
+
+Y cuándo no hace falta: si las dos partes son tuyas, cambia la interfaz directamente; si el tipo externo ya encaja con lo que necesitas, úsalo tal cual; y si solo lo llamas desde un sitio, a veces basta con una función que convierta el resultado.
 
 > [!key-idea]
 > Cuando algo que no controlas no encaja con tu código, no cambies tu código: escribe la pieza que traduce.

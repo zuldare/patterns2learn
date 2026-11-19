@@ -71,7 +71,7 @@ const scene: Scene = {
       visible: ['coach', 'controller', 'boundBoard', 'pulseSdk'],
       highlight: ['boundBoard'],
       packets: [
-        { link: 'l-coach-controller', label: 'GET /zones/ana' },
+        { link: 'l-coach-controller', label: 'GET /api/zones/ana' },
         { link: 'l-bound-pulsesdk', label: 'latestBeat("PB-0042")' },
       ],
       code: { file: `${MAIN}/before/VendorBoundZoneBoard.java`, region: 'vendor-bound', highlight: [3, 7, 11, 12] },
@@ -81,7 +81,7 @@ const scene: Scene = {
       visible: ['coach', 'controller', 'boundBoard', 'pulseSdk', 'heartSdk'],
       highlight: ['boundBoard', 'heartSdk'],
       packets: [{ link: 'l-bound-heartsdk', label: 'readSample(3) ?' }],
-      code: { file: `${MAIN}/before/VendorBoundZoneBoard.java`, region: 'vendor-bound', highlight: [5, 6, 7, 8, 9, 10, 11, 12] },
+      code: { file: `${MAIN}/before/VendorBoundZoneBoard.java`, region: 'vendor-bound', highlight: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
     },
     {
       id: 'target',
@@ -98,7 +98,7 @@ const scene: Scene = {
         { link: 'l-board-monitor', label: 'current("ana")' },
         { link: 'l-pulse-sdk', label: 'latestBeat("PB-0042")' },
       ],
-      code: { file: `${MAIN}/PulseBandMonitor.java`, region: 'adapter', highlight: [3, 6, 7, 13] },
+      code: { file: `${MAIN}/PulseBandMonitor.java`, region: 'adapter', highlight: [3, 6, 7, 11, 13] },
     },
     {
       id: 'client',
@@ -112,10 +112,10 @@ const scene: Scene = {
       visible: SPRING,
       highlight: ['board', 'pulseAdapter'],
       packets: [
-        { link: 'l-coach-controller', label: 'GET /zones/ana' },
+        { link: 'l-coach-controller', label: 'GET /api/zones/ana' },
         { link: 'l-controller-board', label: 'zoneOf("ana")' },
         { link: 'l-board-monitor', label: 'current()' },
-        { link: 'l-pulse-sdk', label: '2.6 beats/s' },
+        { link: 'l-pulse-sdk', label: 'latestBeat("PB-0042")' },
       ],
       code: { file: `${TEST}/ZoneBoardTest.java`, region: 'request', highlight: [1, 3, 5, 6] },
     },
@@ -131,7 +131,7 @@ const scene: Scene = {
       visible: ['context', 'coach', 'controller', 'board', 'monitor', 'heartAdapter', 'heartSdk'],
       highlight: ['heartAdapter'],
       packets: [
-        { link: 'l-coach-controller', label: 'GET /zones/ana' },
+        { link: 'l-coach-controller', label: 'GET /api/zones/ana' },
         { link: 'l-board-monitor', label: 'current()' },
         { link: 'l-heart-sdk', label: '"HR=171;T=…"' },
       ],
