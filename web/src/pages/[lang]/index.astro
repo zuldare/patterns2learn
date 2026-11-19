@@ -3,11 +3,12 @@ import '../../styles/lesson.css';
 import '../../styles/home.css';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseTree from '../../components/CourseTree.astro';
+import DoneMark from '../../components/DoneMark.astro';
 import { listLessons } from '../../lib/lessons';
-import { t, type Locale } from '../../i18n';
+import { locales, t, type Locale } from '../../i18n';
 
 export function getStaticPaths() {
-  return [{ params: { lang: 'es' } }, { params: { lang: 'en' } }];
+  return locales.map((lang) => ({ params: { lang } }));
 }
 
 const lang = Astro.params.lang as Locale;
@@ -44,10 +45,7 @@ const path = [
               <a class="start-here__link" href={`/${lang}/patterns/${slug}/`} data-lesson-link={slug}>
                 <span class="start-here__name">{name}</span>
                 <span class="start-here__meta">{lesson.texts[lang].minutes} {t(lang, 'minutes')}</span>
-                <span class="course-tree__done" data-done-mark hidden>
-                  <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>
-                  <span class="sr-only">{t(lang, 'completed')}</span>
-                </span>
+                <DoneMark lang={lang} />
               </a>
             ) : (
               <span class="start-here__link">

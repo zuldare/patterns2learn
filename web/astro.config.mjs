@@ -1,12 +1,14 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { SITE_URL } from './src/config.ts';
+import { locales } from './src/i18n/index.ts';
 
 export default defineConfig({
-  site: 'https://patterns2learn.vercel.app',
+  site: SITE_URL,
   trailingSlash: 'always',
   integrations: [sitemap()],
   i18n: {
-    locales: ['es', 'en'],
+    locales: [...locales],
     defaultLocale: 'en',
     routing: { prefixDefaultLocale: true },
   },

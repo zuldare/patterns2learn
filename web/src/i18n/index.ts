@@ -1,7 +1,9 @@
 import { en } from './en';
 import { es } from './es';
 
-export type Locale = 'es' | 'en';
+/** Every site locale, in display order. */
+export const locales = ['es', 'en'] as const;
+export type Locale = (typeof locales)[number];
 export type UiKey = keyof typeof en;
 
 const dict: Record<Locale, Record<UiKey, string>> = { es, en };

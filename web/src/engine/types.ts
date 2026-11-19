@@ -1,6 +1,7 @@
+import type { Locale } from '../i18n';
 import type { Snippet } from '../lib/snippets';
 
-export type Locale = 'es' | 'en';
+export type { Locale };
 export type Category = 'creational' | 'structural' | 'behavioral' | 'spring';
 export type Level = 'beginner' | 'intermediate' | 'advanced';
 export type EntityKind = 'actor' | 'block' | 'interface' | 'container';

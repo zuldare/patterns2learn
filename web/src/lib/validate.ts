@@ -1,3 +1,4 @@
+import { locales } from '../i18n';
 import type { Locale, LessonText, Scene } from '../engine/types';
 import type { Snippet } from './snippets';
 
@@ -131,7 +132,7 @@ export function validateLesson(
 
   // Rules 1, 4, 5: texts
   const sceneIds = scene.steps.map((s) => s.id);
-  for (const locale of ['es', 'en'] as const) {
+  for (const locale of locales) {
     const file = `${slug}/${locale}.md`;
     const text = texts[locale];
     const textIds = text.steps.map((s) => s.id);

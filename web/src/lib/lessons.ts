@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { locales } from '../i18n';
 import type {
   Category,
   Lesson,
@@ -79,7 +80,7 @@ export async function loadLesson(slug: string): Promise<Lesson> {
   const scene = mod.default;
 
   const parsed = {} as Record<Locale, LessonText>;
-  for (const locale of ['es', 'en'] as const) {
+  for (const locale of locales) {
     const raw = textMap.get(`${slug}/${locale}`);
     if (raw === undefined) throw new Error(`${slug}/${locale}.md not found`);
     parsed[locale] = parseLessonText(raw, `${slug}/${locale}.md`);

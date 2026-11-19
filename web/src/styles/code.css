@@ -1,0 +1,24 @@
+/* Highlighted Java snippet (shiki, css-variables theme): shared by the lesson
+   code panel and the cheatsheet. print.css overrides it for paper. */
+
+.code-snippet__file {
+  margin: 0;
+  padding: 8px 14px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.code-snippet pre.shiki {
+  margin: 0;
+  padding: 10px 0 14px;
+  overflow-x: auto;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 4;
+}
+.code-snippet pre.shiki code { display: block; min-width: max-content; }
+.code-snippet .line { display: inline-block; min-width: 100%; padding: 0 14px; }
+.code-snippet .line.is-hl {
+  background: var(--code-hl);
+  box-shadow: inset 3px 0 0 var(--accent-strong);
+}

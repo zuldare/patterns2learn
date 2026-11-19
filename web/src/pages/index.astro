@@ -1,6 +1,7 @@
 ---
 // Root: picks /es/ or /en/ from the browser languages (spec §5.3).
-const site = Astro.site ?? new URL('https://patterns2learn.vercel.app');
+import { SITE_URL } from '../config';
+const site = Astro.site ?? new URL(SITE_URL);
 const href = (path: string) => new URL(path, site).href;
 ---
 <!doctype html>
