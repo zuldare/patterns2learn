@@ -19,3 +19,7 @@ dist/
 
 # Scratch workspace
 .superpowers/
+
+# Playwright
+test-results/
+playwright-report/
