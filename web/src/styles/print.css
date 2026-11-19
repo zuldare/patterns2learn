@@ -36,7 +36,6 @@ body { font-size: 9.5pt; line-height: 1.35; }
 
 /* No chrome: header, skip link, buttons, back link. */
 .site-header, .skip-link, .donate, .donate-card, .course-tree, .sheet__actions, .sheet__back, .btn { display: none !important; }
-.sheet__actions { display: none !important; }
 
 .sheet { max-width: none; padding: 0; gap: 7pt; }
 .sheet__title { font-size: 16pt; }
