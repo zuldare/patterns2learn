@@ -24,8 +24,8 @@ public final class MoveCommand implements Command {
 
     @Override
     public void undo() {
+        roster.restore(from, spot, athlete);         // if this fails, nothing has changed yet
         roster.cancel(to, athlete);
-        roster.restore(from, spot, athlete);
     }
 
     @Override

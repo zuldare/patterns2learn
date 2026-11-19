@@ -22,7 +22,7 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * - Left to right: controller (sx −9) → FrontDesk, the invoker (sx −4) → Command (sx 1) →
  *   Book/Cancel/Move in a column (sx 6) → ClassRoster, the receiver (sx 11).
  * - The undo history sits below the invoker. FrontDeskService (before) takes the invoker's spot.
- * - spring-does-it: TaskExecutor in the invoker's spot, the Runnable in the Command spot.
+ * - spring-does-it: TaskExecutor in the history's spot, the Runnable in the Command spot; the Runnable runs a desk command.
  */
 const entities: Entity[] = [
   { id: 'desk', kind: 'actor', label: 'Front desk', pos: { x: 2.4, y: 15.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
@@ -36,8 +36,8 @@ const entities: Entity[] = [
   { id: 'cancel', kind: 'block', label: 'CancelCommand', ...at(11.0, 5.0), tone: 'neutral', icon: 'ticket' },
   { id: 'move', kind: 'block', label: 'MoveCommand', ...at(14.5, 8.5), tone: 'neutral', icon: 'arrow-in' },
   { id: 'roster', kind: 'block', label: 'ClassRoster', ...at(13.5, 2.5), tone: 'neutral', icon: 'calendar' },
-  { id: 'executor', kind: 'block', label: 'TaskExecutor', ...at(6.0, 10.0), tone: 'accent', icon: 'timer' },
-  { id: 'runnable', kind: 'block', label: 'Runnable reminder', ...at(8.5, 7.5), tone: 'neutral', icon: 'bell' },
+  { id: 'executor', kind: 'block', label: 'TaskExecutor', ...at(10.0, 14.0), tone: 'accent', icon: 'timer' },
+  { id: 'runnable', kind: 'block', label: 'Runnable lateBooking', ...at(8.5, 7.5), tone: 'neutral', icon: 'bell' },
 ];
 
 const COMMANDS = ['command', 'book', 'cancel', 'move'];
@@ -59,7 +59,7 @@ const scene: Scene = {
     { id: 'l-cancel-roster', from: 'cancel', to: 'roster', style: 'call' },
     { id: 'l-move-roster', from: 'move', to: 'roster', style: 'call' },
     { id: 'l-executor-runnable', from: 'executor', to: 'runnable', style: 'call' },
-    { id: 'l-runnable-roster', from: 'runnable', to: 'roster', style: 'call' },
+    { id: 'l-runnable-invoker', from: 'runnable', to: 'invoker', style: 'call' },
   ],
   steps: [
     {
@@ -98,7 +98,7 @@ const scene: Scene = {
       id: 'memory',
       visible: [...COMMANDS, 'roster'],
       highlight: ['cancel'],
-      packets: [{ link: 'l-cancel-roster', label: 'spot 2' }],
+      packets: [{ link: 'l-cancel-roster', label: 'spot: 2nd' }],
       code: { file: `${MAIN}/CancelCommand.java`, region: 'cancel', highlight: [3, 8] },
     },
     {
@@ -109,7 +109,7 @@ const scene: Scene = {
         { link: 'l-invoker-command', label: 'execute()' },
         { link: 'l-invoker-history', label: 'push()' },
       ],
-      code: { file: `${MAIN}/FrontDesk.java`, region: 'invoker', highlight: [2, 3, 10, 11] },
+      code: { file: `${MAIN}/FrontDesk.java`, region: 'invoker', highlight: [2, 3, 11, 12, 13] },
     },
     {
       id: 'client',
@@ -128,15 +128,15 @@ const scene: Scene = {
         { link: 'l-invoker-history', label: 'pop()' },
         { link: 'l-book-roster', label: 'cancel(Leo)' },
       ],
-      code: { file: `${TEST}/web/DeskApiTest.java`, region: 'request', highlight: [1, 2, 4, 6] },
+      code: { file: `${TEST}/web/DeskApiTest.java`, region: 'request', highlight: [1, 2, 3, 4, 7] },
     },
     {
       id: 'spring-does-it',
-      visible: ['context', 'executor', 'runnable', 'roster'],
+      visible: ['context', 'executor', 'runnable', 'invoker', 'roster'],
       highlight: ['executor', 'runnable'],
       packets: [
         { link: 'l-executor-runnable', label: 'run()' },
-        { link: 'l-runnable-roster', label: 'book(2, Eva)' },
+        { link: 'l-runnable-invoker', label: 'desk.run(book Eva)' },
       ],
       code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'executor', highlight: [1, 2, 6] },
     },

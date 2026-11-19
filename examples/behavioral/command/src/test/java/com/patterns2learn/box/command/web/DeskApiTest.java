@@ -24,7 +24,8 @@ class DeskApiTest {
         // @step:request
         mvc.perform(post("/api/desk/bookings").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"session\":1,\"athlete\":\"Leo\"}"))
-           .andExpect(status().isCreated());
+           .andExpect(status().isCreated())
+           .andExpect(jsonPath("$.done").value("book Leo into 18:00 WOD"));
         mvc.perform(post("/api/desk/undo"))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.undone").value("book Leo into 18:00 WOD"));
@@ -38,11 +39,13 @@ class DeskApiTest {
     }
 
     @Test void cancelAndMove() throws Exception {
-        mvc.perform(post("/api/desk/bookings").contentType(MediaType.APPLICATION_JSON).content("{\"session\":1,\"athlete\":\"Ana\"}"));
+        mvc.perform(post("/api/desk/bookings").contentType(MediaType.APPLICATION_JSON).content("{\"session\":1,\"athlete\":\"Ana\"}"))
+           .andExpect(status().isCreated());
         mvc.perform(post("/api/desk/moves").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Ana\",\"from\":1,\"to\":2}"))
            .andExpect(status().isOk());
         mvc.perform(delete("/api/desk/bookings").param("session", "2").param("athlete", "Ana"))
            .andExpect(status().isOk());
+        mvc.perform(get("/api/desk/classes/1")).andExpect(jsonPath("$.athletes").isEmpty());
         mvc.perform(get("/api/desk/classes/2")).andExpect(jsonPath("$.athletes").isEmpty());
     }
 
@@ -63,5 +66,11 @@ class DeskApiTest {
            .andExpect(status().isBadRequest())
            .andExpect(jsonPath("$.error").value("missing parameter athlete"));
         mvc.perform(get("/api/desk/classes/7")).andExpect(status().isNotFound());
+        mvc.perform(post("/api/desk/bookings").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Leo\"}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("malformed request body"));
+        mvc.perform(post("/api/desk/moves").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Leo\",\"from\":1}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("malformed request body"));
     }
 }

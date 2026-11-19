@@ -10,18 +10,23 @@ import org.springframework.stereotype.Service;
 /** The invoker: runs commands, remembers them and can undo them. It doesn't know what any of them does. */
 @Service
 public class FrontDesk {
-    private static final int LOG_SIZE = 200;
     private final int historySize;
+    private final int logSize;
     private final Deque<Command> history = new ArrayDeque<>();
     private final List<String> log = new ArrayList<>();
 
     @Autowired
     public FrontDesk() {
-        this(50);
+        this(50, 200);
     }
 
     FrontDesk(int historySize) {
+        this(historySize, 200);
+    }
+
+    FrontDesk(int historySize, int logSize) {
         this.historySize = historySize;
+        this.logSize = logSize;
     }
 
     // @step:invoker
@@ -29,14 +34,17 @@ public class FrontDesk {
         command.execute();                          // if it fails, it never reaches the history
         history.push(command);
         if (history.size() > historySize) history.removeLast();
-        return record("done: " + command.describe());
+        record("done: " + command.describe());
+        return command.describe();
     }
 
     public synchronized String undo() {
         if (history.isEmpty()) throw new NothingToUndoException();
-        Command last = history.pop();
-        last.undo();
-        return record("undone: " + last.describe());
+        Command last = history.peek();
+        last.undo();                                // if undo fails, the command stays in the history
+        history.pop();
+        record("undone: " + last.describe());
+        return last.describe();
     }
     // @end
 
@@ -44,9 +52,8 @@ public class FrontDesk {
         return List.copyOf(log);
     }
 
-    private String record(String line) {
+    private void record(String line) {
         log.add(line);
-        if (log.size() > LOG_SIZE) log.removeFirst();
-        return line;
+        if (log.size() > logSize) log.removeFirst();
     }
 }

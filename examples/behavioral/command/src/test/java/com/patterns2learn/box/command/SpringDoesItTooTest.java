@@ -14,17 +14,19 @@ import org.springframework.core.task.TaskExecutor;
 class SpringDoesItTooTest {
     @Autowired TaskExecutor executor;   // auto-configured by Spring Boot
     @Autowired ClassRoster roster;
+    @Autowired FrontDesk desk;
+    @Autowired DeskCommands commands;
 
     @Test void aRunnableIsACommandSomeoneElseRunsLater() throws Exception {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<String> thread = new AtomicReference<>();
         // @step:executor
-        Runnable reminder = () -> {                  // an action packed into an object…
-            roster.book(2, "Eva");
+        Runnable lateBooking = () -> {               // an action packed into an object…
+            desk.run(commands.book(2, "Eva"));       // (which runs a desk command, so it can be undone)
             thread.set(Thread.currentThread().getName());
             done.countDown();
         };
-        executor.execute(reminder);                  // …handed to someone else, who runs it in another thread
+        executor.execute(lateBooking);               // …handed to someone else, who runs it in another thread
         // @end
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(roster.athletes(2)).contains("Eva");

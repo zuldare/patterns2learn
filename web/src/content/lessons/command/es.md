@@ -12,7 +12,7 @@ recap:
     - Invoker (FrontDesk), que ejecuta los comandos, guarda el historial y deshace
     - Client (DeskController con DeskCommands), que crea cada comando con su receptor y sus datos
   pros:
-    - Deshacer, registrar o encolar acciones sale casi gratis
+    - Deshacer, registrar y encolar viven en un solo sitio, el invoker
     - Quien ejecuta no conoce ninguna acción concreta, así que añadir una no lo toca
     - Cada acción y su forma de deshacerse viven juntas, en una clase pequeña
   cons:
@@ -22,7 +22,7 @@ recap:
   related:
     - Memento
     - Strategy
-    - Chain of Responsibility
+    - Composite
 quiz:
   - q: ¿Por qué CancelCommand guarda el puesto que tenía el atleta?
     options:
@@ -50,9 +50,9 @@ quiz:
     explain: Si se guardara, el siguiente undo() intentaría deshacer algo que nunca pasó. Por eso run() llama primero a execute() y solo después lo apila.
   - q: ¿En qué se parece un Runnable que pasas a un TaskExecutor a un Command?
     options:
-      - En que los dos guardan lo necesario para deshacerse con undo()
+      - En que los dos reciben el receptor como parámetro del constructor
       - En que los dos se ejecutan en el mismo hilo que los ha creado
-      - En que es una acción metida en un objeto que otro ejecuta cuando le toca
+      - En que es una acción en un objeto que otro ejecuta más tarde
       - En que Spring guarda un historial con todos los que ya ha ejecutado
     answer: 2
     explain: Runnable no tiene undo(), pero es la misma idea básica. Quien lo crea no lo ejecuta; lo entrega, y el executor decide cuándo y en qué hilo.
@@ -107,13 +107,13 @@ Deshacer una cancelación no es solo volver a apuntar. Si Leo era el segundo de 
 
 > [!warning]
 > Un comando que se puede deshacer tiene que guardar en `execute()` todo lo que `undo()` va a necesitar. Si falta algo, lo descubrirás al deshacer.
-@describe: CancelCommand, resaltado, borra a Leo en ClassRoster y se queda con su puesto, el 2.
+@describe: CancelCommand, resaltado, borra a Leo en ClassRoster y se queda con su puesto, el segundo.
 
 ## @step:invoker — Quien ejecuta no sabe qué ejecuta
 `FrontDesk` es el **invoker**:
 
 - `run(comando)` lo ejecuta y, si sale bien, lo apila en el historial y lo apunta en el registro;
-- `undo()` saca el último del historial y le pide que se deshaga.
+- `undo()` coge el último del historial y le pide que se deshaga; solo lo quita si sale bien.
 
 No sabe si el comando reserva, cancela o mueve. Por eso puede deshacer cualquier número de pasos hacia atrás, y un comando nuevo no le cambia ni una línea. El historial guarda los 50 últimos.
 
@@ -138,11 +138,13 @@ Si no queda nada que deshacer, la respuesta es 409 "nothing to undo".
 ## @step:spring-does-it — Spring ya lo hace por ti
 `Runnable` es la versión mínima de un comando: una acción metida en un objeto, sin `undo()`. Spring Boot configura un `TaskExecutor`, y cuando le pasas un `Runnable` decide él cuándo y en qué hilo ejecutarlo. Quien lo creó ya no tiene nada que ver con su ejecución.
 
-Spring usa esa idea en muchos sitios: `@Async` envuelve la llamada a tu método en una tarea para ese mismo executor, `TransactionTemplate.execute(...)` recibe tu código como un callback para ejecutarlo dentro de una transacción, y `JdbcTemplate` recibe callbacks parecidos.
+En el ejemplo, el `Runnable` ejecuta a su vez un comando de recepción, así que esa reserva tardía también queda en el historial y se puede deshacer.
+
+La misma idea aparece en más sitios: con `@EnableAsync`, `@Async` convierte la llamada a tu método en una tarea para ese mismo executor (salvo que definas otro), y `TransactionTemplate.execute(...)` recibe tu acción para ejecutarla dentro de una transacción. Pero no todo callback es un comando: un `RowMapper`, por ejemplo, se parece más a un Strategy.
 
 > [!spring]
-> Cuando una API de Spring te pide un `Runnable`, un `Callable` o un callback, te está pidiendo un comando: "dime qué hay que hacer y ya lo ejecuto yo cuando toque".
-@describe: Dentro del contexto de Spring, TaskExecutor, resaltado, ejecuta con run() el Runnable reminder, también resaltado, que apunta a Eva en ClassRoster desde otro hilo.
+> Cuando una API de Spring te pide un `Runnable` o un `Callable` para ejecutarlo después, te está pidiendo un comando: "dime qué hay que hacer y ya lo ejecuto yo cuando toque".
+@describe: Dentro del contexto de Spring, TaskExecutor, resaltado, ejecuta con run() el Runnable lateBooking, también resaltado, que desde otro hilo pide a FrontDesk que ejecute la reserva de Eva.
 
 ## @step:recap — Resumen
 Empezaste con un `switch` que recordaba solo la última acción y acabaste con:
@@ -152,7 +154,7 @@ Empezaste con un `switch` que recordaba solo la última acción y acabaste con:
 - **Un invoker**, `FrontDesk`, con historial, registro y deshacer de varios pasos.
 - **Un cliente**, el controlador, que solo crea comandos.
 
-No lo confundas con sus vecinos: **Strategy** también mete comportamiento en un objeto, pero es *cómo* hacer algo y se intercambia; un **Command** es *qué* hacer, con sus datos, para ejecutarlo ahora, luego o al revés. **Memento** deshace de otra manera: guarda una foto del estado en lugar de la operación contraria.
+No lo confundas con sus vecinos: **Strategy** también mete comportamiento en un objeto, pero es *cómo* hacer algo y se intercambia; un **Command** es *qué* hacer, con sus datos, para ejecutarlo ahora, luego o al revés. **Memento** deshace de otra manera: guarda una foto del estado en lugar de la operación contraria. Y con **Composite** puedes juntar varios comandos en uno (una macro) que se ejecuta y se deshace de una vez; `MoveCommand` está a un paso de eso.
 
 Y cuándo no hace falta: si nunca vas a deshacer, encolar ni registrar las acciones, una llamada a un método es más sencilla; y si solo necesitas pasar una acción a otro, una lambda (`Runnable`) suele bastar.
 

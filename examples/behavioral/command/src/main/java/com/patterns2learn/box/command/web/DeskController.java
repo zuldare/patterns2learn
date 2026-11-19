@@ -41,7 +41,7 @@ public class DeskController {
 
     @PostMapping("/api/desk/undo")
     public Map<String, String> undo() {
-        return Map.of("undone", desk.undo().replaceFirst("^undone: ", ""));
+        return Map.of("undone", desk.undo());
     }
     // @end
 
