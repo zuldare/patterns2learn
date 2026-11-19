@@ -1,0 +1,14 @@
+package com.patterns2learn.box.factorymethod;
+
+import java.util.List;
+
+/** What the coach asks for: a name, a format and the work itself. */
+public record WodRequest(String name, String format, int minutes, List<String> movements) {
+    public WodRequest {
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("name is required");
+        if (format == null || format.isBlank()) throw new IllegalArgumentException("format is required");
+        if (minutes < 1 || minutes > 60) throw new IllegalArgumentException("minutes must be between 1 and 60");
+        if (movements == null || movements.isEmpty()) throw new IllegalArgumentException("at least one movement is required");
+        movements = List.copyOf(movements);
+    }
+}
