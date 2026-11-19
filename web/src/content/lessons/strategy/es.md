@@ -23,11 +23,11 @@ recap:
 quiz:
   - q: ¿Qué inyecta Spring en un constructor que recibe un Map<String, PricingStrategy>?
     options:
-      - Solo el bean marcado con @Primary, envuelto en un mapa de un elemento
       - Todos los beans que implementan PricingStrategy, con el nombre de cada bean como clave
+      - Solo el bean marcado con @Primary, envuelto en un mapa de un elemento
       - Un mapa vacío que tienes que rellenar tú en un método @PostConstruct
       - Todos los beans que implementan PricingStrategy, con el nombre de la clase como clave
-    answer: 1
+    answer: 0
     explain: Spring busca en el contexto todos los beans de ese tipo y los mete en el mapa usando su nombre de bean. Por eso @Component("ten-pack") hace que la clave sea exactamente ten-pack.
   - q: Quieres añadir la tarifa student. ¿Qué tienes que tocar?
     options:
@@ -48,10 +48,10 @@ quiz:
   - q: ¿Cómo sabe DelegatingPasswordEncoder qué algoritmo usar para comprobar una contraseña?
     options:
       - Prueba todos los algoritmos hasta que uno coincide
-      - Lee el prefijo {id} del hash guardado, por ejemplo {bcrypt}, y delega en el encoder con ese id
-      - Usa siempre bcrypt; el prefijo es solo decorativo
       - Lo decide según la longitud del hash
-    answer: 1
+      - Usa siempre bcrypt; el prefijo es solo decorativo
+      - Lee el prefijo {id} del hash guardado, por ejemplo {bcrypt}, y delega en el encoder con ese id
+    answer: 3
     explain: Cada hash guarda delante el id del algoritmo entre llaves. El encoder lo lee, busca en su mapa la estrategia con ese id y le delega el trabajo. Es el mismo truco que nuestro Map de tarifas.
 ---
 ## @step:problem — Un switch que no para de crecer

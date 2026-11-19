@@ -23,11 +23,11 @@ recap:
 quiz:
   - q: What does Spring inject into a constructor that takes a Map<String, PricingStrategy>?
     options:
-      - Only the bean marked @Primary, wrapped in a single-entry map
       - Every bean implementing PricingStrategy, keyed by its bean name
+      - Only the bean marked @Primary, wrapped in a single-entry map
       - An empty map you have to fill yourself in a @PostConstruct method
       - Every bean implementing PricingStrategy, keyed by its class name
-    answer: 1
+    answer: 0
     explain: Spring collects every bean of that type in the context and puts them in the map under their bean names. That is why @Component("ten-pack") makes the key exactly ten-pack.
   - q: You want to add the student plan. What do you have to change?
     options:
@@ -48,10 +48,10 @@ quiz:
   - q: How does DelegatingPasswordEncoder know which algorithm to use when checking a password?
     options:
       - It tries every algorithm until one matches
-      - It reads the {id} prefix of the stored hash, such as {bcrypt}, and delegates to the encoder with that id
-      - It always uses bcrypt; the prefix is just decoration
       - It decides based on the length of the hash
-    answer: 1
+      - It always uses bcrypt; the prefix is just decoration
+      - It reads the {id} prefix of the stored hash, such as {bcrypt}, and delegates to the encoder with that id
+    answer: 3
     explain: Every hash stores the algorithm id in braces up front. The encoder reads it, looks up the strategy with that id in its map and hands the work over. Same trick as our pricing Map.
 ---
 ## @step:problem — A switch that keeps growing
