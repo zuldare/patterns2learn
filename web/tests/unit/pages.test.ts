@@ -72,9 +72,11 @@ test('course tree shows all 23 GoF patterns, unfinished ones as coming soon', as
       expect(tree.match(/class="course-tree__item[ "]/g)?.length, page).toBe(23 + extra);
       expect(tree.match(/course-tree__item--soon/g)?.length ?? 0, page).toBe(23 - done);
       expect(tree.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length ?? 0, page).toBe(23 - done);
-      expect(tree).toContain('Builder');
-      expect(tree).toContain('Visitor');
-      expect(tree).not.toContain(`href="/${lang}/patterns/builder/"`);
+      for (const p of CATALOG) {
+        expect(tree, p.name).toContain(`>${p.name}<`);
+        const linked = tree.includes(`href="/${lang}/patterns/${p.slug}/"`);
+        expect(linked, p.slug).toBe(slugs.includes(p.slug));
+      }
     }
   }
 });
@@ -95,6 +97,7 @@ test.each([
   ['decorator', 'structural'],
   ['chain-of-responsibility', 'behavioral'],
   ['factory-method', 'creational'],
+  ['builder', 'creational'],
 ])('%s lesson and cheatsheet link to the runnable example', (slug, category) => {
   const href = `href="https://github.com/zuldare/patterns2learn/tree/main/examples/${category}/${slug}"`;
   for (const lang of ['es', 'en']) {

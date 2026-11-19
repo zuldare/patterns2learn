@@ -14,12 +14,16 @@ public record ClassSession(String name, LocalTime startsAt, int minutes, int cap
         if (minutes < 15 || minutes > 120 || minutes % 15 != 0) {
             throw new IllegalArgumentException("minutes must be 15 to 120, in steps of 15");
         }
-        if (capacity < 1 || capacity > 30) throw new IllegalArgumentException("capacity must be between 1 and 30");
+        if (capacity < 1 || capacity > 30) {
+            throw new IllegalArgumentException("capacity must be between 1 and 30");
+        }
         if (coach != null) {
             if (coach.isBlank()) throw new IllegalArgumentException("coach cannot be blank");
             coach = coach.strip();
         }
-        if (beginnerFriendly && coach == null) throw new IllegalArgumentException("a beginner-friendly class needs a coach");
+        if (beginnerFriendly && coach == null) {
+            throw new IllegalArgumentException("a beginner-friendly class needs a coach");
+        }
     }
     // @end
 
