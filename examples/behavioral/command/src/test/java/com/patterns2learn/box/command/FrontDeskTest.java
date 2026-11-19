@@ -11,13 +11,11 @@ class FrontDeskTest {
     final FrontDesk desk = new FrontDesk();
 
     @Test void anyActionCanBeUndone() {
-        // @step:undo-test
         desk.run(commands.book(1, "Leo"));      // oops, it was Lea
         desk.undo();
         desk.run(commands.book(1, "Lea"));
 
         assertThat(roster.athletes(1)).containsExactly("Lea");
-        // @end
         assertThat(desk.log()).containsExactly("done: book Leo into 18:00 WOD", "undone: book Leo into 18:00 WOD", "done: book Lea into 18:00 WOD");
     }
 
