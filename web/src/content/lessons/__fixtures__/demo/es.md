@@ -12,7 +12,7 @@ recap:
 quiz:
   - { q: ¿Quién elige la estrategia?, options: [El cliente, El mapa de Spring, Nadie], answer: 1, explain: Spring inyecta un mapa por nombre de bean. }
   - { q: ¿Qué es PricingStrategy?, options: [Una clase, Una interfaz, Un enum], answer: 1, explain: Es el contrato común. }
-  - { q: ¿Cuánto cuesta un bono de 10?, options: [79, 120, 15], answer: 1, explain: 120 EUR por cada bloque de diez. }
+  - { q: ¿Cuánto cuesta un bono de 10?, options: ["79", "120", "15"], answer: 1, explain: 120 EUR por cada bloque de diez. }
 ---
 ## @step:intro — Un cliente pide precio
 Un socio del box quiere saber cuánto cuesta su plan.

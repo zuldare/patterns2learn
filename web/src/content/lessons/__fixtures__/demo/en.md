@@ -12,7 +12,7 @@ recap:
 quiz:
   - { q: Who picks the strategy?, options: [The client, The Spring map, Nobody], answer: 1, explain: Spring injects a map keyed by bean name. }
   - { q: What is PricingStrategy?, options: [A class, An interface, An enum], answer: 1, explain: It is the common contract. }
-  - { q: How much is a ten-pack?, options: [79, 120, 15], answer: 1, explain: 120 EUR per block of ten. }
+  - { q: How much is a ten-pack?, options: ["79", "120", "15"], answer: 1, explain: 120 EUR per block of ten. }
 ---
 ## @step:intro — A client asks for a price
 A box member wants to know what their plan costs.

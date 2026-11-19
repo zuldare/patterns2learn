@@ -9,7 +9,7 @@ import type {
 } from '../engine/types';
 import { loadSnippet, type Snippet } from './snippets';
 import { parseLessonText } from './lesson-text';
-import { validateLesson } from './validate';
+import { isSafeSnippetPath, validateLesson } from './validate';
 
 export class LessonValidationError extends Error {
   errors: string[];
@@ -90,7 +90,8 @@ export async function loadLesson(slug: string): Promise<Lesson> {
   for (const step of scene.steps) {
     if (!step.code) continue;
     const key = `${step.code.file}#${step.code.region}`;
-    if (snippets.has(key)) continue;
+    // Unsafe paths are never read; validateLesson reports them.
+    if (snippets.has(key) || !isSafeSnippetPath(step.code.file)) continue;
     try {
       snippets.set(key, loadSnippet(examplesRoot, step.code.file, step.code.region));
     } catch (e) {

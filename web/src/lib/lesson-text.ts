@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import { parse as parseYaml } from 'yaml';
 import type { LessonText, StepText } from '../engine/types';
+import { validateFrontmatter } from './validate';
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 const STEP_RE = /^## @step:([a-z0-9-]+)\s+[—-]\s+(.+?)\s*$/;
@@ -43,7 +44,9 @@ export function parseLessonText(markdown: string, file: string): LessonText {
   const fm = FRONTMATTER_RE.exec(markdown);
   if (!fm) throw new Error(`${file}: missing YAML frontmatter`);
   const meta = parseYaml(fm[1]) as Record<string, unknown> | null;
-  if (!meta || typeof meta !== 'object') throw new Error(`${file}: invalid frontmatter`);
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) throw new Error(`${file}: invalid frontmatter`);
+  const problems = validateFrontmatter(meta, file);
+  if (problems.length > 0) throw new Error(problems.join('\n'));
 
   const steps: StepText[] = [];
   let current: { id: string; title: string; lines: string[] } | null = null;
@@ -68,6 +71,6 @@ export function parseLessonText(markdown: string, file: string): LessonText {
     level: meta.level as LessonText['level'],
     steps,
     recap: meta.recap as LessonText['recap'],
-    quiz: (meta.quiz ?? []) as LessonText['quiz'],
+    quiz: meta.quiz as LessonText['quiz'],
   };
 }

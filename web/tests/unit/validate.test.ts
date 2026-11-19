@@ -77,3 +77,28 @@ test('empty describe', () => {
   const [scene, texts, snips] = fixture(); texts.en.steps[0].describe = '';
   expect(validateLesson('demo', scene, texts, snips)).toContain('demo/en.md: step "s1" has no @describe');
 });
+test('duplicate entity, link and step ids', () => {
+  const [scene, texts, snips] = fixture();
+  scene.entities.push({ ...scene.entities[0] });
+  scene.links.push({ ...scene.links[0] });
+  scene.steps[1] = { ...scene.steps[1], id: 's1' };
+  const errors = validateLesson('demo', scene, texts, snips);
+  expect(errors).toContain('demo/scene.ts: duplicate entity id "a"');
+  expect(errors).toContain('demo/scene.ts: duplicate link id "l"');
+  expect(errors).toContain('demo/scene.ts: duplicate step id "s1"');
+});
+test('duplicate step id in a text', () => {
+  const [scene, texts, snips] = fixture(); texts.en.steps[1] = { ...texts.en.steps[1], id: 's1' };
+  expect(validateLesson('demo', scene, texts, snips)).toContain('demo/en.md: duplicate step id "s1"');
+});
+test.each(['../secret.java', '/etc/passwd', 'a/../../b.java', 'C:\\x.java'])('unsafe snippet path %s', (file) => {
+  const [scene, texts, snips] = fixture(); scene.steps[0].code!.file = file;
+  const errors = validateLesson('demo', scene, texts, snips);
+  expect(errors).toContain(`demo/scene.ts: step "s1" snippet file "${file}" must be a relative path inside examples/ (no "..", not absolute)`);
+  expect(errors.some((e) => e.includes('not loaded'))).toBe(false);
+});
+test('isSafeSnippetPath', async () => {
+  const { isSafeSnippetPath } = await import('../../src/lib/validate');
+  expect(isSafeSnippetPath('behavioral/strategy/src/A.java')).toBe(true);
+  expect(isSafeSnippetPath('../A.java')).toBe(false);
+});
