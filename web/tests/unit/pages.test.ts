@@ -33,12 +33,13 @@ test('SEO and a11y basics on strategy pages', () => {
   expect(root).toContain('hreflang="x-default" href="https://patterns2learn.vercel.app/"');
 });
 
-test('home lists the start-here path with only Strategy linked', () => {
+test('home lists the start-here path with Singleton and Strategy linked', () => {
   for (const lang of ['es', 'en']) {
     const home = readFileSync(`${webRoot}/dist/${lang}/index.html`, 'utf8');
     expect(home).toContain(`href="/${lang}/patterns/strategy/"`);
+    expect(home).toContain(`href="/${lang}/patterns/singleton/"`);
     expect(home).toContain(lang === 'es' ? 'Empieza aquí' : 'Start here');
-    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length).toBe(7);
+    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length).toBe(6);
     const order = ['Singleton', 'Proxy', 'Template Method', 'Strategy', 'Observer', 'Decorator', 'Chain of Responsibility', 'Factory Method'];
     const start = home.slice(home.indexOf('class="start-here"'));
     const idx = order.map((n) => start.indexOf(n));
@@ -54,10 +55,13 @@ test('donate placeholder URL is never published', () => {
   }
 });
 
-test('lesson and cheatsheet link to the runnable example', () => {
-  const href = 'href="https://github.com/zuldare/patterns2learn/tree/main/examples/behavioral/strategy"';
+test.each([
+  ['strategy', 'behavioral'],
+  ['singleton', 'creational'],
+])('%s lesson and cheatsheet link to the runnable example', (slug, category) => {
+  const href = `href="https://github.com/zuldare/patterns2learn/tree/main/examples/${category}/${slug}"`;
   for (const lang of ['es', 'en']) {
-    for (const page of [`${lang}/patterns/strategy/index.html`, `${lang}/patterns/strategy/cheatsheet/index.html`]) {
+    for (const page of [`${lang}/patterns/${slug}/index.html`, `${lang}/patterns/${slug}/cheatsheet/index.html`]) {
       const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
       const link = html.match(new RegExp(`<a[^>]*${href}[^>]*>`))?.[0];
       expect(link, page).toBeDefined();
