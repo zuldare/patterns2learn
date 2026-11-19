@@ -33,13 +33,14 @@ test('SEO and a11y basics on strategy pages', () => {
   expect(root).toContain('hreflang="x-default" href="https://patterns2learn.vercel.app/"');
 });
 
-test('home lists the start-here path with Singleton and Strategy linked', () => {
+test('home lists the start-here path with the finished lessons linked', () => {
   for (const lang of ['es', 'en']) {
     const home = readFileSync(`${webRoot}/dist/${lang}/index.html`, 'utf8');
     expect(home).toContain(`href="/${lang}/patterns/strategy/"`);
     expect(home).toContain(`href="/${lang}/patterns/singleton/"`);
+    expect(home).toContain(`href="/${lang}/patterns/proxy/"`);
     expect(home).toContain(lang === 'es' ? 'Empieza aquí' : 'Start here');
-    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length).toBe(6);
+    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length).toBe(5);
     const order = ['Singleton', 'Proxy', 'Template Method', 'Strategy', 'Observer', 'Decorator', 'Chain of Responsibility', 'Factory Method'];
     const start = home.slice(home.indexOf('class="start-here"'));
     const idx = order.map((n) => start.indexOf(n));
@@ -58,6 +59,7 @@ test('donate placeholder URL is never published', () => {
 test.each([
   ['strategy', 'behavioral'],
   ['singleton', 'creational'],
+  ['proxy', 'structural'],
 ])('%s lesson and cheatsheet link to the runnable example', (slug, category) => {
   const href = `href="https://github.com/zuldare/patterns2learn/tree/main/examples/${category}/${slug}"`;
   for (const lang of ['es', 'en']) {
