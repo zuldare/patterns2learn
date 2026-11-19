@@ -39,4 +39,9 @@ export const en = {
   completed: 'Completed',
   donateText: 'patterns2learn is free and open source. If it helped you, a coffee keeps it going.',
   runIt: 'Run it',
+  ogImageAlt: 'Isometric diagram of the Strategy pattern in a CrossFit box, with the patterns2learn name',
+  comingSoon: 'Coming soon',
+  startHereIntro: 'Recommended order: first what Spring already uses for you, then what you implement yourself.',
+  viewCourse: 'Full course',
+  startLesson: 'Start lesson',
 } as const;

@@ -1,6 +1,7 @@
 import { LessonPlayer } from '../engine/player';
 import type { Scene } from '../engine/types';
 import { loadProgress, saveStep } from '../lib/progress';
+import './tree-progress';
 
 const CODE_BREAKPOINT = '(max-width: 959.98px)';
 
@@ -105,19 +106,6 @@ function mountLesson(root: HTMLElement): void {
   mountCodePanel(root);
 }
 
-/** Marks completed lessons in the course tree (static HTML carries no progress). */
-function hydrateCourseTree(): void {
-  const { lessons } = loadProgress();
-  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-lesson-link]')) {
-    const slug = link.dataset.lessonLink ?? '';
-    if (!lessons[slug]?.done) continue;
-    link.classList.add('is-done');
-    const mark = link.querySelector<HTMLElement>('[data-done-mark]');
-    if (mark) mark.hidden = false;
-  }
-}
-
 const root = document.querySelector<HTMLElement>('[data-lesson]');
 if (root) mountLesson(root);
 mountTreeDrawer();
-hydrateCourseTree();

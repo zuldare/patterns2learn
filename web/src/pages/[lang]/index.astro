@@ -1,21 +1,68 @@
 ---
+import '../../styles/lesson.css';
+import '../../styles/home.css';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseTree from '../../components/CourseTree.astro';
 import { listLessons } from '../../lib/lessons';
 import { t, type Locale } from '../../i18n';
 
-// Minimal locale home; the full landing page arrives in Task 10.
 export function getStaticPaths() {
   return [{ params: { lang: 'es' } }, { params: { lang: 'en' } }];
 }
 
 const lang = Astro.params.lang as Locale;
 const lessons = await listLessons();
+const bySlug = new Map(lessons.map((l) => [l.slug, l]));
+
+// Recommended order (spec §5.1): what Spring already uses first, then what you implement.
+const path = [
+  { slug: 'singleton', name: 'Singleton' },
+  { slug: 'proxy', name: 'Proxy' },
+  { slug: 'template-method', name: 'Template Method' },
+  { slug: 'strategy', name: 'Strategy' },
+  { slug: 'observer', name: 'Observer' },
+  { slug: 'decorator', name: 'Decorator' },
+  { slug: 'chain-of-responsibility', name: 'Chain of Responsibility' },
+  { slug: 'factory-method', name: 'Factory Method' },
+].map((p) => ({ ...p, lesson: bySlug.get(p.slug) }));
 ---
 <BaseLayout lang={lang} title={`patterns2learn — ${t(lang, 'tagline')}`} description={t(lang, 'intro')} path="/">
   <div class="home">
-    <h1 class="home__title">patterns2learn</h1>
-    <p class="home__intro">{t(lang, 'intro')}</p>
-    <CourseTree lang={lang} lessons={lessons} />
+    <section class="hero" aria-labelledby="home-title">
+      <h1 class="hero__title" id="home-title">patterns<span class="hero__two">2</span>learn</h1>
+      <p class="hero__tagline">{t(lang, 'tagline')}</p>
+      <p class="hero__intro">{t(lang, 'intro')}</p>
+    </section>
+
+    <section class="start-here" aria-labelledby="start-here-title">
+      <h2 class="start-here__title" id="start-here-title">{t(lang, 'startHere')}</h2>
+      <p class="start-here__intro">{t(lang, 'startHereIntro')}</p>
+      <ol class="start-here__list" role="list">
+        {path.map(({ name, slug, lesson }) => (
+          <li class:list={['start-here__item', { 'is-soon': !lesson }]}>
+            {lesson ? (
+              <a class="start-here__link" href={`/${lang}/patterns/${slug}/`} data-lesson-link={slug}>
+                <span class="start-here__name">{name}</span>
+                <span class="start-here__meta">{lesson.texts[lang].minutes} {t(lang, 'minutes')}</span>
+                <span class="course-tree__done" data-done-mark hidden>
+                  <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>
+                  <span class="sr-only">{t(lang, 'completed')}</span>
+                </span>
+              </a>
+            ) : (
+              <span class="start-here__link">
+                <span class="start-here__name">{name}</span>
+                <span class="start-here__meta">{t(lang, 'comingSoon')}</span>
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <CourseTree lang={lang} lessons={lessons} static />
   </div>
 </BaseLayout>
+<script>
+  import '../../scripts/tree-progress';
+</script>

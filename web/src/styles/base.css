@@ -193,9 +193,3 @@ main:focus { outline: none; }
 .callout--spring { border-left-color: var(--accent-strong); background: var(--accent-soft); color: var(--ink); }
 .callout--spring code,
 .callout--key-idea code { background: var(--surface); }
-
-/* ---------- Home (minimal, completed in Task 10) ---------- */
-
-.home { max-width: 720px; margin: 0 auto; padding: 32px 16px; }
-.home__title { font-size: 2rem; }
-.home__intro { color: var(--muted); }

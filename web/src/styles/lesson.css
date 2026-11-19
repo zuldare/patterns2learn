@@ -181,7 +181,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 /* < 1200px: without JS the tree sits after the lesson; with JS it is a drawer. */
 @media (max-width: 1199.98px) {
   .course-tree { order: 2; }
-  html.js .course-tree {
+  html.js .course-tree:not(.course-tree--static) {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
@@ -192,7 +192,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
     border-right: 1.5px solid var(--ink);
     box-shadow: 4px 0 0 var(--ink);
   }
-  html.js .course-tree:not([data-open="true"]) { display: none; }
+  html.js .course-tree:not(.course-tree--static):not([data-open="true"]) { display: none; }
 }
 
 /* ---------- ≥ 960px: canvas column + text column ---------- */

@@ -6,18 +6,20 @@ interface Props {
   lang: Locale;
   lessons: Lesson[];
   current?: string;
+  /** Plain in-page list (home): no drawer, no close button. */
+  static?: boolean;
 }
 
-const { lang, lessons, current } = Astro.props;
+const { lang, lessons, current, static: isStatic = false } = Astro.props;
 const order: Category[] = ['spring', 'creational', 'structural', 'behavioral'];
 const groups = order
   .map((cat) => ({ cat, items: lessons.filter((l) => l.category === cat) }))
   .filter((g) => g.items.length > 0);
 ---
-<aside class="course-tree" id="course-tree" aria-labelledby="course-tree-title">
+<aside class:list={['course-tree', { 'course-tree--static': isStatic }]} id="course-tree" aria-labelledby="course-tree-title">
   <div class="course-tree__head">
     <h2 id="course-tree-title" class="course-tree__title">{t(lang, 'course')}</h2>
-    <button class="btn btn--small course-tree__close" type="button" data-action="toggle-tree" data-js-only>{t(lang, 'close')}</button>
+    {!isStatic && <button class="btn btn--small course-tree__close" type="button" data-action="toggle-tree" data-js-only>{t(lang, 'close')}</button>}
   </div>
   {groups.map(({ cat, items }) => (
     <section class="course-tree__group">

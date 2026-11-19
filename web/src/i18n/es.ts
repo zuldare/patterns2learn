@@ -41,4 +41,9 @@ export const es: { [K in keyof typeof en]: string } = {
   completed: 'Completada',
   donateText: 'patterns2learn es gratis y de código abierto. Si te ha servido, un café ayuda a mantenerlo.',
   runIt: 'Ejecútalo',
+  ogImageAlt: 'Diagrama isométrico del patrón Strategy en un box de CrossFit, con el nombre patterns2learn',
+  comingSoon: 'Próximamente',
+  startHereIntro: 'Orden recomendado: primero lo que Spring ya usa por ti y después lo que implementas tú.',
+  viewCourse: 'Curso completo',
+  startLesson: 'Empezar lección',
 };

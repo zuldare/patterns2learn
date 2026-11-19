@@ -1,0 +1,62 @@
+/* Home: hero, start-here card, course tree. Colours come from tokens only. */
+
+.home { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 32px; }
+
+.hero__title { font-size: clamp(2rem, 7vw, 3.25rem); line-height: 1.1; letter-spacing: -0.02em; }
+.hero__two {
+  display: inline-block;
+  margin: 0 0.08em;
+  padding: 0 0.3em;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--pop-shadow);
+}
+.hero__tagline { margin: 12px 0 0; font-size: 1.15rem; font-weight: 500; }
+.hero__intro { margin: 8px 0 0; color: var(--muted); max-width: 56ch; }
+
+.start-here {
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--pop-shadow);
+  padding: 20px;
+}
+.start-here__title { font-size: 1.25rem; }
+.start-here__intro { margin: 6px 0 16px; color: var(--muted); }
+.start-here__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: step; }
+.start-here__item { counter-increment: step; }
+.start-here__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.start-here__link::before {
+  content: counter(step);
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--bg);
+}
+.start-here__name { font-weight: 500; }
+.start-here__meta { margin-left: auto; color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+a.start-here__link { border-color: var(--ink); box-shadow: var(--pop-shadow); background: var(--accent-soft); }
+a.start-here__link::before { background: var(--accent); color: var(--on-accent); }
+a.start-here__link:hover { transform: translate(-1px, -1px); box-shadow: 3px 4px 0 var(--ink); }
+.start-here__item.is-soon .start-here__link { color: var(--muted); border-style: dashed; }
+.start-here__item.is-soon .start-here__link::before { background: transparent; border-color: var(--muted); }
+
+.course-tree--static { padding: 0 4px; }
+@media (prefers-reduced-motion: reduce) { a.start-here__link:hover { transform: none; } }

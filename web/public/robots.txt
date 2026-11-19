@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://patterns2learn.vercel.app/sitemap-index.xml
