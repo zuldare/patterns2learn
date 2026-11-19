@@ -1,4 +1,4 @@
-import { packetMarkup, pillWidth } from './render';
+import { itemState, packetMarkup, pillWidth } from './render';
 import { tween, type Tween } from './tween';
 import type { Packet, Scene, SceneStep } from './types';
 
@@ -104,18 +104,12 @@ export class LessonPlayer {
   }
 
   private applySnapshot(step: SceneStep): void {
-    const visible = new Set(step.visible);
-    const highlight = new Set(step.highlight);
-    for (const el of this.root.querySelectorAll<SVGGElement>('.iso-entity')) {
-      const id = el.dataset.id ?? '';
-      el.classList.toggle('is-hidden', !visible.has(id));
-      el.classList.toggle('is-highlighted', highlight.has(id));
-    }
-    for (const el of this.root.querySelectorAll<SVGGElement>('.iso-link')) {
-      const id = el.dataset.id ?? '';
-      const shown = visible.has(el.dataset.from ?? '') && visible.has(el.dataset.to ?? '');
-      el.classList.toggle('is-hidden', !shown);
-      el.classList.toggle('is-highlighted', highlight.has(id));
+    for (const el of this.root.querySelectorAll<SVGGElement>('.iso-entity, .iso-link')) {
+      const { id = '', from, to } = el.dataset;
+      const item = el.classList.contains('iso-link') ? { id, from: from ?? '', to: to ?? '' } : { id };
+      const { hidden, highlighted } = itemState(step, item);
+      el.classList.toggle('is-hidden', hidden);
+      el.classList.toggle('is-highlighted', highlighted);
     }
     this.root.dataset.step = step.id;
     this.svg?.setAttribute('aria-describedby', `describe-${step.id}`);

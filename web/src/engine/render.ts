@@ -1,5 +1,5 @@
 import { TILE_H, TILE_W, depth, project, topCenter, type ScreenPoint } from './iso';
-import type { Entity, Link, Scene } from './types';
+import type { Entity, Link, Scene, SceneStep } from './types';
 
 /**
  * Pure SVG string renderer for an isometric scene (spec §8.2).
@@ -26,6 +26,31 @@ const pt = (p: ScreenPoint): string => `${n(p.sx)},${n(p.sy)}`;
 
 export function escapeXml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+type StepState = Pick<SceneStep, 'visible' | 'highlight'>;
+
+/**
+ * Visibility and highlight of one scene item at a step: an entity is shown when
+ * listed in `visible`; a link when both its ends are. Shared by the static
+ * render and the runtime player so both always agree.
+ */
+export function itemState(
+  step: StepState,
+  item: { id: string; from?: string; to?: string },
+): { hidden: boolean; highlighted: boolean } {
+  const shown =
+    item.from !== undefined || item.to !== undefined
+      ? step.visible.includes(item.from ?? '') && step.visible.includes(item.to ?? '')
+      : step.visible.includes(item.id);
+  return { hidden: !shown, highlighted: step.highlight.includes(item.id) };
+}
+
+/** ` is-hidden is-highlighted` (as applicable) for the static markup. */
+function stateClasses(step: StepState | undefined, item: { id: string; from?: string; to?: string }): string {
+  if (!step) return '';
+  const { hidden, highlighted } = itemState(step, item);
+  return (hidden ? ' is-hidden' : '') + (highlighted ? ' is-highlighted' : '');
 }
 
 /** Width of a label pill for `text`, shared by entity labels and packets. */
@@ -129,12 +154,12 @@ function actorMarkup(e: Entity): string {
   );
 }
 
-function entityMarkup(e: Entity): string {
+function entityMarkup(e: Entity, step?: StepState): string {
   const shape = e.kind === 'actor' ? actorMarkup(e) : prismMarkup(e);
   const a = labelAnchor(e);
   const fill = e.kind === 'container' ? 'var(--bg)' : 'var(--surface)';
   return (
-    `<g class="iso-entity kind-${e.kind} tone-${e.tone}" data-id="${escapeXml(e.id)}">` +
+    `<g class="iso-entity${stateClasses(step, { id: e.id })} kind-${e.kind} tone-${e.tone}" data-id="${escapeXml(e.id)}">` +
     shape +
     `<g class="iso-label" transform="translate(${n(a.sx)} ${n(a.sy)})">${pillMarkup(e.label, 'iso-label', fill)}</g>` +
     `</g>`
@@ -172,7 +197,7 @@ const MARKER: Record<Link['style'], string> = {
   injects: 'url(#iso-diamond)',
 };
 
-function linkMarkup(l: Link, byId: Map<string, Entity>): string {
+function linkMarkup(l: Link, byId: Map<string, Entity>, step?: StepState): string {
   const from = byId.get(l.from);
   const to = byId.get(l.to);
   if (!from || !to) throw new Error(`link "${l.id}" references a missing entity`);
@@ -186,7 +211,7 @@ function linkMarkup(l: Link, byId: Map<string, Entity>): string {
   const p1 = at(t1);
   const p2 = at(t2);
   return (
-    `<g class="iso-link style-${l.style}" data-id="${escapeXml(l.id)}" data-from="${escapeXml(l.from)}" data-to="${escapeXml(l.to)}" ` +
+    `<g class="iso-link${stateClasses(step, l)} style-${l.style}" data-id="${escapeXml(l.id)}" data-from="${escapeXml(l.from)}" data-to="${escapeXml(l.to)}" ` +
     `data-x1="${n(c1.sx)}" data-y1="${n(c1.sy)}" data-x2="${n(c2.sx)}" data-y2="${n(c2.sy)}">` +
     `<path id="path-${escapeXml(l.id)}" class="iso-link-line" d="M${pt(p1)} L${pt(p2)}" marker-end="${MARKER[l.style]}"/>` +
     `</g>`
@@ -211,7 +236,17 @@ export function packetMarkup(label: string): string {
   return pillMarkup(label, 'iso-packet', 'var(--accent-soft)');
 }
 
-export function renderScene(scene: Scene): string {
+export type RenderOptions = {
+  /** Bake this step's snapshot (visibility + highlight classes) into the markup, as the player would apply it. */
+  step?: StepState;
+  /** Accessible name of the diagram (`aria-label`). */
+  label?: string;
+  /** Id of the element describing the diagram (`aria-describedby`). */
+  describedBy?: string;
+};
+
+export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
+  const { step, label, describedBy } = opts;
   const byId = new Map(scene.entities.map(e => [e.id, e]));
   const ordered = scene.entities
     .map((e, i) => ({ e, i }))
@@ -238,10 +273,13 @@ export function renderScene(scene: Scene): string {
 
   const vb = [box.minX - MARGIN, box.minY - MARGIN, box.maxX - box.minX + 2 * MARGIN, box.maxY - box.minY + 2 * MARGIN];
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" class="iso-scene" role="img" viewBox="${vb.map(n).join(' ')}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" class="iso-scene" role="img"` +
+    (label !== undefined ? ` aria-label="${escapeXml(label)}"` : '') +
+    (describedBy !== undefined ? ` aria-describedby="${escapeXml(describedBy)}"` : '') +
+    ` viewBox="${vb.map(n).join(' ')}">` +
     DEFS +
-    `<g class="iso-entities">${ordered.map(entityMarkup).join('')}</g>` +
-    `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId)).join('')}</g>` +
+    `<g class="iso-entities">${ordered.map(e => entityMarkup(e, step)).join('')}</g>` +
+    `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step)).join('')}</g>` +
     `<g class="iso-packets"></g>` +
     `</svg>`
   );

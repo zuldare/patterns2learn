@@ -50,3 +50,61 @@ test('link groups store projected endpoint coordinates', () => {
   expect(Number(g.dataset.x2)).toBe(0);
   expect(Number(g.dataset.y2)).toBe(4.5 * 32 - 32);
 });
+
+describe('renderScene at a step', () => {
+  const e = (id: string, x: number): Entity => ({
+    id, kind: 'block', label: id, pos: { x, y: 0 }, size: { w: 1, d: 1, h: 1 }, tone: 'neutral',
+  });
+  const two: Scene = {
+    entities: [e('a', 0), e('b', 3)],
+    links: [{ id: 'l', from: 'a', to: 'b', style: 'call' }],
+    steps: [
+      { id: 's', visible: ['a'], highlight: [], packets: [] },
+      { id: 't', visible: ['a', 'b'], highlight: ['b', 'l'], packets: [] },
+    ],
+  };
+
+  test('hides entities and links that are not visible in the step', () => {
+    const svg = renderScene(two, { step: two.steps[0], label: 'Demo' });
+    expect(svg).toMatch(/class="iso-entity is-hidden [^"]*" data-id="b"/);
+    expect(svg).not.toMatch(/class="iso-entity is-hidden [^"]*" data-id="a"/);
+    expect(svg).toMatch(/class="iso-link is-hidden [^"]*" data-id="l"/);
+    expect(svg).toContain('aria-label="Demo"');
+  });
+
+  test('marks highlighted entities and links', () => {
+    const svg = renderScene(two, { step: two.steps[1] });
+    expect(svg).toMatch(/class="iso-entity is-highlighted [^"]*" data-id="b"/);
+    expect(svg).toMatch(/class="iso-link is-highlighted [^"]*" data-id="l"/);
+    expect(svg).not.toContain('is-hidden');
+  });
+
+  test('escapes the accessible label and sets aria-describedby', () => {
+    const svg = renderScene(two, { label: 'A "quoted" <b>&</b>', describedBy: 'describe-s' });
+    expect(svg).toContain('aria-label="A &quot;quoted&quot; &lt;b&gt;&amp;&lt;/b&gt;"');
+    expect(svg).toContain('aria-describedby="describe-s"');
+  });
+
+  test('without options the markup is unchanged', () => {
+    expect(renderScene(two, {})).toBe(renderScene(two));
+    expect(renderScene(two)).not.toMatch(/is-hidden|is-highlighted|aria-label|aria-describedby/);
+  });
+
+  test('static snapshot matches what the player applies for every step', async () => {
+    const { LessonPlayer } = await import('../../src/engine/player');
+    const classes = (root: ParentNode) =>
+      [...root.querySelectorAll<SVGGElement>('.iso-entity, .iso-link')].map(
+        (g) => `${g.dataset.id}:${g.classList.contains('is-hidden')}:${g.classList.contains('is-highlighted')}`,
+      );
+    const live = document.createElement('div');
+    live.innerHTML = renderScene(scene);
+    const player = new LessonPlayer(live, scene, { reducedMotion: true });
+    scene.steps.forEach((step, i) => {
+      player.goTo(i);
+      const fixed = document.createElement('div');
+      fixed.innerHTML = renderScene(scene, { step });
+      expect(classes(fixed), step.id).toEqual(classes(live));
+    });
+    player.destroy();
+  });
+});

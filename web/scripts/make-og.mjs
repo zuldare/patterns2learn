@@ -19,14 +19,18 @@ const { renderScene } = await vite.ssrLoadModule('/src/engine/render.ts');
 const { default: scene } = await vite.ssrLoadModule('/src/content/lessons/strategy/scene.ts');
 await vite.close();
 
-// Keep only what the recap step shows, as the lesson player does.
+// The recap step's snapshot, as the lesson player shows it. Items the step
+// hides are dropped (not just hidden) so the viewBox crops to what is visible.
 const step = scene.steps.find((s) => s.id === 'recap');
 const visible = new Set(step.visible);
-const svg = renderScene({
-  ...scene,
-  entities: scene.entities.filter((e) => visible.has(e.id)),
-  links: scene.links.filter((l) => visible.has(l.from) && visible.has(l.to)),
-});
+const svg = renderScene(
+  {
+    ...scene,
+    entities: scene.entities.filter((e) => visible.has(e.id)),
+    links: scene.links.filter((l) => visible.has(l.from) && visible.has(l.to)),
+  },
+  { step, label: 'Strategy pattern' },
+);
 
 // Paper tokens inlined as :root vars, so the same engine.css styles the raster.
 const tokens = read('src/styles/tokens.css');

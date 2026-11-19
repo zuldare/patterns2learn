@@ -9,9 +9,10 @@ interface Props {
 }
 
 const { scene, steps, label } = Astro.props;
-// Static HTML points at the first step's description; the player updates it per step.
-const describedBy = steps[0] ? ` aria-describedby="describe-${steps[0].id}"` : '';
-const svg = renderScene(scene).replace('role="img"', `role="img" aria-label="${label.replace(/"/g, '&quot;')}"${describedBy}`);
+// Static HTML shows the first step's snapshot and points at its description;
+// the player takes over from there.
+const first = steps[0];
+const svg = renderScene(scene, { step: first, label, describedBy: first ? `describe-${first.id}` : undefined });
 ---
 <figure class="iso-canvas">
   <div class="iso-canvas__stage" set:html={svg} />
