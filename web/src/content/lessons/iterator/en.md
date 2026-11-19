@@ -130,7 +130,7 @@ In Spring Data, repositories return `Slice`, `Page` or `Stream`, and since versi
 @describe: Inside the Spring context, JdbcClient, highlighted, hands out a Stream<Result>, also highlighted, that turns the table's rows into objects as they're consumed.
 
 ## @step:recap — Recap
-You started loading 230 rows to show 3 and ended up with:
+You started loading 233 rows to show 3 and ended up with:
 
 - **An iterator** that hands out one at a time and fetches the next page only when needed.
 - **An aggregate**, `ResultHistory`, that hands out a new iterator for each walk.

@@ -130,7 +130,7 @@ En Spring Data, los repositorios devuelven `Slice`, `Page` o `Stream`, y desde l
 @describe: Dentro del contexto de Spring, JdbcClient, resaltado, da un Stream<Result>, también resaltado, que convierte las filas de la tabla a medida que se consumen.
 
 ## @step:recap — Resumen
-Empezaste cargando 230 filas para enseñar 3 y acabaste con:
+Empezaste cargando 233 filas para enseñar 3 y acabaste con:
 
 - **Un iterador** que entrega uno a uno y pide la siguiente página solo cuando hace falta.
 - **Un agregado**, `ResultHistory`, que da un iterador nuevo para cada recorrido.
