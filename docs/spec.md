@@ -286,6 +286,7 @@ classDiagram
     +pos: IsoPoint
     +size: IsoSize
     +tone: Tone
+    +icon?: IconName
   }
   class Link {
     +id: string
@@ -392,12 +393,17 @@ El orden de pintado es `x + y + z`, de menor a mayor. Con empate, decide el orde
 
 ### 8.2 Primitivas
 
-| `EntityKind` | Dibujo |
-|---|---|
-| `block` | prisma con tapa clara, laterales en tono medio y contorno de 1.5 px en `--ink` (un bean o una clase) |
-| `interface` | prisma con contorno discontinuo y relleno translúcido |
-| `container` | plataforma baja y amplia con etiqueta (por ejemplo, "Spring context") sobre la que se apoyan otros bloques |
-| `actor` | ficha cilíndrica con icono de persona (cliente o atleta) |
+Las figuras siguen el estilo «Taller» ([ADR 0001](adr/0001-figuras-taller.md)). La forma se deriva del `kind` y de los enlaces `implements`; una lección solo elige un `icon` del catálogo.
+
+| Figura | Cuándo | Dibujo |
+|---|---|---|
+| máquina (`block`) | `block` que no implementa ninguna interfaz | prisma con tapa interior, icono en la tapa y fila de LEDs; si el tono es `danger`, cables enredados en el frontal |
+| cartucho (`cartridge`) | `block` origen de un enlace `implements` | prisma alto y estrecho con contactos y el icono en el frontal |
+| regleta (`socket`) | `interface` | losa baja con contorno discontinuo y un hueco por cada enlace `implements` que llega |
+| atleta vóxel (`voxel`) | `actor` | figura de bloques con cara |
+| plataforma (`platform`) | `container` | losa amplia con cuadrícula y la hoja de Spring |
+
+Iconos disponibles: `gear`, `arrow-in`, `calendar`, `ten`, `ticket`, `cap`, `key`, `warning`, `leaf`. Un icono desconocido, o un icono en un `actor` o un `container`, es un error de build. El catálogo vivo está en `/lab/figuras/` (sin enlazar, `noindex`).
 
 | `LinkStyle` | Dibujo |
 |---|---|
@@ -405,7 +411,7 @@ El orden de pintado es `x + y + z`, de menor a mayor. Con empate, decide el orde
 | `implements` | línea discontinua con triángulo hueco, como en UML |
 | `injects` | línea punteada con un rombo pequeño |
 
-Cada entidad lleva una etiqueta en forma de píldora, anclada sobre la tapa. Los paquetes son pastillas con texto (por ejemplo, `plan=monthly`) que recorren el enlace en 600 ms con *ease-in-out*.
+Cada entidad lleva una etiqueta en forma de píldora, anclada sobre el punto más alto de su figura. Los paquetes son pastillas con texto (por ejemplo, `plan=monthly`) que recorren el enlace en 600 ms con *ease-in-out*.
 
 `Tone` puede ser `neutral`, `accent`, `warn` o `danger`, y se traduce a tokens CSS, así que nunca hay colores fijos en el SVG.
 
@@ -615,5 +621,6 @@ sequenceDiagram
 | D11 | Dominio CrossFit | e-commerce | Distintivo y con casos naturales |
 | D12 | Pasos como snapshots | deltas | Determinista y testeable |
 | D13 | UML con Mermaid para todos los diagramas | PlantUML, imágenes | GitHub lo renderiza sin servidor |
+| D14 | Figuras «Taller»: la forma se deriva de `kind` y de los enlaces `implements`; las lecciones solo eligen `icon` | nuevos `EntityKind`, pieles intercambiables, objetos del box | Más expresivo sin datos duplicados ([ADR 0001](adr/0001-figuras-taller.md)) |
 
 Las decisiones nuevas se registran como ADR en `docs/adr/NNNN-titulo.md`, con un diagrama UML cuando ayude a entenderlas.
