@@ -23,11 +23,13 @@ public class WiredTimer {
         screen.showClock();
     }
 
+    // @step:wired-cap
     public void cap() {
         running = false;
         music.stop();
         screen.showResults(finishLine.results());   // the timer reaches into the finish line
     }
+    // @end
 
     public boolean isRunning() {
         return running;

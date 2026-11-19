@@ -37,7 +37,7 @@ const entities: Entity[] = [
   { id: 'mapping', kind: 'block', label: 'HandlerMapping', ...at(4.75, 10.25), tone: 'neutral', icon: 'key' },
   { id: 'adapter', kind: 'block', label: 'HandlerAdapter', ...at(10.75, 16.25), tone: 'neutral', icon: 'plug' },
   { id: 'resolver', kind: 'block', label: 'HandlerExceptionResolver', ...at(9.75, 5.25), tone: 'neutral', icon: 'warning' },
-  { id: 'handler', kind: 'block', label: 'FloorController.cap()', ...at(15.75, 11.25), tone: 'neutral', icon: 'gear' },
+  { id: 'handler', kind: 'block', label: 'FloorController.finish()', ...at(15.75, 11.25), tone: 'neutral', icon: 'gear' },
 ];
 
 const DEVICES = ['timer', 'finish', 'floor', 'music', 'screen'];
@@ -81,7 +81,7 @@ const scene: Scene = {
       visible: ['wiredTimer', 'wiredFinish', 'music', 'screen'],
       highlight: ['wiredTimer', 'wiredFinish'],
       packets: [{ link: 'w-timer-finish', label: 'results()' }],
-      code: { file: `${MAIN}/before/WiredFinishLine.java`, region: 'wired', highlight: [2, 5, 6] },
+      code: { file: `${MAIN}/before/WiredTimer.java`, region: 'wired-cap', highlight: [4] },
     },
     {
       id: 'mediator',
@@ -108,7 +108,7 @@ const scene: Scene = {
         { link: 'l-floor-music', label: 'play / cue / stop' },
         { link: 'l-floor-screen', label: 'clock / finish / results' },
       ],
-      code: { file: `${MAIN}/ClassFloor.java`, region: 'floor', highlight: [6, 7, 12, 18, 19, 26, 27] },
+      code: { file: `${MAIN}/ClassFloor.java`, region: 'floor', highlight: [6, 7, 12, 14, 18, 19, 26, 27] },
     },
     {
       id: 'flow',
@@ -140,10 +140,10 @@ const scene: Scene = {
       packets: [
         { link: 'd-mapping', label: 'which handler?' },
         { link: 'd-adapter', label: 'handle()' },
-        { link: 'd-handler', label: 'cap()' },
-        { link: 'd-resolver', label: '409' },
+        { link: 'd-handler', label: 'finish()' },
+        { link: 'd-resolver', label: '400' },
       ],
-      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'dispatcher', highlight: [1, 2, 3, 6] },
+      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'dispatcher', highlight: [3, 4, 5, 7] },
     },
     {
       id: 'recap',

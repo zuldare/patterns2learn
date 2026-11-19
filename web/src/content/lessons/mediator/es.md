@@ -8,7 +8,7 @@ recap:
   participants:
     - Mediator (FloorMediator), la interfaz con lo que los aparatos pueden avisar
     - ConcreteMediator (ClassFloor), que conoce a todos y decide qué hace cada uno
-    - Colleagues (WodTimer, FinishLine, Music, Screen), que solo hablan con el mediador
+    - Colleagues (WodTimer y FinishLine le avisan; Music y Screen reciben sus órdenes), que no se conocen entre sí. En el GoF un colega suele hacer las dos cosas; aquí cada aparato hace solo una
   pros:
     - Ningún aparato conoce a los demás, así que se pueden cambiar o probar por separado
     - Las reglas de la clase (cuándo suena la música, qué muestra la pantalla) están juntas
@@ -35,23 +35,23 @@ quiz:
       - WodTimer, para que encienda las luces cuando llegue el límite
       - FinishLine y WodTimer, porque los dos tienen que avisar a las luces
       - Screen, para que avise a las luces cuando muestre los resultados
-      - Un aparato Lights y una línea en capReached() de ClassFloor
+      - Un aparato Lights que ClassFloor enciende desde capReached()
     answer: 3
     explain: El cronómetro sigue avisando igual. Es el mediador el que decide que, al llegar el límite, además de parar la música y mostrar resultados, se encienden las luces.
   - q: ¿En qué se diferencia Mediator de Observer?
     options:
       - En Mediator un objeto decide por todos; en Observer cada uno reacciona solo
-      - Observer solo funciona dentro de Spring y Mediator en cualquier sitio
-      - Mediator siempre es asíncrono y Observer siempre síncrono
-      - Observer necesita una interfaz y Mediator puede usar clases concretas
+      - En Observer un sujeto avisa a muchos; en Mediator muchos avisan a uno
+      - En Mediator los colegas conocen la interfaz de los demás; en Observer no
+      - Observer reparte eventos por tipo; Mediator los reparte por orden de llegada
     answer: 0
     explain: Con Observer, quien avisa no sabe quién escucha ni qué hará. Con Mediator hay una pieza que tiene la lógica de coordinación y da órdenes concretas a cada uno.
-  - q: ¿Qué papel hace el DispatcherServlet en Spring MVC?
+  - q: ¿Qué papel cumple el DispatcherServlet en Spring MVC?
     options:
-      - Guarda en caché la respuesta de cada controlador
-      - Convierte cada petición en un evento para los listeners
+      - Es el punto de entrada y además pinta él mismo las vistas
+      - Decide el código de estado HTTP de cada respuesta
       - Coordina piezas como HandlerMapping o HandlerAdapter, que no se conocen
-      - Crea un hilo nuevo por cada petición que llega
+      - Busca el controlador y lo llama directamente por reflexión
     answer: 2
     explain: El HandlerMapping no sabe nada del HandlerAdapter ni de los que resuelven excepciones. El DispatcherServlet los consulta en orden y pasa el resultado de uno al siguiente.
 ---
@@ -65,9 +65,9 @@ En la primera versión, cada aparato llama a los otros. `WiredFinishLine`, al re
 @describe: WiredFinishLine, resaltado en rojo, pregunta isRunning() a WiredTimer, llama a showFinish() en la pantalla y a cue("bell") en la música.
 
 ## @step:smell — Una red de dependencias
-Y el cronómetro, al llegar el límite, le pide los resultados a la línea de meta para pasárselos a la pantalla: los dos se conocen mutuamente. Con cuatro aparatos ya hay seis conexiones, y cada aparato nuevo (unas luces, un marcador por equipos) añade conexiones con todos los demás.
+Y el cronómetro, al llegar el límite, le pide los resultados a la línea de meta para pasárselos a la pantalla: los dos se conocen mutuamente. Entre los cuatro aparatos ya hay seis llamadas directas, y cada aparato nuevo (unas luces, un marcador por equipos) añade más con los que tenga que coordinarse.
 
-Para probar la línea de meta necesitas un cronómetro, una música y una pantalla. Y para cambiar qué pasa al terminar, hay que buscar en qué aparato está escrito.
+Para probar la línea de meta necesitas un cronómetro, un equipo de música y una pantalla. Y para cambiar qué pasa al terminar, hay que buscar en qué aparato está escrito.
 
 > [!warning]
 > Cuando cada pieza necesita a casi todas las demás, cualquier cambio se reparte por todas.
@@ -89,14 +89,14 @@ Qué tiene que hacer cada uno después lo decide el mediador.
 ## @step:colleagues — Los aparatos solo avisan
 `WodTimer` ya no conoce la música ni la pantalla. `start()` hace una sola cosa: avisar al mediador. `FinishLine` igual: valida el tiempo y avisa con `athleteFinished(...)`.
 
-`Music` y `Screen` hacen lo que se les dice (sonar, mostrar) y no saben que existe un cronómetro. Cada aparato se puede probar con un mediador de mentira.
+`Music` y `Screen` hacen lo que se les dice (sonar, mostrar) y no saben que existe un cronómetro. El cronómetro y la meta se prueban con un mediador de mentira (lo hace `DevicesTest`), y la música y la pantalla, sin ningún mediador.
 @describe: WodTimer y FinishLine, resaltados, avisan a ClassFloor con timerStarted() y athleteFinished().
 
 ## @step:floor — Las reglas, juntas
 `ClassFloor` es el mediador concreto. En un solo sitio están todas las reglas de la clase:
 
 - al empezar: música a 8 y reloj en pantalla;
-- al terminar alguien: comprueba que el WOD está en marcha y que no había terminado ya, muestra su tiempo y suena la campana;
+- al terminar alguien: comprueba que el WOD está en marcha y que esa persona no había terminado ya, muestra su tiempo y suena la campana;
 - al llegar el límite: para la música y muestra los resultados ordenados.
 
 Si mañana cambia una regla, sabes dónde está.
@@ -106,28 +106,28 @@ Si mañana cambia una regla, sabes dónde está.
 El test hace una clase entera: empieza el cronómetro, Ana termina en 3:05, Leo en 2:52 y llega el límite. Al final, la música ha sonado, ha tocado dos campanas y ha parado, y la pantalla muestra "1. Leo 2:52" y "2. Ana 3:05".
 
 Ni el cronómetro ni la línea de meta saben nada de eso. Solo han avisado.
-@describe: FinishLine avisa de Ana 185 s a ClassFloor, resaltado junto a la pantalla, que muestra Ana 3:05 y pide la campana a la música.
+@describe: FinishLine avisa de Ana 185 s a ClassFloor, resaltado junto a la pantalla; ClassFloor muestra Ana 3:05 en la pantalla y pide la campana a la música.
 
 ## @step:request — Desde la tablet del coach
 Cada botón de la tablet habla con un aparato: `POST /api/floor/start` con el cronómetro, `POST /api/floor/finish` con la línea de meta y `POST /api/floor/cap` otra vez con el cronómetro. `GET /api/floor/screen` lee la pantalla.
 
-En Spring, `ClassFloor` es un bean que recibe la música y la pantalla, y el cronómetro y la meta reciben `FloorMediator`. Los avisos van en un solo sentido, hacia el mediador, así que no hay dependencias circulares.
+En Spring, `ClassFloor` es un bean que recibe la música y la pantalla, y el cronómetro y la meta reciben `FloorMediator`. Los avisos van en un solo sentido, hacia el mediador, así que no hay dependencias circulares. Si un aparato tuviera que avisar y también recibir órdenes, habría que romper el ciclo, por ejemplo registrándolo en el mediador después de crearlo.
 
 Si alguien registra un tiempo antes de empezar, la respuesta es 409 con el motivo que da el mediador.
 @describe: POST /api/floor/finish viaja del coach al controlador, finish("Ana", 185) a FinishLine, athleteFinished() a ClassFloor, resaltado, y Ana 3:05 a la pantalla.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
-El `DispatcherServlet` hace de mediador entre las piezas de Spring MVC. Ninguna conoce a las demás:
+Hacia fuera, el `DispatcherServlet` es un *front controller*: la única puerta de entrada de las peticiones. Hacia dentro, hace de mediador entre las piezas de Spring MVC, que no se conocen entre sí:
 
 - un `HandlerMapping` dice qué handler atiende la URL;
 - un `HandlerAdapter` sabe cómo llamarlo;
-- si falla, un `HandlerExceptionResolver` decide la respuesta (aquí, nuestro `@RestControllerAdvice`).
+- si falla, un `HandlerExceptionResolver` decide la respuesta (aquí, `ExceptionHandlerExceptionResolver`, que llama a nuestro `@RestControllerAdvice`).
 
-El `DispatcherServlet` los consulta en orden y pasa el resultado de uno al siguiente. El test lo recorre entero: `POST /api/floor/cap` sin haber empezado acaba en un 409.
+El `DispatcherServlet` los consulta en orden y pasa el resultado de uno al siguiente. El test comprueba cada paso: qué handler se eligió, qué método se llamó, qué excepción recibió el resolver y la respuesta final, un 400.
 
 > [!spring]
 > Por eso puedes añadir un `HandlerMapping` o un resolver de excepciones propio sin tocar los demás: solo el `DispatcherServlet` sabe cómo encajan.
-@describe: Dentro del contexto de Spring, DispatcherServlet, resaltado, pregunta al HandlerMapping qué handler toca, pide al HandlerAdapter que llame a cap() y, al fallar, el HandlerExceptionResolver responde 409.
+@describe: Dentro del contexto de Spring, DispatcherServlet, resaltado, pregunta al HandlerMapping qué handler toca, pide al HandlerAdapter que llame a finish() y, al fallar, el HandlerExceptionResolver responde 400.
 
 ## @step:recap — Resumen
 Empezaste con aparatos que se llamaban entre sí y acabaste con:
@@ -138,7 +138,7 @@ Empezaste con aparatos que se llamaban entre sí y acabaste con:
 
 No lo confundas con sus vecinos: con **Observer**, quien avisa no sabe quién escucha ni qué hará, y no hay nadie que coordine; aquí el mediador tiene esa lógica. Una **Facade** simplifica el acceso a varias piezas desde fuera, pero esas piezas no la usan para hablar entre ellas.
 
-Y cuándo no hace falta: si solo hay dos piezas que se hablan, que se conozcan es más sencillo; y vigila que el mediador no acabe sabiendo hacer el trabajo de todos.
+Y cuándo no hace falta: si solo hay dos piezas que se hablan, que se conozcan es más sencillo; si los aparatos solo anuncian "ha pasado algo" y no hay reglas que crucen unos con otros, bastan Observer o los eventos de Spring; y vigila que el mediador no acabe sabiendo hacer el trabajo de todos.
 
 > [!key-idea]
 > Cuando varias piezas tienen que coordinarse, que hablen con una sola que conozca las reglas, no entre ellas.

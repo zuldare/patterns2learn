@@ -8,7 +8,7 @@ recap:
   participants:
     - Mediator (FloorMediator), the interface with what the devices can report
     - ConcreteMediator (ClassFloor), which knows them all and decides what each does
-    - Colleagues (WodTimer, FinishLine, Music, Screen), which only talk to the mediator
+    - Colleagues (WodTimer and FinishLine report to it; Music and Screen take its orders), which don't know each other. In GoF a colleague often does both; here each device plays only one side
   pros:
     - No device knows the others, so they can be changed or tested on their own
     - The class rules (when the music plays, what the screen shows) are together
@@ -35,23 +35,23 @@ quiz:
       - WodTimer, so it turns the lights on when the cap arrives
       - FinishLine and WodTimer, because both have to tell the lights
       - Screen, so it tells the lights when it shows the results
-      - A Lights device and one line in ClassFloor's capReached()
+      - A Lights device that ClassFloor turns on from capReached()
     answer: 3
     explain: The timer keeps reporting the same way. It's the mediator that decides that, at the cap, besides stopping the music and showing results, the lights go on.
   - q: How does Mediator differ from Observer?
     options:
       - In Mediator one object decides for all; in Observer each one reacts alone
-      - Observer only works inside Spring and Mediator anywhere
-      - Mediator is always asynchronous and Observer always synchronous
-      - Observer needs an interface and Mediator can use concrete classes
+      - In Observer one subject notifies many; in Mediator many notify one
+      - In Mediator colleagues know each other's interface; in Observer they don't
+      - Observer routes events by type; Mediator routes them by arrival order
     answer: 0
     explain: With Observer, whoever reports doesn't know who's listening or what they'll do. With Mediator there's a piece holding the coordination logic that gives each one specific orders.
   - q: What role does the DispatcherServlet play in Spring MVC?
     options:
-      - It caches each controller's response
-      - It turns every request into an event for the listeners
+      - It's the single entry point and also renders the views itself
+      - It decides the HTTP status code of every response
       - It coordinates parts like HandlerMapping or HandlerAdapter, which don't know each other
-      - It creates a new thread for every incoming request
+      - It finds the controller and calls it directly via reflection
     answer: 2
     explain: The HandlerMapping knows nothing about the HandlerAdapter or the exception resolvers. The DispatcherServlet asks them in order and passes one's result on to the next.
 ---
@@ -65,7 +65,7 @@ In the first version, each device calls the others. `WiredFinishLine`, when reco
 @describe: WiredFinishLine, highlighted in red, asks WiredTimer isRunning(), calls showFinish() on the screen and cue("bell") on the music.
 
 ## @step:smell — A web of dependencies
-And the timer, at the cap, asks the finish line for the results to pass them to the screen: the two know each other. With four devices there are already six connections, and every new device (some lights, a team scoreboard) adds connections to all the others.
+And the timer, at the cap, asks the finish line for the results to pass them to the screen: the two know each other. Between the four devices there are already six direct calls, and every new device (some lights, a team scoreboard) adds more with whichever ones it has to coordinate with.
 
 To test the finish line you need a timer, a music system and a screen. And to change what happens when someone finishes, you have to find which device it's written in.
 
@@ -89,14 +89,14 @@ What each one has to do next is the mediator's decision.
 ## @step:colleagues — The devices just report
 `WodTimer` no longer knows the music or the screen. `start()` does a single thing: tell the mediator. `FinishLine` too: it validates the time and reports with `athleteFinished(...)`.
 
-`Music` and `Screen` do what they're told (play, show) and don't know a timer exists. Each device can be tested with a fake mediator.
+`Music` and `Screen` do what they're told (play, show) and don't know a timer exists. The timer and the finish line are tested with a fake mediator (`DevicesTest` does it), and the music and the screen with no mediator at all.
 @describe: WodTimer and FinishLine, highlighted, report to ClassFloor with timerStarted() and athleteFinished().
 
 ## @step:floor — The rules, together
 `ClassFloor` is the concrete mediator. Every class rule is in one place:
 
 - at the start: music at 8 and the clock on the screen;
-- when someone finishes: it checks the WOD is running and they hadn't finished already, shows their time and rings the bell;
+- when someone finishes: it checks the WOD is running and that person hadn't finished already, shows their time and rings the bell;
 - at the cap: it stops the music and shows the sorted results.
 
 If a rule changes tomorrow, you know where it is.
@@ -106,28 +106,28 @@ If a rule changes tomorrow, you know where it is.
 The test runs a whole class: the timer starts, Ana finishes in 3:05, Leo in 2:52 and the cap arrives. At the end, the music has played, rung two bells and stopped, and the screen shows "1. Leo 2:52" and "2. Ana 3:05".
 
 Neither the timer nor the finish line knows any of that. They just reported.
-@describe: FinishLine reports Ana 185 s to ClassFloor, highlighted together with the screen, which shows Ana 3:05 and asks the music for the bell.
+@describe: FinishLine reports Ana 185 s to ClassFloor, highlighted together with the screen; ClassFloor shows Ana 3:05 on the screen and asks the music for the bell.
 
 ## @step:request — From the coach's tablet
 Each button on the tablet talks to one device: `POST /api/floor/start` to the timer, `POST /api/floor/finish` to the finish line and `POST /api/floor/cap` to the timer again. `GET /api/floor/screen` reads the screen.
 
-In Spring, `ClassFloor` is a bean that gets the music and the screen, and the timer and the finish line get `FloorMediator`. Reports only go one way, towards the mediator, so there are no circular dependencies.
+In Spring, `ClassFloor` is a bean that gets the music and the screen, and the timer and the finish line get `FloorMediator`. Reports only go one way, towards the mediator, so there are no circular dependencies. If a device had to both report and take orders, you'd have to break the cycle, for example by registering it with the mediator after it's created.
 
 If someone records a time before the start, the answer is 409 with the reason the mediator gives.
 @describe: POST /api/floor/finish travels from the coach to the controller, finish("Ana", 185) to FinishLine, athleteFinished() to ClassFloor, highlighted, and Ana 3:05 to the screen.
 
 ## @step:spring-does-it — Spring already does it for you
-The `DispatcherServlet` acts as the mediator between Spring MVC's parts. None of them knows the others:
+To the outside, the `DispatcherServlet` is a *front controller*: the single way in for requests. On the inside, it acts as the mediator between Spring MVC's parts, which don't know each other:
 
 - a `HandlerMapping` says which handler serves the URL;
 - a `HandlerAdapter` knows how to call it;
-- if it fails, a `HandlerExceptionResolver` decides the answer (here, our `@RestControllerAdvice`).
+- if it fails, a `HandlerExceptionResolver` decides the answer (here, `ExceptionHandlerExceptionResolver`, which calls our `@RestControllerAdvice`).
 
-The `DispatcherServlet` asks them in order and passes one's result on to the next. The test walks the whole way: `POST /api/floor/cap` without having started ends in a 409.
+The `DispatcherServlet` asks them in order and passes one's result on to the next. The test checks each step: which handler was picked, which method was called, which exception the resolver got and the final answer, a 400.
 
 > [!spring]
 > That's why you can add your own `HandlerMapping` or exception resolver without touching the others: only the `DispatcherServlet` knows how they fit together.
-@describe: Inside the Spring context, DispatcherServlet, highlighted, asks the HandlerMapping which handler it is, asks the HandlerAdapter to call cap() and, when it fails, the HandlerExceptionResolver answers 409.
+@describe: Inside the Spring context, DispatcherServlet, highlighted, asks the HandlerMapping which handler it is, asks the HandlerAdapter to call finish() and, when it fails, the HandlerExceptionResolver answers 400.
 
 ## @step:recap — Recap
 You started with devices calling each other and ended up with:
@@ -138,7 +138,7 @@ You started with devices calling each other and ended up with:
 
 Don't mix it up with its neighbours: with **Observer**, whoever reports doesn't know who's listening or what they'll do, and nobody coordinates; here the mediator holds that logic. A **Facade** simplifies access to several parts from outside, but those parts don't use it to talk to each other.
 
-And when you don't need it: if only two pieces talk, letting them know each other is simpler; and watch that the mediator doesn't end up knowing how to do everyone's job.
+And when you don't need it: if only two pieces talk, letting them know each other is simpler; if the devices only announce "something happened" and there are no rules crossing between them, Observer or Spring events are enough; and watch that the mediator doesn't end up knowing how to do everyone's job.
 
 > [!key-idea]
 > When several pieces have to coordinate, have them talk to a single one that knows the rules, not to each other.
