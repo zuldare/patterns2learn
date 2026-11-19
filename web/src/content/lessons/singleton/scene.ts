@@ -90,7 +90,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: ['context', 'catalog'],
       packets: [],
-      code: { file: `${MAIN}/WodCatalog.java`, region: 'catalog-bean', highlight: [1, 2] },
+      code: { file: `${MAIN}/WodCatalog.java`, region: 'catalog-bean', highlight: [1, 2, 5] },
     },
     {
       id: 'shared',
@@ -99,6 +99,7 @@ const scene: Scene = {
       packets: [
         { link: 'l-coach-controller', label: 'POST Murph' },
         { link: 'l-controller-catalog', label: 'add Murph' },
+        { link: 'l-athlete-booking', label: 'book Murph' },
         { link: 'l-booking-catalog', label: 'find Murph' },
       ],
       code: { file: `${TEST}/web/WodApiTest.java`, region: 'shared-instance', highlight: [1, 5] },

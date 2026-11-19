@@ -13,8 +13,8 @@ public class WodCatalog {
     private final Map<String, Wod> wods = new ConcurrentHashMap<>();
 
     public WodCatalog() {
-        add(new Wod("Fran", "21-15-9 thrusters and pull-ups"));
-        add(new Wod("Cindy", "20-minute AMRAP: 5 pull-ups, 10 push-ups, 15 air squats"));
+        wods.put("Fran", new Wod("Fran", "21-15-9 thrusters and pull-ups"));
+        wods.put("Cindy", new Wod("Cindy", "20-minute AMRAP: 5 pull-ups, 10 push-ups, 15 air squats"));
     }
 
     public Optional<Wod> find(String name) {
@@ -35,7 +35,4 @@ public class WodCatalog {
         }
     }
     // @end
-
-    /** The hero WOD the coach adds in the lesson. */
-    public static final Wod MURPH = new Wod("Murph", "1 mile run, 100 pull-ups, 200 push-ups, 300 squats, 1 mile run");
 }

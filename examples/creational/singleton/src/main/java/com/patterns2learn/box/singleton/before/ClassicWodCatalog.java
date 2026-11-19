@@ -1,5 +1,6 @@
 package com.patterns2learn.box.singleton.before;
 
+import com.patterns2learn.box.singleton.DuplicateWodException;
 import com.patterns2learn.box.singleton.Wod;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ public final class ClassicWodCatalog {
 
     private ClassicWodCatalog() {
         wods.put("Fran", new Wod("Fran", "21-15-9 thrusters and pull-ups"));
+        wods.put("Cindy", new Wod("Cindy", "20-minute AMRAP: 5 pull-ups, 10 push-ups, 15 air squats"));
     }
 
     private static final class Holder {
@@ -29,6 +31,8 @@ public final class ClassicWodCatalog {
     }
 
     public void add(Wod wod) {
-        wods.putIfAbsent(wod.name(), wod);
+        if (wods.putIfAbsent(wod.name(), wod) != null) {
+            throw new DuplicateWodException(wod.name());
+        }
     }
 }

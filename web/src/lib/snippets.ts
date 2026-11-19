@@ -18,6 +18,29 @@ export class SnippetError extends Error {
 const STEP_RE = /^\s*\/\/\s*@step:([a-z0-9-]+)\s*$/;
 const END_RE = /^\s*\/\/\s*@end\s*$/;
 
+/** Code with string/char literals and line comments removed, so their braces don't count. */
+function structural(line: string): string {
+  return line.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""').replace(/\/\/.*$/, '');
+}
+
+/**
+ * A region that stops inside a block (e.g. it shows a class header and a few
+ * members) gets an ellipsis line and the missing closing braces, so the
+ * snippet never looks like broken Java.
+ */
+function closeOpenBlocks(lines: string[]): string[] {
+  const open: string[] = []; // indentation of each still-open `{`
+  for (const line of lines) {
+    const indent = /^[ \t]*/.exec(line)?.[0] ?? '';
+    for (const ch of structural(line)) {
+      if (ch === '{') open.push(indent);
+      else if (ch === '}') open.pop();
+    }
+  }
+  if (open.length === 0) return [];
+  return [`${open[open.length - 1]}    // …`, ...open.reverse().map((indent) => `${indent}}`)];
+}
+
 export function extractRegion(source: string, file: string, region: string): Snippet {
   const lines = source.split('\n');
 
@@ -49,10 +72,9 @@ export function extractRegion(source: string, file: string, region: string): Sni
     .filter((line) => line.trim() !== '')
     .map((line) => /^[ \t]*/.exec(line)?.[0].length ?? 0);
   const common = indents.length > 0 ? Math.min(...indents) : 0;
-  const code = body
-    .map((line) => (line.trim() === '' ? '' : line.slice(common)))
-    .join('\n');
-
+  const dedented = body.map((line) => (line.trim() === '' ? '' : line.slice(common)));
+  const code = [...dedented, ...closeOpenBlocks(dedented)].join('\n');
+  // lineCount covers the real lines only: step highlights never address the synthetic tail.
   return { file, region, code, lineCount: body.length };
 }
 

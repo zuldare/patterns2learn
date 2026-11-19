@@ -55,4 +55,10 @@ class WodApiTest {
            .andExpect(status().isNotFound())
            .andExpect(jsonPath("$.error").value("unknown WOD: Yoga"));
     }
+
+    @Test void wodWithoutNameIs400() throws Exception {
+        mvc.perform(post("/api/wods").contentType(MediaType.APPLICATION_JSON).content("{\"workout\":\"row 500 m\"}"))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("WOD name is required"));
+    }
 }

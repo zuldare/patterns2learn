@@ -89,7 +89,7 @@ Ahora el controlador y el servicio llaman a `ClassicWodCatalog.getInstance()` y 
 ## @step:classic-cons — El precio de un global
 Funciona, pero has creado una variable global con otro nombre:
 
-- **Dependencia oculta.** El constructor de `BookingService` no dice que necesita el catálogo; lo descubres leyendo el código.
+- **Dependencia oculta.** Quien usa el catálogo no lo pide en su constructor: lo saca de `getInstance()` desde dentro de un método, así que solo lo descubres leyendo el código.
 - **Tests que se contaminan.** El estado sobrevive entre tests. Si uno añade "Grace", el siguiente se la encuentra.
 - **Imposible de sustituir.** No puedes pasarle un catálogo falso a un test sin trucos de reflexión.
 
@@ -117,7 +117,7 @@ Y lo de los tests también se arregla. Como la dependencia entra por el construc
 
 > [!key-idea]
 > Compartido no significa global: el catálogo es único, pero cada clase dice explícitamente que lo necesita.
-@describe: El coach envía POST Murph a WodController, que lo añade al catálogo; BookingService envía find Murph al mismo WodCatalog, resaltado en el centro.
+@describe: El coach envía POST Murph a WodController, que lo añade al catálogo; el atleta envía book Murph a BookingService, que envía find Murph al mismo WodCatalog, resaltado en el centro.
 
 ## @step:threads — Ojo: compartido entre hilos
 Un bean singleton lo usan **todas** las peticiones a la vez, cada una en su hilo. Mientras un coach añade Murph, cien atletas pueden estar buscando Fran.

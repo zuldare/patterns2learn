@@ -89,7 +89,7 @@ Now the controller and the service both call `ClassicWodCatalog.getInstance()` a
 ## @step:classic-cons — The price of a global
 It works, but you've created a global variable under another name:
 
-- **Hidden dependency.** `BookingService`'s constructor doesn't say it needs the catalog; you only find out by reading the code.
+- **Hidden dependency.** Whoever uses the catalog doesn't ask for it in the constructor: it grabs it from `getInstance()` inside some method, so you only find out by reading the code.
 - **Tests that leak into each other.** State survives between tests. If one adds "Grace", the next one finds it there.
 - **Impossible to replace.** You can't hand a fake catalog to a test without reflection tricks.
 
@@ -117,7 +117,7 @@ The testing problem is fixed too. Because the dependency comes in through the co
 
 > [!key-idea]
 > Shared doesn't mean global: there's one catalog, but every class states explicitly that it needs it.
-@describe: The coach sends POST Murph to WodController, which adds it to the catalog; BookingService sends find Murph to the same WodCatalog, highlighted in the middle.
+@describe: The coach sends POST Murph to WodController, which adds it to the catalog; the athlete sends book Murph to BookingService, which sends find Murph to the same WodCatalog, highlighted in the middle.
 
 ## @step:threads — Careful: shared across threads
 A singleton bean is used by **every** request at once, each on its own thread. While a coach adds Murph, a hundred athletes may be looking up Fran.
