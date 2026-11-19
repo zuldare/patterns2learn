@@ -57,5 +57,6 @@
     <module>behavioral/command</module>
     <module>behavioral/state</module>
     <module>behavioral/iterator</module>
+    <module>behavioral/mediator</module>
   </modules>
 </project>
