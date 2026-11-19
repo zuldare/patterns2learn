@@ -17,6 +17,6 @@ class FlatWodTest {
     @Test void helenDoesNotFitTheRunIsInsideEachRound() {
         // the closest the flat model gets: one run before, which is not Helen
         FlatWod notHelen = new FlatWod("Helen", 3, List.of(new FlatMovement("kettlebell swings", 21), new FlatMovement("pull-ups", 12)), 400, 0);
-        assertThat(notHelen.seconds()).isNotEqualTo(657);
+        assertThat(notHelen.seconds()).isEqualTo(417);   // the real Helen takes 657: three runs, not one
     }
 }

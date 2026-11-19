@@ -8,18 +8,18 @@ public record Block(String title, int times, List<WorkoutPart> parts) implements
     public Block {
         if (title != null) {
             title = title.isBlank() ? null : title.strip();
-            if (title != null && title.length() > 40) throw new IllegalArgumentException("block title is at most 40 characters");
+            if (title != null && title.length() > 40) throw new InvalidWorkoutException("block title is at most 40 characters");
         }
-        if (times < 1 || times > 50) throw new IllegalArgumentException("rounds must be between 1 and 50");
-        if (parts == null || parts.isEmpty() || parts.size() > 10) throw new IllegalArgumentException("a block needs 1 to 10 parts");
-        if (parts.stream().anyMatch(p -> p == null)) throw new IllegalArgumentException("a block part cannot be empty");
+        if (times < 1 || times > 50) throw new InvalidWorkoutException("rounds must be between 1 and 50");
+        if (parts == null || parts.isEmpty() || parts.size() > 10) throw new InvalidWorkoutException("a block needs 1 to 10 parts");
+        if (parts.stream().anyMatch(p -> p == null)) throw new InvalidWorkoutException("a block part cannot be empty");
         parts = List.copyOf(parts);
         if (1 + parts.stream().mapToInt(WorkoutPart::depth).max().orElse(0) > 4) {
-            throw new IllegalArgumentException("blocks can nest at most 4 levels");
+            throw new InvalidWorkoutException("blocks can nest at most 4 levels");
         }
         long reps = times * parts.stream().mapToLong(WorkoutPart::reps).sum();
         long seconds = times * parts.stream().mapToLong(WorkoutPart::seconds).sum();
-        if (reps > 10_000 || seconds > 6 * 3600) throw new IllegalArgumentException("a WOD can't go over 10000 reps or 6 hours");
+        if (reps > 10_000 || seconds > 6 * 3600) throw new InvalidWorkoutException("a WOD can't go over 10000 reps or 6 hours");
     }
 
     // @step:composite
@@ -50,7 +50,8 @@ public record Block(String title, int times, List<WorkoutPart> parts) implements
     }
 
     private String header() {
-        if (title == null) return times + " rounds";
-        return times > 1 ? title + " · " + times + " rounds" : title;
+        String rounds = times == 1 ? "1 round" : times + " rounds";
+        if (title == null) return rounds;
+        return times > 1 ? title + " · " + rounds : title;
     }
 }

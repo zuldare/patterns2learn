@@ -71,14 +71,14 @@ const scene: Scene = {
   steps: [
     {
       id: 'problem',
-      visible: ['coach', 'controller', 'flat'],
+      visible: ['controller', 'flat'],
       highlight: ['flat'],
       packets: [{ link: 'l-controller-flat', label: 'reps()' }],
       code: { file: `${MAIN}/before/FlatWod.java`, region: 'flat', highlight: [1, 2, 3, 4] },
     },
     {
       id: 'smell',
-      visible: ['coach', 'controller', 'flat'],
+      visible: ['controller', 'flat'],
       highlight: ['flat'],
       packets: [{ link: 'l-controller-flat', label: 'Helen?' }],
       code: { file: `${MAIN}/before/FlatWod.java`, region: 'flat', highlight: [7, 10, 11] },
@@ -88,7 +88,7 @@ const scene: Scene = {
       visible: CLASSES,
       highlight: ['part'],
       packets: [],
-      code: { file: `${MAIN}/WorkoutPart.java`, region: 'component', highlight: [8, 9, 10, 11] },
+      code: { file: `${MAIN}/WorkoutPart.java`, region: 'component', highlight: [7, 8, 9, 10] },
     },
     {
       id: 'leaf',
@@ -101,15 +101,15 @@ const scene: Scene = {
       id: 'composite',
       visible: CLASSES,
       highlight: ['blockC'],
-      packets: [{ link: 'l-block-parts', label: 'parts: List<WorkoutPart>' }],
-      code: { file: `${MAIN}/Block.java`, region: 'composite', highlight: [3, 15, 16] },
+      packets: [{ link: 'l-block-parts', label: 'reps()' }],
+      code: { file: `${MAIN}/Block.java`, region: 'composite', highlight: [3, 14, 15, 16] },
     },
     {
       id: 'tree',
       visible: TREE,
       highlight: ['murph', 'rounds'],
       packets: [],
-      code: { file: `${MAIN}/WodLibrary.java`, region: 'murph', highlight: [1, 3, 4, 5, 6, 7] },
+      code: { file: `${MAIN}/WodLibrary.java`, region: 'murph', highlight: [1, 2, 3, 4, 5, 6, 7] },
     },
     {
       id: 'request',
@@ -118,7 +118,9 @@ const scene: Scene = {
       packets: [
         { link: 'l-coach-controller', label: 'GET /api/wods/murph' },
         { link: 'l-controller-murph', label: 'reps()' },
+        { link: 'l-murph-run1', label: 'reps() → 0' },
         { link: 'l-murph-rounds', label: 'reps()' },
+        { link: 'l-murph-run2', label: 'reps() → 0' },
         { link: 'l-rounds-pu', label: 'reps()' },
         { link: 'l-rounds-ps', label: 'reps()' },
         { link: 'l-rounds-sq', label: 'reps()' },

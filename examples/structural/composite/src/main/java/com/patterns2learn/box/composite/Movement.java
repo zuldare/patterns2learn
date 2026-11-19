@@ -7,10 +7,10 @@ public record Movement(String name, int reps) implements WorkoutPart {
     static final int SECONDS_PER_REP = 3;
 
     public Movement {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("movement name is required");
+        if (name == null || name.isBlank()) throw new InvalidWorkoutException("movement name is required");
         name = name.strip();
-        if (name.length() > 40) throw new IllegalArgumentException("movement name is at most 40 characters");
-        if (reps < 1 || reps > 500) throw new IllegalArgumentException("reps must be between 1 and 500");
+        if (name.length() > 40) throw new InvalidWorkoutException("movement name is at most 40 characters");
+        if (reps < 1 || reps > 500) throw new InvalidWorkoutException("reps must be between 1 and 500");
     }
 
     // @step:leaf

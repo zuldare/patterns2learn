@@ -18,6 +18,7 @@ recap:
     - A shared interface can end up too thin or too general if leaves and groups have little in common
     - It's easy to forget limits (depth, size) when the tree comes from outside
     - If the structure is always flat, it's more code than you need
+    - Every new operation (calories(), say) means touching every class in the tree
   related:
     - Decorator
     - Iterator
@@ -33,7 +34,7 @@ quiz:
     explain: Block doesn't know whether each child is a movement, a run or another block. It asks each one for reps() and each answers its own way, so the recursion goes down the tree by itself.
   - q: You want to add a new kind of leaf, Rest. What do you change?
     options:
-      - A Rest class implementing WorkoutPart, and its name in @JsonSubTypes for the JSON
+      - A Rest class implementing WorkoutPart, listed in @JsonSubTypes
       - Block, so it knows how to add rests to the total time
       - Movement and Run, so they know what to do when they follow a rest
       - WodSummary, so it counts rest time separately
@@ -50,7 +51,7 @@ quiz:
   - q: What makes Spring's CompositePropertySource a Composite?
     options:
       - It merges several property files and saves them into a new one
-      - It's a PropertySource made of PropertySources, used just like any of them
+      - It answers like any single source, but by asking the ones it holds, in order
       - It arranges properties into a folder tree by their prefixes
       - It lets you change properties while the application is running
     answer: 1
@@ -66,7 +67,7 @@ For Murph (run a mile, 20 rounds of 5 pull-ups, 10 push-ups and 15 air squats, a
 
 > [!problem]
 > The model has a single level. Every WOD that doesn't fit gets solved with another special field.
-@describe: The coach asks WodController for reps(), which calls FlatWod, highlighted in red.
+@describe: WodController asks FlatWod, highlighted in red, for reps().
 
 ## @step:smell — Helen doesn't fit
 Helen is 3 rounds of: run 400 m, 21 kettlebell swings and 12 pull-ups. The run goes **inside** each round, and `FlatWod` has no way to say so: it can only run before or after everything.
@@ -128,11 +129,11 @@ Helen is another tree: a 3-round block with the run inside. The same code fits b
 2. Murph asks its three children; the 20-round block asks its three movements.
 3. The answers come back up: 20 × (5 + 10 + 15) = **600 reps**, about **46 minutes**.
 
-`POST /api/wods/estimate` accepts any tree as JSON. Since it comes from outside, `Block` sets limits when it's built: 1 to 50 rounds, 1 to 10 parts, at most 4 levels and no more than 10,000 reps or 6 hours.
+`POST /api/wods/estimate` accepts any tree as JSON. Since it comes from outside, `Block` refuses, as it's built, any tree that breaks the box's rules: 1 to 50 rounds, 1 to 10 parts, at most 4 levels and no more than 10,000 reps or 6 hours. By then Jackson has already read the whole body, so a real API also caps the request size (Jackson already caps nesting).
 
 > [!warning]
-> A tree coming from the client can be huge or have a great many levels. Validate size and depth when you build it, not when you walk it.
-@describe: GET /api/wods/murph travels from the coach to the controller; reps() goes down from WodController to Murph, from Murph to the 20-round block and from there to each movement. The whole tree is highlighted.
+> A tree coming from the client can be huge or have a great many levels. Set limits when you build it, not when you walk it, and cap the size of what you accept too.
+@describe: GET /api/wods/murph travels from the coach to the controller; reps() goes down from WodController to Murph and from Murph to its three children (the runs answer 0), and from the 20-round block to each movement. The whole tree is highlighted.
 
 ## @step:spring-does-it — Spring already does it for you
 A `CompositePropertySource` is a `PropertySource`… made of `PropertySource`s. When you ask it for a property, it asks its sources in order and returns the first one that has it. In the example, `downtown` answers the capacity (20) and the minutes fall through to `box-defaults` (60). And since it's just another `PropertySource`, it can go inside another one.
@@ -152,6 +153,8 @@ You started with a flat WOD full of special fields and ended up with:
 - **Limits** when building trees that come from outside.
 
 Here the parts are given when the block is created and can't be added later. Other versions of the pattern put `add()` and `remove()` on the group, or even on the shared interface; it's a trade-off between convenience and safety.
+
+Don't mix it up with its neighbours: **Decorator** wraps *one* object and adds behaviour; **Composite** groups *many* and adds up their answers. **Iterator** walks the tree from outside, and **Visitor** helps when you keep adding new operations (calories, equipment needed…) without wanting to touch every class.
 
 And when you don't need it: if the structure always has the same shape and the same depth, a class with its fields is clearer.
 

@@ -18,6 +18,7 @@ recap:
     - Una interfaz común puede quedarse corta o demasiado general si hojas y grupos se parecen poco
     - Es fácil olvidar los límites (profundidad, tamaño) cuando el árbol llega desde fuera
     - Si la estructura es siempre plana, es más código del necesario
+    - Cada operación nueva (por ejemplo, calories()) obliga a tocar todas las clases del árbol
   related:
     - Decorator
     - Iterator
@@ -33,7 +34,7 @@ quiz:
     explain: Block no sabe si cada hijo es un movimiento, una carrera u otro bloque. Le pregunta reps() a cada uno y cada uno responde a su manera, así que la recursión baja sola por el árbol.
   - q: Quieres añadir un tipo de hoja nuevo, Rest (descanso). ¿Qué cambias?
     options:
-      - Una clase Rest que implemente WorkoutPart, y su nombre en @JsonSubTypes para el JSON
+      - Una clase Rest que implemente WorkoutPart, listada en @JsonSubTypes
       - Block, para que sepa sumar los descansos en el tiempo total
       - Movement y Run, para que sepan qué hacer cuando van detrás de un descanso
       - WodSummary, para que cuente aparte el tiempo de descanso
@@ -50,7 +51,7 @@ quiz:
   - q: ¿Qué tiene de Composite el CompositePropertySource de Spring?
     options:
       - Que mezcla varios ficheros de propiedades y los guarda en uno nuevo
-      - Que es un PropertySource hecho de PropertySources y se usa igual que cualquiera de ellos
+      - Que responde como una fuente más, pero preguntando en orden a las que contiene
       - Que organiza las propiedades en un árbol de carpetas según sus prefijos
       - Que deja cambiar las propiedades mientras la aplicación se está ejecutando
     answer: 1
@@ -66,7 +67,7 @@ Para Murph (correr una milla, 20 rondas de 5 dominadas, 10 flexiones y 15 sentad
 
 > [!problem]
 > El modelo solo tiene un nivel. Cada WOD que no encaja se resuelve con otro campo especial.
-@describe: El coach pide reps() a WodController, que llama a FlatWod, resaltado en rojo.
+@describe: WodController pide reps() a FlatWod, resaltado en rojo.
 
 ## @step:smell — Helen no cabe
 Helen son 3 rondas de: correr 400 m, 21 swings con kettlebell y 12 dominadas. La carrera va **dentro** de cada ronda, y `FlatWod` no tiene forma de decirlo: solo sabe correr antes o después de todo.
@@ -128,11 +129,11 @@ Helen es otro árbol: un bloque de 3 rondas con la carrera dentro. Con el mismo 
 2. Murph pregunta a sus tres hijos; el bloque de 20 rondas pregunta a sus tres movimientos.
 3. Las respuestas suben: 20 × (5 + 10 + 15) = **600 repeticiones**, unos **46 minutos**.
 
-`POST /api/wods/estimate` acepta cualquier árbol en JSON. Como llega de fuera, `Block` pone límites al construirse: de 1 a 50 rondas, de 1 a 10 partes, como mucho 4 niveles y no más de 10 000 repeticiones o 6 horas.
+`POST /api/wods/estimate` acepta cualquier árbol en JSON. Como llega de fuera, `Block` rechaza al construirse los árboles que se saltan las reglas del box: de 1 a 50 rondas, de 1 a 10 partes, como mucho 4 niveles y no más de 10 000 repeticiones o 6 horas. Para entonces Jackson ya ha leído el cuerpo entero, así que una API real limita también el tamaño de la petición (Jackson ya limita el anidamiento).
 
 > [!warning]
-> Un árbol que llega del cliente puede ser enorme o tener muchísimos niveles. Valida el tamaño y la profundidad al construirlo, no al recorrerlo.
-@describe: GET /api/wods/murph viaja del coach al controlador; reps() baja de WodController a Murph, de Murph al bloque de 20 rondas y de ahí a cada movimiento. Todo el árbol aparece resaltado.
+> Un árbol que llega del cliente puede ser enorme o tener muchísimos niveles. Pon límites al construirlo, no al recorrerlo, y limita también el tamaño de lo que aceptas.
+@describe: GET /api/wods/murph viaja del coach al controlador; reps() baja de WodController a Murph y de Murph a sus tres hijos (las carreras responden 0), y del bloque de 20 rondas a cada movimiento. Todo el árbol aparece resaltado.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
 Un `CompositePropertySource` es un `PropertySource`… hecho de `PropertySource`s. Cuando le pides una propiedad, pregunta a sus fuentes en orden y devuelve la primera que la tiene. En el ejemplo, `downtown` responde la capacidad (20) y los minutos caen hasta `box-defaults` (60). Y como es un `PropertySource` más, se puede meter dentro de otro.
@@ -152,6 +153,8 @@ Empezaste con un WOD plano lleno de campos especiales y acabaste con:
 - **Límites** al construir árboles que llegan de fuera.
 
 Aquí las partes se reciben al crear el bloque y no se pueden añadir después. Otras versiones del patrón ponen `add()` y `remove()` en el grupo, o incluso en la interfaz común; es una decisión entre comodidad y seguridad.
+
+No lo confundas con sus vecinos: **Decorator** envuelve a *un* objeto y le añade comportamiento; **Composite** agrupa a *muchos* y suma sus respuestas. **Iterator** sirve para recorrer el árbol desde fuera, y **Visitor** ayuda cuando no paras de añadir operaciones nuevas (calorías, material necesario…) sin querer tocar cada clase.
 
 Y cuándo no hace falta: si la estructura siempre tiene la misma forma y la misma profundidad, una clase con sus campos es más clara.
 

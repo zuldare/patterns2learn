@@ -48,7 +48,7 @@ class WorkoutPartTest {
     }
 
     @Test void partsAreValidated() {
-        assertThatThrownBy(() -> new Movement(" ", 5)).hasMessage("movement name is required");
+        assertThatThrownBy(() -> new Movement(" ", 5)).isInstanceOf(InvalidWorkoutException.class).hasMessage("movement name is required");
         assertThatThrownBy(() -> new Movement("x".repeat(41), 5)).hasMessage("movement name is at most 40 characters");
         assertThatThrownBy(() -> new Movement("burpees", 0)).hasMessage("reps must be between 1 and 500");
         assertThatThrownBy(() -> new Run(50)).hasMessage("run must be between 100 and 10000 m");
@@ -58,6 +58,10 @@ class WorkoutPartTest {
         assertThatThrownBy(() -> new Block(null, 1, Collections.nCopies(11, new Run(400)))).hasMessage("a block needs 1 to 10 parts");
         assertThatThrownBy(() -> new Block(null, 1, java.util.Arrays.asList(new Run(400), null))).hasMessage("a block part cannot be empty");
         assertThatThrownBy(() -> new Block("x".repeat(41), 1, List.of(new Run(400)))).hasMessage("block title is at most 40 characters");
+    }
+
+    @Test void oneRoundIsSingular() {
+        assertThat(new Block(null, 1, List.of(new Run(400))).lines()).first().isEqualTo("1 round");
     }
 
     @Test void absurdWorkoutsAreRejectedInsteadOfOverflowing() {

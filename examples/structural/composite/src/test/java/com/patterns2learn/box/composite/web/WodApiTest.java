@@ -19,7 +19,7 @@ class WodApiTest {
 
     @Test void aBenchmarkWodWithItsTotals() throws Exception {
         // @step:request
-        mvc.perform(get("/api/wods/Murph"))
+        mvc.perform(get("/api/wods/murph"))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.reps").value(600))       // 20 × (5 + 10 + 15)
            .andExpect(jsonPath("$.minutes").value(46))     // 2 runs + 600 reps
@@ -38,6 +38,21 @@ class WodApiTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.reps").value(30))
            .andExpect(jsonPath("$.board[0]").value("Ladder · 3 rounds"));
+    }
+
+    @Test void brokenJsonTreesAre400() throws Exception {
+        mvc.perform(post("/api/wods/estimate").contentType(MediaType.APPLICATION_JSON).content("{\"meters\":400}"))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("malformed request body"));
+        mvc.perform(post("/api/wods/estimate").contentType(MediaType.APPLICATION_JSON).content("{\"type\":\"block\",\"times\":2,\"parts\":[null]}"))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("a block part cannot be empty"));
+        mvc.perform(post("/api/wods/estimate").contentType(MediaType.APPLICATION_JSON).content("{\"type\":\"block\",\"times\":2,\"parts\":null}"))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("a block needs 1 to 10 parts"));
+        mvc.perform(post("/api/wods/estimate").contentType(MediaType.APPLICATION_JSON).content("{\"type\":\"block\",\"parts\":[{\"type\":\"run\",\"meters\":400}]}"))
+           .andExpect(status().isBadRequest());
+        String deep = "{\"type\":\"run\",\"meters\":400}";
+        for (int i = 0; i < 5; i++) deep = "{\"type\":\"block\",\"times\":1,\"parts\":[" + deep + "]}";
+        mvc.perform(post("/api/wods/estimate").contentType(MediaType.APPLICATION_JSON).content(deep))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("blocks can nest at most 4 levels"));
     }
 
     @Test void invalidTreesAre400WithTheReason() throws Exception {
