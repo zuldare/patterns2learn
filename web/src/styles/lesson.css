@@ -19,6 +19,14 @@
   border-radius: var(--radius);
 }
 .lesson:focus-visible { outline-offset: 6px; }
+/* The steps (diagram, bar, text, code) live in their own box, so the sticky text panel
+   stops sticking where the steps end and never slides over the quiz below. */
+.lesson__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
 
 .lesson__title { font-size: 1.5rem; font-weight: 700; }
 .lesson__summary { margin: 0.25rem 0 0; color: var(--muted); }
@@ -194,15 +202,15 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 @media (min-width: 960px) {
   .lesson-shell { padding: 24px; }
-  .lesson {
+  .lesson { gap: 32px; }
+  .lesson__main {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
     grid-template-areas:
       "head text"
       "canvas text"
       "bar text"
-      "code text"
-      "end end";
-    grid-template-rows: auto auto auto 1fr auto;
+      "code text";
+    grid-template-rows: auto auto auto 1fr;
     column-gap: 24px;
     align-items: start;
   }
@@ -210,7 +218,6 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   .iso-canvas { grid-area: canvas; }
   .step-nav { grid-area: bar; }
   .code-panel { grid-area: code; }
-  .lesson-end { grid-area: end; }
   /* Capped to the viewport so Back/Next stay reachable on long steps. */
   .step-panel { grid-area: text; position: sticky; top: 16px; }
   /* With JS one step shows at a time: cap it to the viewport so Back/Next stay
@@ -244,6 +251,14 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 .step-text__sheet { margin: 12px 0 0; }
 .lesson-end__run { margin: 0; }
 
+/* The quiz is its own card, like the step panel. */
+.quiz-section {
+  padding: 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--pop-shadow);
+}
 .quiz-section__title { font-size: 1.25rem; margin-bottom: 12px; }
 .quiz { display: grid; gap: 16px; }
 .quiz-q {
@@ -252,7 +267,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   border: 1.5px solid var(--line);
   border-left-width: 6px;
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--bg);
 }
 .quiz-q__legend { padding: 0 6px; font-weight: 700; }
 .quiz-option { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; cursor: pointer; }

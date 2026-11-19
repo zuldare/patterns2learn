@@ -57,6 +57,7 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
         } catch (e) {}
         root.dataset.step = id;
       </script>
+      <div class="lesson__main">
       <header class="lesson__head">
         <h1 class="lesson__title" id="lesson-title">{text.title}</h1>
         <p class="lesson__summary">{text.summary}</p>
@@ -65,6 +66,7 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
       <StepBar lang={lang} steps={steps} />
       <StepPanel lang={lang} steps={steps} cheatsheetHref={`/${lang}/patterns/${lesson.slug}/cheatsheet/`} />
       <CodePanel lang={lang} steps={steps} />
+      </div>
       <div class="lesson-end">
         <Quiz lang={lang} slug={lesson.slug} questions={text.quiz} />
         <p class="lesson-end__run"><RunItLink lang={lang} lesson={lesson} class="btn" /></p>

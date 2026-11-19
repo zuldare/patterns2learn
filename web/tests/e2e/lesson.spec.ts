@@ -161,6 +161,7 @@ test('the theme button cycles paper → blueprint → dark → paper and remembe
 
 for (const width of [1440, 375])
   test(`no step text overflows its panel sideways, in any lesson or language (${width}px)`, async ({ page }) => {
+    test.setTimeout(180_000);   // walks every step of every lesson in two languages; grows with the course
     const { readdirSync } = await import('node:fs');
     const slugs = readdirSync('src/content/lessons').filter((d) => !d.startsWith('_'));
     await page.setViewportSize({ width, height: 900 });
@@ -178,3 +179,24 @@ for (const width of [1440, 375])
       }
     expect(offenders).toEqual([]);
   });
+
+test('the sticky step panel never covers the quiz, which sits in its own card', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/es/patterns/strategy/');
+  const quiz = page.locator('.quiz-section');
+  for (const target of ['.quiz-section__title', '.quiz-q:nth-of-type(2)', '.quiz__actions']) {
+    await page.locator(target).first().evaluate((el) => el.scrollIntoView({ block: 'start' }));
+    const panel = await page.locator('.step-panel').boundingBox();
+    const q = await quiz.boundingBox();
+    const overlap = panel && q
+      && panel.x < q.x + q.width && q.x < panel.x + panel.width
+      && panel.y < q.y + q.height && q.y < panel.y + panel.height;
+    expect(overlap, `step panel overlaps the quiz at ${target}`).toBeFalsy();
+  }
+  const card = await quiz.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { border: parseFloat(s.borderTopWidth), bg: s.backgroundColor };
+  });
+  expect(card.border).toBeGreaterThan(0);
+  expect(card.bg).not.toBe('rgba(0, 0, 0, 0)');
+});
