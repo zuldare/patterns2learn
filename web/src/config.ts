@@ -1,4 +1,4 @@
-export const DONATE_URL = 'https://buymeacoffee.com/REPLACE_ME';
+export const DONATE_URL = 'https://paypal.me/binauraljames';
 /** Donate links are only rendered once DONATE_URL holds a real address. */
 export const DONATE_ENABLED = !DONATE_URL.includes('REPLACE_ME');
 /** Canonical origin; also `site` in astro.config.mjs. */
