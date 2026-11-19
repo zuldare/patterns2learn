@@ -28,7 +28,9 @@ public class HeartLinkMonitor implements HeartRateMonitor {
         Matcher m = SAMPLE.matcher(raw);
         if (!m.matches()) throw new MonitorException("unreadable HeartLink sample on channel " + channel);
         int bpm = Integer.parseInt(m.group(1));
-        if (!HeartRate.plausible(bpm)) throw new MonitorException("implausible HeartLink reading: " + bpm + " bpm");
+        if (!HeartRate.plausible(bpm)) {
+            throw new MonitorException("implausible HeartLink reading: " + bpm + " bpm");
+        }
         return Optional.of(new HeartRate(bpm, Instant.ofEpochSecond(Long.parseLong(m.group(2)))));
     }
     // @end

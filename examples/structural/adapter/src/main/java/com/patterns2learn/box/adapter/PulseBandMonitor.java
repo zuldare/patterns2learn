@@ -25,7 +25,9 @@ public class PulseBandMonitor implements HeartRateMonitor {
         try {
             PulseBandBeat beat = band.latestBeat(serial);
             int bpm = (int) Math.round(beat.beatsPerSecond() * 60);   // per second → per minute
-            if (!HeartRate.plausible(bpm)) throw new MonitorException("implausible PulseBand reading: " + bpm + " bpm");
+            if (!HeartRate.plausible(bpm)) {
+                throw new MonitorException("implausible PulseBand reading: " + bpm + " bpm");
+            }
             return Optional.of(new HeartRate(bpm, Instant.ofEpochMilli(beat.epochMillis())));
         } catch (PulseBandException e) {
             return Optional.empty();                             // their error → our "no signal"

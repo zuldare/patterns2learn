@@ -2,7 +2,7 @@ import { listLessons, loadLesson } from '../../src/lib/lessons';
 
 test('listLessons returns the real lessons and never the fixtures', async () => {
   const slugs = (await listLessons()).map((l) => l.slug);
-  expect([...slugs].sort()).toEqual(['builder', 'chain-of-responsibility', 'decorator', 'factory-method', 'observer', 'proxy', 'singleton', 'strategy', 'template-method']);
+  expect([...slugs].sort()).toEqual(['adapter', 'builder', 'chain-of-responsibility', 'decorator', 'factory-method', 'observer', 'proxy', 'singleton', 'strategy', 'template-method']);
 });
 
 test('loadLesson rejects unknown slug', async () => {
