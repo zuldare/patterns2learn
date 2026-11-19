@@ -30,16 +30,16 @@ class SpringDoesItTooTest {
     @Autowired ApplicationContext context;
     @Autowired Listener listener;
 
-    @Test void oneInterfaceInFrontOfSeveralSubsystems() {
+    @Test void oneInterfaceInFrontOfSeveralSubsystems() throws Exception {
         // @step:context
         OnboardingFacade facade = context.getBean(OnboardingFacade.class);             // beans
         String hello = context.getMessage("welcome", new Object[] {"Ana"}, Locale.ENGLISH);  // messages
-        Resource prices = context.getResource("classpath:messages.properties");       // resources
+        Resource[] files = context.getResources("classpath*:messages*.properties");  // resources
         context.publishEvent(new MemberJoined("Ana"));                                // events
         // @end
         assertThat(facade).isNotNull();
         assertThat(hello).isEqualTo("Welcome to the box, Ana!");
-        assertThat(prices.exists()).isTrue();
+        assertThat(files).isNotEmpty();
         assertThat(listener.heard).containsExactly("Ana");
     }
 }
