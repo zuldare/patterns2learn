@@ -1,0 +1,142 @@
+---
+/* Figure lab (spike, not linked from the site): compares the current figures with two candidate skins. */
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/700.css';
+import '../../styles/tokens.css';
+import '../../styles/base.css';
+import '../../styles/engine.css';
+import { renderScene } from '../../engine/render';
+import scene from '../../content/lessons/strategy/scene';
+import { galleryEntity, renderSkinFigure, renderSkinScene, type SkinId } from '../../lab/skins';
+
+const DEFAULT_STEP = 'extend';
+const step = scene.steps.find(st => st.id === DEFAULT_STEP)!;
+
+const columns: { id: 'actual' | SkinId; name: string; blurb: string }[] = [
+  { id: 'actual', name: 'Actual', blurb: 'Prismas iguales; solo cambian color y etiqueta.' },
+  { id: 'taller', name: 'A · Taller', blurb: 'Objetos técnicos con detalle: pegatinas en la tapa, LEDs, la interfaz como regleta de enchufes y las estrategias como cartuchos que se enchufan. Atleta vóxel.' },
+  { id: 'box', name: 'B · El box', blurb: 'El propio box de CrossFit: recepción, pizarra del WOD, el rig como interfaz y el material como estrategias (kettlebell, discos, cajón, balón). Atleta sacando bíceps.' },
+];
+
+const sceneSvg = (col: (typeof columns)[number]['id']): string =>
+  col === 'actual'
+    ? renderScene(scene, { step, label: 'Escena actual' })
+    : renderSkinScene(col, scene, step, `Escena ${col}`);
+
+const rows = scene.entities.map(e => ({ e, g: galleryEntity(e.id, e.label, e.kind, e.tone) }));
+const figureSvg = (col: (typeof columns)[number]['id'], g: (typeof rows)[number]['g']): string =>
+  col === 'actual' ? renderScene({ entities: [g], links: [], steps: [] }, { label: g.label }) : renderSkinFigure(col, g, g.label);
+
+const steps = scene.steps.map(st => ({ id: st.id, visible: st.visible, highlight: st.highlight }));
+---
+<!doctype html>
+<html lang="es" data-theme="paper">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Laboratorio de figuras · patterns2learn</title>
+    <script is:inline>
+      (function () {
+        var t = null;
+        try { t = new URLSearchParams(location.search).get('theme') || JSON.parse(localStorage.getItem('p2l:theme')); } catch (e) {}
+        if (t !== 'paper' && t !== 'blueprint') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'blueprint' : 'paper';
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <style>
+      body { background: var(--bg); color: var(--ink); }
+      .lab { max-width: 1500px; margin: 0 auto; padding: 24px 16px 64px; }
+      .lab h1 { margin: 0 0 4px; font-size: 1.5rem; }
+      .lab > p { color: var(--muted); max-width: 70ch; }
+      .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0; }
+      .bar button {
+        font: inherit; font-size: .8rem; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+        background: var(--surface); color: var(--ink); border: 1.5px solid var(--ink);
+      }
+      .bar button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent-strong); box-shadow: var(--pop-shadow); }
+      .bar span { color: var(--muted); font-size: .8rem; margin-right: 4px; }
+      .cols { display: grid; grid-template-columns: 1fr; gap: 20px; }
+      .stage svg { max-height: 640px; }
+      .card { background: var(--surface); border: 1.5px solid var(--ink); border-radius: var(--radius); padding: 12px; box-shadow: var(--pop-shadow); min-width: 0; }
+      .card h2, .card h3 { margin: 0 0 4px; font-size: 1rem; }
+      .card p { margin: 0 0 8px; font-size: .78rem; color: var(--muted); }
+      .grid { display: grid; grid-template-columns: 9rem repeat(3, minmax(0, 1fr)); gap: 8px; align-items: center; margin-top: 12px; }
+      .grid .head { font-weight: 700; font-size: .85rem; }
+      .grid .name { font-size: .8rem; color: var(--muted); }
+      .grid .cell { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px; min-width: 0; }
+      .grid .cell svg { height: 180px; }
+      h2.section { margin: 40px 0 0; font-size: 1.15rem; }
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: 5.5rem repeat(3, minmax(0, 1fr)); gap: 4px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="lab">
+      <h1>Laboratorio de figuras</h1>
+      <p>Página de pruebas, sin enlazar desde la web. Las tres columnas pintan <strong>los mismos datos</strong> de la lección de Strategy (mismas posiciones, enlaces y pasos); solo cambia cómo se dibuja cada figura.</p>
+
+      <div class="bar" role="group" aria-label="Tema">
+        <span>Tema:</span>
+        <button type="button" data-theme-set="paper">Papel</button>
+        <button type="button" data-theme-set="blueprint">Blueprint</button>
+      </div>
+      <div class="bar" role="group" aria-label="Paso">
+        <span>Paso:</span>
+        {steps.map((st, i) => <button type="button" data-step={st.id} aria-pressed={st.id === DEFAULT_STEP ? 'true' : 'false'}>{i + 1}. {st.id}</button>)}
+      </div>
+
+      <div class="cols">
+        {columns.map(c => (
+          <section class="card">
+            <h2>{c.name}</h2>
+            <p>{c.blurb}</p>
+            <div class="stage" set:html={sceneSvg(c.id)} />
+          </section>
+        ))}
+      </div>
+
+      <h2 class="section">Todas las figuras</h2>
+      <div class="grid">
+        <div></div>
+        {columns.map(c => <div class="head">{c.name}</div>)}
+        {rows.map(({ e, g }) => (
+          <>
+            <div class="name">{e.id}<br /><small>{e.kind} · {e.tone}</small></div>
+            {columns.map(c => <div class="cell" set:html={figureSvg(c.id, g)} />)}
+          </>
+        ))}
+      </div>
+    </main>
+
+    <script define:vars={{ steps }} is:inline>
+      var root = document.documentElement;
+      function syncThemeButtons() {
+        document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b.dataset.themeSet === root.dataset.theme));
+        });
+      }
+      document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+        b.addEventListener('click', function () { root.dataset.theme = b.dataset.themeSet; syncThemeButtons(); });
+      });
+      syncThemeButtons();
+
+      function apply(id) {
+        var st = steps.find(function (s) { return s.id === id; });
+        document.querySelectorAll('.stage [data-id]').forEach(function (el) {
+          var from = el.getAttribute('data-from');
+          var to = el.getAttribute('data-to');
+          var key = el.getAttribute('data-id');
+          var shown = from !== null ? st.visible.includes(from) && st.visible.includes(to) : st.visible.includes(key);
+          el.classList.toggle('is-hidden', !shown);
+          el.classList.toggle('is-highlighted', st.highlight.includes(key));
+        });
+        document.querySelectorAll('[data-step]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.step === id)); });
+      }
+      document.querySelectorAll('[data-step]').forEach(function (b) {
+        b.addEventListener('click', function () { apply(b.dataset.step); });
+      });
+    </script>
+  </body>
+</html>

@@ -6,7 +6,7 @@ import { locales } from './src/i18n/index.ts';
 export default defineConfig({
   site: SITE_URL,
   trailingSlash: 'always',
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/lab/') })],
   i18n: {
     locales: [...locales],
     defaultLocale: 'en',
