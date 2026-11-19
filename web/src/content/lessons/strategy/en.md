@@ -44,7 +44,7 @@ quiz:
       - State uses interfaces and Strategy uses inheritance
       - Strategy is only for calculations and State is only for database state machines
     answer: 1
-    explain: The structure looks very similar, but the intent differs. With Strategy the client decides which algorithm to use; with State the object manages its own transitions and the client doesn't even know which state it is in.
+    explain: The structure looks very similar, but the intent differs. With Strategy the client decides which algorithm to use; with State the object manages its own transitions and the client usually doesn't need to know which state it is in.
   - q: How does DelegatingPasswordEncoder know which algorithm to use when checking a password?
     options:
       - It tries every algorithm until one matches

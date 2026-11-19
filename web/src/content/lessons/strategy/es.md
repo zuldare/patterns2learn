@@ -1,6 +1,6 @@
 ---
 title: Strategy
-summary: Sustituye un switch de tarifas por una estrategia para cada plan y deja que Spring te las inyecte todas en un Map.
+summary: Sustituye un switch de precios por una estrategia para cada plan y deja que Spring te las inyecte todas en un Map.
 minutes: 12
 level: beginner
 recap:
@@ -29,7 +29,7 @@ quiz:
       - Todos los beans que implementan PricingStrategy, con el nombre de la clase como clave
     answer: 0
     explain: Spring busca en el contexto todos los beans de ese tipo y los mete en el mapa usando su nombre de bean. Por eso @Component("ten-pack") hace que la clave sea exactamente ten-pack.
-  - q: Quieres añadir la tarifa student. ¿Qué tienes que tocar?
+  - q: Quieres añadir el plan student. ¿Qué tienes que tocar?
     options:
       - PricingService, para añadir una rama más
       - PricingController y PricingService
@@ -44,7 +44,7 @@ quiz:
       - State usa interfaces y Strategy usa herencia
       - Strategy solo sirve para cálculos y State solo para máquinas de estados de la base de datos
     answer: 1
-    explain: La estructura se parece mucho, pero la intención no. Con Strategy el cliente decide qué algoritmo usar; con State las transiciones las gestiona el propio objeto y el cliente ni siquiera sabe en qué estado está.
+    explain: La estructura se parece mucho, pero la intención no. Con Strategy el cliente decide qué algoritmo usar; con State las transiciones las gestiona el propio objeto y el cliente normalmente no necesita saber en qué estado está.
   - q: ¿Cómo sabe DelegatingPasswordEncoder qué algoritmo usar para comprobar una contraseña?
     options:
       - Prueba todos los algoritmos hasta que uno coincide
@@ -52,12 +52,12 @@ quiz:
       - Usa siempre bcrypt; el prefijo es solo decorativo
       - Lee el prefijo {id} del hash guardado, por ejemplo {bcrypt}, y delega en el encoder con ese id
     answer: 3
-    explain: Cada hash guarda delante el id del algoritmo entre llaves. El encoder lo lee, busca en su mapa la estrategia con ese id y le delega el trabajo. Es el mismo truco que nuestro Map de tarifas.
+    explain: Cada hash guarda delante el id del algoritmo entre llaves. El encoder lo lee, busca en su mapa la estrategia con ese id y le delega el trabajo. Es el mismo truco que nuestro Map de planes.
 ---
 ## @step:problem — Un switch que no para de crecer
 Tu box tiene una pequeña API en Spring Boot para calcular cuánto paga cada atleta. Hoy alguien pregunta por el bono de 10 con 12 sesiones: `GET /api/pricing/quote?plan=ten-pack&sessions=12`.
 
-Hoy hay tres planes:
+Ahora mismo hay tres planes:
 
 - **monthly**: 79.00 €, entrenes lo que entrenes.
 - **ten-pack**: 120.00 € por cada bloque de 10 sesiones empezado.
@@ -66,22 +66,22 @@ Hoy hay tres planes:
 Todo el cálculo vive en `LegacyPricingService`, dentro de un `switch` por nombre de plan.
 
 > [!problem]
-> Cada tarifa es una rama del mismo método. Funciona, sí, pero la lógica de todos los planes está mezclada en una sola clase.
+> Cada plan es una rama del mismo método. Funciona, sí, pero la lógica de todos los planes está mezclada en una sola clase.
 @describe: A la izquierda, el atleta envía un paquete con el texto plan=ten-pack a PricingController, que llama a LegacyPricingService, resaltado en rojo.
 
 ## @step:smell — Y ahora llega el descuento de estudiante
-El coach quiere una tarifa para estudiantes. ¿Dónde la metes? En el mismo `switch`, claro: otro `case`, otro `return`, y a cruzar los dedos para no romper el bono de 10 de paso.
+El coach quiere un plan para estudiantes. ¿Dónde lo metes? En el mismo `switch`, claro: otro `case`, otro `return`, y a cruzar los dedos para no romper el bono de 10 de paso.
 
-Cada plan nuevo obliga a abrir, cambiar y volver a probar la clase entera. Si dos personas tocan tarifas a la vez, os toca resolver conflictos en el mismo método.
+Cada plan nuevo obliga a abrir, cambiar y volver a probar la clase entera. Si dos personas tocan precios a la vez, te toca resolver conflictos en el mismo método.
 
 > [!warning]
 > Esto rompe el principio Open/Closed: para **añadir** comportamiento tienes que **modificar** código que ya estaba probado y en producción.
 @describe: El diagrama no cambia: LegacyPricingService sigue resaltado en rojo como el punto que hay que tocar con cada plan nuevo.
 
-## @step:interface — Un contrato para todas las tarifas
+## @step:interface — Un contrato para todos los planes
 Lo primero es ponerle nombre a lo que tienen en común todos los planes: dado un `PricingRequest` (plan y sesiones), devuelven un `Money`.
 
-Esa es la interfaz `PricingStrategy`. Un único método, nada más. Quien calcule precios ya no necesita saber *cómo* se calcula cada tarifa, solo que existe alguien que cumple este contrato.
+Esa es la interfaz `PricingStrategy`. Un único método, nada más. Quien calcule precios ya no necesita saber *cómo* se calcula cada plan, solo que existe alguien que cumple este contrato.
 
 > [!key-idea]
 > Depende del contrato, no de la clase concreta. Todo lo demás sale de aquí.
@@ -136,7 +136,7 @@ Al comprobar una contraseña, lee ese `{id}`, busca en su mapa interno el encode
 @describe: Dentro del contexto de Spring solo queda el bloque DelegatingPasswordEncoder, resaltado; el atleta le envía un paquete con el texto {bcrypt}….
 
 ## @step:recap — Resumen
-Has pasado de un `switch` que crecía con cada tarifa a esto:
+Has pasado de un `switch` que crecía con cada plan a esto:
 
 - **Context**: `PricingService`, que recibe las estrategias y delega.
 - **Strategy**: `PricingStrategy`, el contrato.
