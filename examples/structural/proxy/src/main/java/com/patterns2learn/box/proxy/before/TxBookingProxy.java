@@ -23,7 +23,7 @@ public class TxBookingProxy implements BookingOperations {
             Booking booking = target.book(sessionId, athlete); // delegate to the real subject
             tx.commit(status);
             return booking;
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | Error e) {
             tx.rollback(status);
             throw e;
         }

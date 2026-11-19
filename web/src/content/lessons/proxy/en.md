@@ -6,7 +6,7 @@ level: intermediate
 recap:
   intent: Put a stand-in with the same interface in front of an object to control access to it and add work before and after every call, without the client noticing.
   participants:
-    - Subject (BookingOperations), the contract the real object and its proxy share
+    - Subject (BookingOperations in the hand-written version; in Spring, the BookingService class itself), the contract the real object and its proxy share
     - RealSubject (PlainBookingService or BookingService), which does the actual work
     - Proxy (TxBookingProxy or the one Spring generates), which opens the transaction, delegates and commits or rolls back
     - Client (BookingController), which talks to the proxy believing it's the service
@@ -54,7 +54,7 @@ quiz:
       - None, ProxyFactory only works for classes without interfaces
       - A subclass generated at compile time
     answer: 1
-    explain: When the object has an interface, Spring can use a JDK dynamic proxy. When there's only a class (like our BookingService), it generates a subclass with CGLIB. For you, the effect is the same.
+    explain: When the object implements an interface, ProxyFactory creates a JDK dynamic proxy by default. Careful, in a Spring Boot app @Transactional proxies use CGLIB by default even when there is an interface, so you can inject the concrete class. Both intercept public calls coming from outside in the same way.
 ---
 ## @step:problem — One booking, two writes
 Booking a spot in the 18:00 class is **two** changes in the database: insert the booking and take one free spot.
@@ -81,7 +81,7 @@ The Proxy pattern pulls the two apart:
 - `PlainBookingService` implements it with business logic only, not a single transaction line.
 - `TxBookingProxy` implements it **too**: it opens the transaction, delegates to the real service and commits or rolls back.
 
-The controller gets the proxy, but since it talks to `BookingOperations` it can't tell the difference.
+If the controller depends on `BookingOperations`, you hand it the proxy instead of the service and it can't tell the difference.
 
 > [!key-idea]
 > The proxy stands in front of the real object, with the same interface, and decides what happens before and after each call.
@@ -101,10 +101,13 @@ It works, and the service is finally clean. But look at the cost:
 ## @step:spring-tx — @Transactional, and Spring writes the proxy
 That's exactly what Spring does. You write the service with its business logic and one annotation: `@Transactional`.
 
-At startup Spring sees the annotation and does **not** register your `BookingService` as is, but a generated proxy (`BookingService$$Proxy`) that wraps it. That's what the controller receives.
+At startup Spring sees the annotation and does **not** register your `BookingService` as is, but a generated proxy that wraps it (in the debugger you'll see a class like `BookingService$$SpringCGLIB$$0`). That's what the controller receives.
 
 > [!spring]
-> The generated proxy does what our `TxBookingProxy` did: open the transaction, call your method and commit, or roll back on a `RuntimeException`. There's no interface, so Spring creates a subclass with CGLIB.
+> The generated proxy does what our `TxBookingProxy` did: open the transaction, call your method and commit, or roll back on a `RuntimeException` or an `Error`. Spring Boot generates it as a CGLIB subclass by default, interface or not.
+
+> [!warning]
+> A checked exception does **not** roll back: whatever you'd done so far gets committed. If you need it, say so with `@Transactional(rollbackFor = MyException.class)`.
 @describe: The Spring context appears. Between the controller and BookingService sits the proxy Spring generates, highlighted together with the context. BookingService talks to the database.
 
 ## @step:request — A booking when the class is full
@@ -115,9 +118,11 @@ Follow the request:
 3. The service inserts the booking and tries to take a spot. With 0 left, it throws `ClassFullException`.
 4. The proxy sees the exception and **rolls back**: the inserted booking is gone and the API answers 409.
 
+The API also guards its input: an empty name or one longer than 80 characters gets a 400, and booking the same class twice gets a 409.
+
 > [!key-idea]
 > The example test checks it: `AopUtils.isAopProxy(bookings)` is `true` and, after the exception, the table has no bookings left.
-@describe: Packets travel the chain: POST booking from the athlete to the controller, book() to the proxy, BEGIN · book() from the proxy to BookingService and INSERT + UPDATE to the database. The proxy is highlighted.
+@describe: Packets travel the chain: POST booking from the athlete to the controller, book() to the proxy, BEGIN · book() from the proxy to BookingService and INSERT + UPDATE to the database; finally ROLLBACK · 409 travels back from the proxy to the controller. The proxy is highlighted.
 
 ## @step:self-call — Watch out for this
 A proxy only intercepts calls that **reach it**. `bookPair()` has no `@Transactional` and calls `this.book()` twice.
@@ -134,7 +139,7 @@ Those calls go straight to the real object without passing through the proxy, so
 Underneath sits `ProxyFactory`: you give it an object and an *interceptor* that decides what happens before and after, and it hands you the proxy.
 
 > [!spring]
-> The example test wraps a `Scoreboard` and logs "before" and "after" around each call. Swap those two lines for "begin transaction" and "commit" and you have the heart of `@Transactional`.
+> The example test wraps a `Scoreboard` with an interceptor that logs `begin`, calls the real object and logs `commit`, or `rollback` if an exception is thrown. Swap those log lines for calls to the transaction manager and you have the core idea of `@Transactional`.
 @describe: Inside the Spring context, ProxyFactory, highlighted, sends getProxy() to the proxy, also highlighted, which wraps BookingService.
 
 ## @step:recap — Recap

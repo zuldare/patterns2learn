@@ -7,5 +7,6 @@ CREATE TABLE wod_session (
 CREATE TABLE booking (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_id BIGINT NOT NULL REFERENCES wod_session (id),
-    athlete    VARCHAR(80) NOT NULL
+    athlete    VARCHAR(80) NOT NULL,
+    UNIQUE (session_id, athlete)
 );

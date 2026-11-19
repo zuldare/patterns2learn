@@ -35,5 +35,6 @@ class ManualTxBookingServiceTest {
         service.book(1, "Ana");
         service.cancel(1, "Ana");
         assertThat(BoxDb.bookings(jdbc)).isZero();
+        assertThat(jdbc.sql("SELECT spots FROM wod_session WHERE id = 1").query(Integer.class).single()).isEqualTo(1);
     }
 }

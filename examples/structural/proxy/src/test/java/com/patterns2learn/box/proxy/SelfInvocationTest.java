@@ -19,12 +19,10 @@ class SelfInvocationTest {
     }
 
     @Test void callingBookFromInsideTheServiceSkipsTheProxy() {
-        // @step:self-call-leak
         // bookPair calls this.book(...) twice: those calls never pass through the proxy
         assertThatThrownBy(() -> bookings.bookPair(1, "Ana", "Leo")).isInstanceOf(ClassFullException.class);
 
         // no transaction, no rollback: Leo's booking row stayed although the class was full
         assertThat(BoxDb.bookings(jdbc)).isEqualTo(2);
-        // @end
     }
 }

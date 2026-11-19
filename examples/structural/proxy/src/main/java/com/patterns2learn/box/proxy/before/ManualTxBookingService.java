@@ -27,7 +27,7 @@ public class ManualTxBookingService {
             }
             tx.commit(status);
             return new Booking(sessionId, athlete);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | Error e) {
             tx.rollback(status);
             throw e;
         }
@@ -41,7 +41,7 @@ public class ManualTxBookingService {
             repo.deleteBooking(sessionId, athlete);
             repo.releaseSpot(sessionId);
             tx.commit(status);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | Error e) {
             tx.rollback(status);
             throw e;
         }

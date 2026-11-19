@@ -14,6 +14,7 @@ public class BookingService {
     // @step:tx-annotation
     @Transactional
     public Booking book(long sessionId, String athlete) {
+        requireValidName(athlete);
         if (!repo.sessionExists(sessionId)) {
             throw new UnknownSessionException(sessionId);
         }
@@ -32,4 +33,13 @@ public class BookingService {
         this.book(sessionId, friend);  // so neither call runs in a transaction
     }
     // @end
+
+    private static void requireValidName(String athlete) {
+        if (athlete == null || athlete.isBlank()) {
+            throw new IllegalArgumentException("athlete name is required");
+        }
+        if (athlete.length() > 80) {
+            throw new IllegalArgumentException("athlete name is too long (max 80)");
+        }
+    }
 }

@@ -38,4 +38,22 @@ class BookingApiTest {
            .andExpect(status().isNotFound())
            .andExpect(jsonPath("$.error").value("unknown session: 7"));
     }
+
+    @Test void blankOrOverlongAthleteIs400() throws Exception {
+        mvc.perform(post("/api/sessions/1/bookings").param("athlete", " "))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("athlete name is required"));
+        mvc.perform(post("/api/sessions/1/bookings").param("athlete", "x".repeat(81)))
+           .andExpect(status().isBadRequest())
+           .andExpect(jsonPath("$.error").value("athlete name is too long (max 80)"));
+    }
+
+    @Test void bookingTheSameClassTwiceIs409() throws Exception {
+        BoxDb.reset(jdbc, 2);
+        mvc.perform(post("/api/sessions/1/bookings").param("athlete", "Ana")).andExpect(status().isCreated());
+        mvc.perform(post("/api/sessions/1/bookings").param("athlete", "Ana"))
+           .andExpect(status().isConflict())
+           .andExpect(jsonPath("$.error").value("already booked: Ana"));
+        org.assertj.core.api.Assertions.assertThat(BoxDb.bookings(jdbc)).isEqualTo(1);
+    }
 }

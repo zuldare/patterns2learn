@@ -1,5 +1,6 @@
 package com.patterns2learn.box.proxy;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +18,11 @@ public class BookingRepository {
     }
 
     public void insertBooking(long sessionId, String athlete) {
-        jdbc.sql("INSERT INTO booking (session_id, athlete) VALUES (?, ?)").params(sessionId, athlete).update();
+        try {
+            jdbc.sql("INSERT INTO booking (session_id, athlete) VALUES (?, ?)").params(sessionId, athlete).update();
+        } catch (DuplicateKeyException e) {
+            throw new AlreadyBookedException(athlete);
+        }
     }
 
     public void deleteBooking(long sessionId, String athlete) {
