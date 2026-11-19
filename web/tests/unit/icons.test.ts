@@ -47,3 +47,7 @@ test('catalogue includes the bell and the medal', () => {
   expect(ICON_NAMES).toContain('bell');
   expect(ICON_NAMES).toContain('medal');
 });
+test('catalogue includes plus and tag', () => {
+  expect(ICON_NAMES).toContain('plus');
+  expect(ICON_NAMES).toContain('tag');
+});
