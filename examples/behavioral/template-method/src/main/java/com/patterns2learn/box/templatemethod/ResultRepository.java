@@ -21,7 +21,7 @@ public class ResultRepository {
         // JdbcTemplate runs the fixed part (connection, statement, loop, close, error translation);
         // you only supply the SQL and how to turn one row into a Result
         return jdbc.query(
-            "SELECT athlete, wod, score FROM result WHERE wod = ? ORDER BY score",
+            "SELECT athlete, wod, score FROM result WHERE wod = ? ORDER BY score, athlete",
             (rs, rowNum) -> new Result(rs.getString("athlete"), rs.getString("wod"), rs.getInt("score")),
             wod);
     }

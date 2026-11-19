@@ -12,7 +12,7 @@ recap:
     - ConcreteClass (CsvResultImporter, JsonResultImporter), which only fill in what varies
   pros:
     - Shared rules (validate, save, report) are written once
-    - A new format is a subclass with a single method
+    - A new format is a subclass with a single required method
     - The order of the steps is guaranteed, because the template method is final
   cons:
     - It relies on inheritance, so the subclass is tied to the base class
@@ -81,16 +81,19 @@ Template Method moves the process into a base class, `ResultImporter`, whose `im
 3. Save the valid ones and note the rejected ones.
 4. `afterImport(report)`, an optional step.
 
-`importAll()` is `final`: no subclass can skip validation or change the order.
+`importAll()` is `final`: no subclass can skip validation or change the order. And the save loop runs inside a `TransactionTemplate`: either every valid row is saved, or none is.
 
 > [!key-idea]
 > The base class decides *what* happens and *in which order*; subclasses only decide *how* to do their own step.
+
+> [!warning]
+> Why not `@Transactional` on `importAll()`? Because it's `final`, and as you saw in the Proxy lesson, Spring's proxy can't intercept a `final` method. The call would run on the proxy itself, whose fields are empty, and end in a `NullPointerException`. `TransactionTemplate` does the same job from the inside, with no proxy.
 @describe: The abstract ResultImporter appears, highlighted, saving into ResultRepository. The copied importers are gone.
 
 ## @step:steps — Each format fills its gap
-Now every format is a subclass with **a single method**:
+Now every format is a subclass with **a single required method**:
 
-- `CsvResultImporter.parse()` splits the lines on commas and skips the header.
+- `CsvResultImporter.parse()` checks the header, skips it and splits each line on commas.
 - `JsonResultImporter.parse()` lets Jackson turn the JSON into a list of `Result`.
 
 Neither of them validates or saves anything: the base class already does. The `score > 0` rule now covers both formats, and the next one too.
@@ -100,7 +103,7 @@ Neither of them validates or saves anything: the base class already does. The `s
 @describe: CsvResultImporter and JsonResultImporter appear highlighted, both with inheritance arrows pointing to ResultImporter.
 
 ## @step:spring-wiring — Two beans, one endpoint
-Both subclasses are ordinary beans (`@Component`). The controller gets them through its constructor and picks one by `Content-Type`:
+Both subclasses are ordinary beans (`@Component`). The controller gets them through its constructor and has one method per format; Spring MVC picks which one to call from the request's `Content-Type` (the `consumes` attribute):
 
 - `text/csv` goes to `csv.importAll(...)`.
 - `application/json` goes to `json.importAll(...)`.
@@ -108,7 +111,7 @@ Both subclasses are ordinary beans (`@Component`). The controller gets them thro
 Both calls hit the **same** template method; the only difference is which subclass fills in the `parse` step.
 
 > [!spring]
-> If a CSV line is malformed, `parse()` throws an `IllegalArgumentException` with the line number and a `@RestControllerAdvice` turns it into a 400.
+> If a CSV line is malformed, `parse()` throws an `IllegalArgumentException` with the line number and a `@RestControllerAdvice` turns it into a 400. A `Content-Type` that's neither CSV nor JSON gets a 415.
 @describe: The Spring context appears under the whole diagram; the controller is highlighted together with the context, connected to both importers.
 
 ## @step:request — A CSV start to finish
@@ -124,7 +127,7 @@ The coach uploads the CSV for the 18:00 class with three rows: Ana with 185, Leo
 @describe: results.csv travels from the coach to the controller, importAll() from the controller to CsvResultImporter, and save ×2 from ResultImporter, highlighted, to ResultRepository.
 
 ## @step:hook — An optional step
-Only the partner integration needs something extra: keeping the last report so its app can poll it. That's what the `afterImport()` **hook** is for. In the base class it does nothing, and `JsonResultImporter` overrides it.
+Only the partner integration needs something extra: keeping the last report so its app can poll it with `GET /api/results/import/partner/last`. That's what the `afterImport()` **hook** is for. In the base class it does nothing, and `JsonResultImporter` overrides it.
 
 > [!warning]
 > Template Method is built on inheritance, so every subclass is tied to the base class. If you start piling up hooks or overriding half the behaviour, a strategy or a callback is probably a better fit. That's exactly what Spring does in the next step.
@@ -136,7 +139,7 @@ Only the partner integration needs something extra: keeping the last report so i
 You only supply what varies: the SQL and a `RowMapper` that says how to turn **one** row into a `Result`. But you don't extend anything: the variable step arrives as a lambda. It's the "callback" version of the same pattern.
 
 > [!spring]
-> The same idea shows up in `TransactionTemplate`, `RestTemplate`, `JmsTemplate`… and in `AbstractController` or `OncePerRequestFilter`, where you do extend a class and fill in one method.
+> The same idea shows up in `TransactionTemplate` (the one our `importAll()` uses), `JmsTemplate` or `RestClient`, which fixes how the request is sent and lets you plug in lambdas for what to do with errors or with the response. And `AbstractController` or `OncePerRequestFilter` show it in its classic form: you extend a class and fill in one method.
 @describe: Inside the Spring context there are ResultRepository and JdbcTemplate, highlighted; the repository sends it query(sql, rowMapper).
 
 ## @step:recap — Recap

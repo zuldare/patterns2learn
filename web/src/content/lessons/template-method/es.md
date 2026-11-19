@@ -12,7 +12,7 @@ recap:
     - ConcreteClass (CsvResultImporter, JsonResultImporter), que solo rellenan lo que cambia
   pros:
     - Las reglas comunes (validar, guardar, informar) se escriben una vez
-    - Un formato nuevo es una subclase con un solo método
+    - Un formato nuevo es una subclase con un solo método obligatorio
     - El orden de los pasos está garantizado, porque el método plantilla es final
   cons:
     - Usa herencia, así que la subclase queda atada a la clase base
@@ -81,16 +81,19 @@ El Template Method saca el proceso a una clase base, `ResultImporter`, con un m�
 3. Guardar los válidos y apuntar los rechazados.
 4. `afterImport(report)`, un paso opcional.
 
-`importAll()` es `final`: ninguna subclase puede saltarse la validación ni cambiar el orden.
+`importAll()` es `final`: ninguna subclase puede saltarse la validación ni cambiar el orden. Y el bucle de guardado va dentro de un `TransactionTemplate`: o se guardan todas las filas válidas, o ninguna.
 
 > [!key-idea]
 > La clase base decide *qué* pasa y *en qué orden*; las subclases solo deciden *cómo* se hace el paso que les toca.
+
+> [!warning]
+> ¿Por qué no `@Transactional` en `importAll()`? Porque es `final`, y como viste en la lección de Proxy, el proxy de Spring no puede interceptar un método `final`. La llamada se ejecutaría sobre el propio proxy, cuyos campos están vacíos, y acabaría en un `NullPointerException`. `TransactionTemplate` hace el mismo trabajo desde dentro, sin proxy.
 @describe: Aparece la clase abstracta ResultImporter, resaltada, que guarda en ResultRepository. Los importadores copiados han desaparecido.
 
 ## @step:steps — Cada formato rellena su hueco
-Ahora cada formato es una subclase con **un único método**:
+Ahora cada formato es una subclase con **un único método obligatorio**:
 
-- `CsvResultImporter.parse()` parte las líneas por comas y salta la cabecera.
+- `CsvResultImporter.parse()` comprueba la cabecera, se la salta y parte cada línea por comas.
 - `JsonResultImporter.parse()` deja que Jackson convierta el JSON en una lista de `Result`.
 
 Ninguna de las dos valida ni guarda nada: eso ya lo hace la clase base. La regla del `score > 0` vale ahora para los dos formatos, y para el siguiente que llegue.
@@ -100,7 +103,7 @@ Ninguna de las dos valida ni guarda nada: eso ya lo hace la clase base. La regla
 @describe: CsvResultImporter y JsonResultImporter aparecen resaltados, los dos con flechas de herencia hacia ResultImporter.
 
 ## @step:spring-wiring — Dos beans, un endpoint
-Las dos subclases son beans normales (`@Component`). El controlador las recibe por constructor y elige según el `Content-Type`:
+Las dos subclases son beans normales (`@Component`). El controlador las recibe por constructor y tiene un método por formato; Spring MVC elige cuál llamar según el `Content-Type` de la petición (el atributo `consumes`):
 
 - `text/csv` va a `csv.importAll(...)`.
 - `application/json` va a `json.importAll(...)`.
@@ -108,7 +111,7 @@ Las dos subclases son beans normales (`@Component`). El controlador las recibe p
 Las dos llamadas son al **mismo** método plantilla; lo único que cambia es qué subclase rellena el paso de `parse`.
 
 > [!spring]
-> Si una línea del CSV viene mal formada, `parse()` lanza una `IllegalArgumentException` con el número de línea y un `@RestControllerAdvice` la convierte en un 400.
+> Si una línea del CSV viene mal formada, `parse()` lanza una `IllegalArgumentException` con el número de línea y un `@RestControllerAdvice` la convierte en un 400. Un `Content-Type` que no es ni CSV ni JSON recibe un 415.
 @describe: Aparece el contexto de Spring bajo todo el diagrama; el controlador está resaltado junto al contexto, conectado a los dos importadores.
 
 ## @step:request — Un CSV de principio a fin
@@ -124,7 +127,7 @@ El coach sube el CSV de la clase de las 18:00 con tres filas: Ana con 185, Leo c
 @describe: results.csv viaja del coach al controlador, importAll() del controlador a CsvResultImporter y save ×2 de ResultImporter, resaltado, a ResultRepository.
 
 ## @step:hook — Un paso opcional
-Solo la integración del partner necesita algo extra: guardar el último informe para que su app pueda consultarlo. Para eso está el **hook** `afterImport()`. En la clase base no hace nada, y `JsonResultImporter` lo sobrescribe.
+Solo la integración del partner necesita algo extra: guardar el último informe para que su app pueda consultarlo con `GET /api/results/import/partner/last`. Para eso está el **hook** `afterImport()`. En la clase base no hace nada, y `JsonResultImporter` lo sobrescribe.
 
 > [!warning]
 > El Template Method se basa en la herencia, así que cada subclase queda atada a la clase base. Si empiezas a acumular hooks o a sobrescribir medio comportamiento, es señal de que una estrategia o un callback encajan mejor. Eso es justo lo que hace Spring en el siguiente paso.
@@ -136,7 +139,7 @@ Solo la integración del partner necesita algo extra: guardar el último informe
 Tú solo pones lo que cambia: el SQL y un `RowMapper`, que dice cómo convertir **una** fila en un `Result`. Pero no heredas de nada: el paso variable llega como una lambda. Es la versión "callback" del mismo patrón.
 
 > [!spring]
-> La misma idea está en `TransactionTemplate`, `RestTemplate`, `JmsTemplate`… y en `AbstractController` o `OncePerRequestFilter`, donde sí heredas y rellenas un método.
+> La misma idea está en `TransactionTemplate` (el que usa nuestro `importAll()`), `JmsTemplate` o `RestClient`, que fija cómo se envía la petición y te deja enchufar con lambdas qué hacer con los errores o con la respuesta. Y en `AbstractController` o `OncePerRequestFilter` la ves en su forma clásica: heredas y rellenas un método.
 @describe: Dentro del contexto de Spring quedan ResultRepository y JdbcTemplate, resaltado; el repositorio le envía query(sql, rowMapper).
 
 ## @step:recap — Resumen

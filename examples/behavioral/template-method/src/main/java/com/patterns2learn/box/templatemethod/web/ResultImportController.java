@@ -3,6 +3,8 @@ package com.patterns2learn.box.templatemethod.web;
 import com.patterns2learn.box.templatemethod.CsvResultImporter;
 import com.patterns2learn.box.templatemethod.ImportReport;
 import com.patterns2learn.box.templatemethod.JsonResultImporter;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,4 +30,11 @@ public class ResultImportController {
         return json.importAll(body);  // ...different parse step
     }
     // @end
+
+    /** The partner's app polls the report of its last push (204 until there is one). */
+    @GetMapping("/api/results/import/partner/last")
+    public ResponseEntity<ImportReport> lastPartnerReport() {
+        ImportReport last = json.lastPartnerReport();
+        return last == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(last);
+    }
 }

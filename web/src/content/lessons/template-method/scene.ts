@@ -82,14 +82,14 @@ const scene: Scene = {
       visible: [...SENDERS, 'template', 'repo'],
       highlight: ['template'],
       packets: [],
-      code: { file: `${MAIN}/ResultImporter.java`, region: 'template', highlight: [1, 2, 6, 11, 15] },
+      code: { file: `${MAIN}/ResultImporter.java`, region: 'template', highlight: [1, 2, 3, 7, 12, 17] },
     },
     {
       id: 'steps',
       visible: [...SENDERS, 'csv', 'json', 'template', 'repo'],
       highlight: ['csv', 'json'],
       packets: [],
-      code: { file: `${MAIN}/CsvResultImporter.java`, region: 'csv-parse', highlight: [2, 10] },
+      code: { file: `${MAIN}/CsvResultImporter.java`, region: 'csv-parse', highlight: [4, 5, 6, 7] },
     },
     {
       id: 'spring-wiring',
@@ -131,7 +131,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: [],
       packets: [],
-      code: { file: `${MAIN}/ResultImporter.java`, region: 'template', highlight: [1, 19, 21] },
+      code: { file: `${MAIN}/ResultImporter.java`, region: 'template', highlight: [1, 21, 23] },
     },
   ],
 };
