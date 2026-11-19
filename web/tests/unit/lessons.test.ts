@@ -1,7 +1,8 @@
 import { listLessons, loadLesson } from '../../src/lib/lessons';
 
-test('listLessons returns [] when no lessons exist', async () => {
-  expect(await listLessons()).toEqual([]);
+test('listLessons returns the real lessons and never the fixtures', async () => {
+  const slugs = (await listLessons()).map((l) => l.slug);
+  expect(slugs).toEqual(['strategy']);
 });
 
 test('loadLesson rejects unknown slug', async () => {
