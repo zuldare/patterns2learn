@@ -45,12 +45,37 @@ test('home lists the start-here path with the finished lessons linked', () => {
     expect(home).toContain(`href="/${lang}/patterns/chain-of-responsibility/"`);
     expect(home).toContain(`href="/${lang}/patterns/factory-method/"`);
     expect(home).toContain(lang === 'es' ? 'Empieza aquí' : 'Start here');
-    expect(home.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)).toBeNull();
+    const soonWord = lang === 'es' ? /Próximamente/g : /Coming soon/g;
+    const start0 = home.slice(home.indexOf('class="start-here"'), home.indexOf('id="course-tree"'));
+    expect(start0.match(soonWord)).toBeNull();
     const order = ['Singleton', 'Proxy', 'Template Method', 'Strategy', 'Observer', 'Decorator', 'Chain of Responsibility', 'Factory Method'];
     const start = home.slice(home.indexOf('class="start-here"'));
     const idx = order.map((n) => start.indexOf(n));
     expect(idx.every((i) => i > 0)).toBe(true);
     expect([...idx].sort((a, b) => a - b)).toEqual(idx);
+  }
+});
+
+test('course tree shows all 23 GoF patterns, unfinished ones as coming soon', async () => {
+  const { listLessons } = await import('../../src/lib/lessons');
+  const { CATALOG } = await import('../../src/lib/catalog');
+  process.env.P2L_FIXTURES = '1'; // dist was built with the fixtures (the demo lesson sits outside the catalog)
+  const slugs = (await listLessons()).map((l) => l.slug);
+  delete process.env.P2L_FIXTURES;
+  const inCatalog = slugs.filter((s) => CATALOG.some((p) => p.slug === s)).length;
+  const done = inCatalog;
+  const extra = slugs.length - inCatalog;
+  for (const lang of ['es', 'en']) {
+    for (const page of [`${lang}/index.html`, `${lang}/patterns/strategy/index.html`]) {
+      const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
+      const tree = html.slice(html.indexOf('id="course-tree"'), html.indexOf('</aside>', html.indexOf('id="course-tree"')));
+      expect(tree.match(/class="course-tree__item[ "]/g)?.length, page).toBe(23 + extra);
+      expect(tree.match(/course-tree__item--soon/g)?.length ?? 0, page).toBe(23 - done);
+      expect(tree.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length ?? 0, page).toBe(23 - done);
+      expect(tree).toContain('Builder');
+      expect(tree).toContain('Visitor');
+      expect(tree).not.toContain(`href="/${lang}/patterns/builder/"`);
+    }
   }
 });
 

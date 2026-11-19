@@ -50,6 +50,8 @@ Desarrolladores Java que **ya usan Spring Boot** (beans, `@Service`, inyección)
 
 **Patrones:** Singleton, Factory Method, Proxy, Template Method, Strategy, Observer, Decorator y Chain of Responsibility.
 
+El árbol del curso muestra ya los 23 patrones del GoF: los que aún no tienen lección aparecen como «Próximamente» (catálogo en `web/src/lib/catalog.ts`). Tras el lanzamiento se siguen añadiendo uno a uno.
+
 **Secciones:**
 - **Learn:** las lecciones
 - **Quiz:** de 3 a 5 preguntas al final de cada lección

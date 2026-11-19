@@ -167,6 +167,8 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   box-shadow: var(--pop-shadow);
   font-weight: 500;
 }
+.course-tree__item--soon { color: var(--muted); }
+.course-tree__item--soon:hover { border-color: transparent; }
 .course-tree__meta { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
 
 /* < 1200px: without JS the tree sits after the lesson; with JS it is a drawer. */

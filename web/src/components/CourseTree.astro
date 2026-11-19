@@ -1,6 +1,7 @@
 ---
 import DoneMark from './DoneMark.astro';
-import type { Category, Lesson } from '../engine/types';
+import type { Lesson } from '../engine/types';
+import { catalogGroups } from '../lib/catalog';
 import { t, type Locale } from '../i18n';
 
 interface Props {
@@ -12,10 +13,7 @@ interface Props {
 }
 
 const { lang, lessons, current, static: isStatic = false } = Astro.props;
-const order: Category[] = ['spring', 'creational', 'structural', 'behavioral'];
-const groups = order
-  .map((cat) => ({ cat, items: lessons.filter((l) => l.category === cat) }))
-  .filter((g) => g.items.length > 0);
+const groups = catalogGroups(lessons);
 ---
 <aside class:list={['course-tree', { 'course-tree--static': isStatic }]} id="course-tree" aria-labelledby="course-tree-title">
   <div class="course-tree__head">
@@ -26,18 +24,25 @@ const groups = order
     <section class="course-tree__group">
       <h3 class="course-tree__cat">{t(lang, cat)}</h3>
       <ul role="list">
-        {items.map((l) => (
+        {items.map(({ slug, name, lesson: l }) => (
           <li>
-            <a
-              class="course-tree__item"
-              href={`/${lang}/patterns/${l.slug}/`}
-              aria-current={l.slug === current ? 'page' : undefined}
-              data-lesson-link={l.slug}
-            >
-              <span class="course-tree__name">{l.texts[lang].title}</span>
-              <DoneMark lang={lang} />
-              <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
-            </a>
+            {l ? (
+              <a
+                class="course-tree__item"
+                href={`/${lang}/patterns/${slug}/`}
+                aria-current={slug === current ? 'page' : undefined}
+                data-lesson-link={slug}
+              >
+                <span class="course-tree__name">{l.texts[lang].title}</span>
+                <DoneMark lang={lang} />
+                <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
+              </a>
+            ) : (
+              <span class="course-tree__item course-tree__item--soon">
+                <span class="course-tree__name">{name}</span>
+                <span class="course-tree__meta">{t(lang, 'comingSoon')}</span>
+              </span>
+            )}
           </li>
         ))}
       </ul>
