@@ -18,11 +18,13 @@ class WodApiTest {
     @Autowired MockMvc mvc;
 
     @Test void aBenchmarkWodWithItsTotals() throws Exception {
+        // @step:request
         mvc.perform(get("/api/wods/Murph"))
            .andExpect(status().isOk())
-           .andExpect(jsonPath("$.reps").value(600))
-           .andExpect(jsonPath("$.minutes").value(46))
+           .andExpect(jsonPath("$.reps").value(600))       // 20 × (5 + 10 + 15)
+           .andExpect(jsonPath("$.minutes").value(46))     // 2 runs + 600 reps
            .andExpect(jsonPath("$.board[2]").value("  20 rounds"));
+        // @end
         mvc.perform(get("/api/wods/fran"))
            .andExpect(status().isNotFound())
            .andExpect(jsonPath("$.error").value("unknown WOD: fran"));

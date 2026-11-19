@@ -25,7 +25,7 @@ public record Block(String title, int times, List<WorkoutPart> parts) implements
     // @step:composite
     @Override
     public int reps() {
-        return times * parts.stream().mapToInt(WorkoutPart::reps).sum();       // ask every child, whatever it is
+        return times * parts.stream().mapToInt(WorkoutPart::reps).sum();   // ask every child
     }
 
     @Override
@@ -38,7 +38,7 @@ public record Block(String title, int times, List<WorkoutPart> parts) implements
         List<String> lines = new ArrayList<>();
         lines.add(header());
         for (WorkoutPart p : parts) {
-            p.lines().forEach(line -> lines.add("  " + line));                 // children indent themselves one level
+            p.lines().forEach(line -> lines.add("  " + line));   // one level deeper
         }
         return lines;
     }

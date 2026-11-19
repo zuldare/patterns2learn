@@ -18,12 +18,10 @@ class WorkoutPartTest {
     }
 
     @Test void murphAddsUpThroughEveryLevel() {
-        // @step:totals
         WorkoutPart murph = library.find("murph").orElseThrow();
 
         assertThat(murph.reps()).isEqualTo(600);          // 20 × (5 + 10 + 15)
         assertThat(murph.seconds()).isEqualTo(2760);      // 2 runs + 600 reps
-        // @end
         assertThat(murph.lines()).containsExactly(
             "Murph",
             "  Run 1600 m",
