@@ -3,6 +3,13 @@ import { parse as parseYaml } from 'yaml';
 import type { LessonText, StepText } from '../engine/types';
 import { validateFrontmatter } from './validate';
 
+/*
+ * Lesson Markdown is first-party content rendered with `marked` at build time
+ * and injected with set:html, without sanitising. Raw HTML in a lesson file is
+ * passed through as is, so any raw HTML in content/lessons must be reviewed in
+ * the pull request that adds it. Never feed user-supplied text through here.
+ */
+
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 const STEP_RE = /^## @step:([a-z0-9-]+)\s+[—-]\s+(.+?)\s*$/;
 const DESCRIBE_RE = /^@describe:[ \t]*(.*)$/;
