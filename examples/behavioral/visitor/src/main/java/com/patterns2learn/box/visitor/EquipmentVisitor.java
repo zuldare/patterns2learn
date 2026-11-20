@@ -14,7 +14,9 @@ public class EquipmentVisitor implements WorkoutVisitor<List<String>> {
     }
 
     @Override public void visitGymnastics(Gymnastics g) {
-        if (g.name().contains("pull-up") || g.name().contains("toes-to-bar")) equipment.add("pull-up bar");
+        if (g.name().contains("pull-up") || g.name().contains("toes-to-bar")) {
+            equipment.add("pull-up bar");
+        }
     }
 
     @Override public void visitCardio(Cardio c) {
