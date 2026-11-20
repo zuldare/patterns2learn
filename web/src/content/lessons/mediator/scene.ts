@@ -19,12 +19,16 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
  * - Senders on the left (WodTimer up, FinishLine down, sx −5.5), ClassFloor in the middle (sx −0.5),
  *   receivers on the right (Music up, Screen down, sx 4.5). The coach's tablet controller further left.
+ * - The coach stands off the platform, 4.5 u left of and 10 v below its controller, so the long
+ *   "POST /api/floor/finish" pill parks on that diagonal, a row below the controller's label.
+ * - The platform hugs the blocks (1 tile margin), which puts the "Spring context" label just
+ *   right of the coach's link, below FloorController.
  * - The wired "before" devices take the timer and finish line spots and link to each other directly.
  * - spring-does-it reuses the spots: DispatcherServlet in the middle, its parts around it.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.9, y: 18.0 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 16.6, d: 17.0, h: FLOOR }, tone: 'neutral' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 7.65, y: 22.15 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 3.25, y: 3.75 }, size: { w: 14, d: 14, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'FloorController', ...at(5.5, 15.5), tone: 'neutral', icon: 'arrow-in' },
   { id: 'wiredTimer', kind: 'block', label: 'WiredTimer', ...at(4.75, 10.25), tone: 'danger', icon: 'warning' },
   { id: 'wiredFinish', kind: 'block', label: 'WiredFinishLine', ...at(10.75, 16.25), tone: 'danger', icon: 'warning' },
