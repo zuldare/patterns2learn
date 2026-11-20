@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
  * parser follows the grammar one method per rule:
  *   sequence := term ('+' term)*
  *   term     := NUMBER ('x' '(' sequence ')' | WORD)
+ * A WORD is one word, letters and inner hyphens ("air-squats"); whitespace includes tabs and new lines.
  */
 @Component
 public class WodParser {
@@ -22,7 +23,7 @@ public class WodParser {
         Cursor c = new Cursor(text);
         WodExpression wod = sequence(c, 0);
         c.skipSpaces();
-        if (!c.atEnd()) throw new InvalidWodException("unexpected '" + c.peek() + "' at position " + c.pos);
+        if (!c.atEnd()) throw c.unexpected();
         return wod;
     }
 
@@ -54,7 +55,7 @@ public class WodParser {
         }
 
         void skipSpaces() {
-            while (pos < s.length() && s.charAt(pos) == ' ') pos++;
+            while (pos < s.length() && Character.isWhitespace(s.charAt(pos))) pos++;
         }
 
         boolean atEnd() {
@@ -75,7 +76,16 @@ public class WodParser {
         }
 
         void expect(char ch) {
-            if (!accept(ch)) throw new InvalidWodException("expected '" + ch + "' at position " + pos);
+            if (accept(ch)) return;
+            if (!atEnd() && Character.isLetter(peek())) throw unexpected();
+            throw new InvalidWodException("expected '" + ch + "' at position " + pos);
+        }
+
+        /** The error for whatever sits at the cursor; a letter means a movement name with spaces. */
+        InvalidWodException unexpected() {
+            if (Character.isLetter(peek())) return new InvalidWodException("movement names are one word (use hyphens) at position " + pos);
+            String ch = new String(Character.toChars(s.codePointAt(pos)));       // whole emoji, never half
+            return new InvalidWodException("unexpected '" + ch + "' at position " + pos);
         }
 
         int number() {
@@ -84,15 +94,18 @@ public class WodParser {
             while (!atEnd() && Character.isDigit(peek())) pos++;
             if (start == pos) throw new InvalidWodException("expected a number at position " + start);
             String digits = s.substring(start, pos);
-            int n = digits.length() > 4 ? Integer.MAX_VALUE : Integer.parseInt(digits);
-            if (n < 1 || n > 1000) throw new InvalidWodException("numbers must be between 1 and 1000");
+            String significant = digits.replaceFirst("^0+", "");
+            int n = significant.isEmpty() ? 0 : significant.length() > 4 ? Integer.MAX_VALUE : Integer.parseInt(significant);
+            if (n < 1 || n > 1000) throw new InvalidWodException("numbers must be between 1 and 1000 at position " + start);
             return n;
         }
 
         String word() {
             skipSpaces();
             int start = pos;
-            while (!atEnd() && (Character.isLetter(peek()) || (pos > start && peek() == '-'))) pos++;
+            // letters, and hyphens only between letters: "pull-ups", never "pull-"
+            while (!atEnd() && (Character.isLetter(peek())
+                    || (pos > start && peek() == '-' && pos + 1 < s.length() && Character.isLetter(s.charAt(pos + 1))))) pos++;
             if (start == pos) throw new InvalidWodException("expected a movement or 'x' at position " + start);
             return s.substring(start, pos).toLowerCase(Locale.ROOT);
         }

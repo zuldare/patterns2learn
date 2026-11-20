@@ -17,8 +17,8 @@ recap:
     - It works the same at any depth, because the tree walks itself
   cons:
     - With big grammars, that's a lot of classes; there a parser generator like ANTLR pays off
-    - A new operation (like validating or printing) means touching every class
-    - Walking a tree of objects is slower than an optimised interpreter
+    - A new operation (like validating or printing) means touching every class, unless you use a switch over the sealed type or a Visitor
+    - Walking a tree of objects is slower than compiled code; SpEL, for example, has a mode that compiles hot expressions to bytecode
   related:
     - Composite
     - Visitor
@@ -26,12 +26,12 @@ recap:
 quiz:
   - q: In "2 x (5 pull-ups + 10 burpees)", what is a terminal expression?
     options:
-      - The "2 x ( … )" that repeats the rounds
-      - The "+" that joins both movements
-      - The "10 burpees", which contains nothing else
-      - The parenthesis that closes the round
+      - The "2 x ( … )" for the rounds
+      - The "+" between the movements
+      - The "10 burpees"
+      - The 2 that sets the rounds
     answer: 2
-    explain: A terminal contains no other expressions. Repeat and Sequence do contain them, so they're nonterminals.
+    explain: A terminal contains no other expressions. Repeat and Sequence do contain them, so they're nonterminals; the 2 is just a piece of data in Repeat.
   - q: Coaches want to write "21-15-9 thrusters". What do you change?
     options:
       - One more if in Movement's interpret()
@@ -39,19 +39,19 @@ quiz:
       - The Tally, so it can count ladders
       - Nothing, the parser already understands it
     answer: 1
-    explain: Each grammar rule is a class. A rep ladder is a new rule, with its expression and its method in the parser; the other classes don't change.
+    explain: The clean way is a new expression for the ladder, with its method in the parser; the other classes don't change. (The parser could also translate it into a Sequence of three Movements, with no new class.)
   - q: Why does Repeat pass factor × times to its body instead of adding itself?
     options:
-      - Because Repeat has no access to the Tally
-      - Because that way it runs in parallel
-      - Because the parser won't let it touch the Tally
+      - So the Tally doesn't need to know about rounds
+      - So each Movement can be reused in other WODs
+      - So the same reps aren't added twice
       - So nested rounds multiply on their own
     answer: 3
     explain: Each level multiplies the factor it gets. "2 x (3 x (5 pull-ups))" reaches Movement with factor 6, without anyone counting levels.
   - q: What makes a Spring SpEL expression an Interpreter?
     options:
-      - It's parsed into a tree of nodes that evaluate themselves
-      - It's compiled to bytecode before every call
+      - It's turned into a tree of nodes that evaluate themselves
+      - It's compiled to bytecode before every single call
       - It's translated to SQL and run in the database
       - It's kept as text and evaluated with regular expressions
     answer: 0
@@ -63,7 +63,7 @@ Coaches write WODs in their own notation: "3 x (10 burpees + 15 air-squats)". Th
 The first version, `SplitCounter`, uses a regular expression to strip one "N x ( … )" and splits the rest on the "+". With one round it works: 30 burpees and 45 air-squats.
 
 > [!problem]
-> The text has structure (rounds inside rounds), but the code treats it as a flat string.
+> This notation is a small language, with rounds inside rounds, but the code treats it as a flat string.
 @describe: SplitCounter, highlighted in red, gets "3 x (10 burpees + …)" from the controller and chops it up with regular expressions.
 
 ## @step:smell — Nesting gets lost
@@ -91,23 +91,25 @@ The `Tally` is the pattern's **context**: the place where the expressions leave 
 @describe: The tree's two leaves, Movement 10 burpees and Movement 15 air-squats, highlighted; the first adds its reps to the Tally.
 
 ## @step:repeat — Rules that contain others
-`Repeat` ("3 x ( … )") and `Sequence` ("a + b") are **nonterminal expressions**: they contain others. `Sequence` interprets its parts one after another. `Repeat` interprets its body with the factor multiplied by its rounds.
+`Repeat` ("3 x ( … )") and `Sequence` ("a + b") are **nonterminal expressions**: they contain others. `Repeat` interprets its body with the factor multiplied by its rounds (and `Sequence`, its parts one after another, with the same factor).
 
 So in "2 x (3 x (5 pull-ups))" the movement gets factor 6 without anyone counting levels.
+
+(In the book, `interpret` takes only the context. The factor could live in the `Tally`, with `Repeat` pushing and popping a multiplier; passing it as an argument keeps the context a plain accumulator.)
 @describe: Repeat 3 x, highlighted, passes Sequence the factor multiplied by 3.
 
 ## @step:tree — A sentence is a tree
 "3 x (10 burpees + 15 air-squats)" is this tree: a `Repeat` of 3 with a `Sequence` inside, and two `Movement`s as leaves. The test builds it by hand and interprets it: 75 reps.
 
-The shape is a **Composite**'s: leaves and nodes that contain nodes, all with the same operation.
+The shape is a **Composite**'s: leaves and nodes that contain nodes, all with the same operation. The difference is where the classes come from: here they come from the **grammar** (`Sequence` exists because the notation has `+`, not because the box groups anything), the tree stands for a sentence of a language and it's interpreted against a context. The same tree could be read with another context, say one that draws it on the whiteboard.
 @describe: The whole tree highlighted: Repeat calls Sequence with factor 3 and Sequence calls its two movements.
 
 ## @step:parser — From text to tree
-Nobody writes trees by hand: `WodParser` turns the text into the tree. It has one method per grammar rule (`sequence` and `term`), and each one calls itself where the grammar is recursive.
+Nobody writes trees by hand: `WodParser` turns the text into the tree. It has one method per grammar rule (`sequence` and `term`), and they call each other where the grammar is recursive. Movement names are a single word, with hyphens (`air-squats`).
 
-If the text is wrong, it says where: "expected ')' at position 15". And it sets limits: 200 characters, 5 levels of rounds and 100,000 reps.
+If the text is wrong, it says where: "expected ')' at position 15". The parser caps the length (200 characters), the depth (5 levels) and the numbers (1 to 1000); the `Tally` refuses more than 100,000 reps.
 
-With the tree, the case that broke the earlier version works: "2 x (3 x (5 pull-ups) + 10 burpees)" gives 30 pull-ups and 20 burpees, and no class knows how deep it is.
+With the tree, the case that broke the earlier version works: "2 x (3 x (5 pull-ups) + 10 burpees)" gives 30 pull-ups and 20 burpees, and no expression knows how deep it is.
 
 > [!key-idea]
 > The original pattern doesn't include the parser: it describes the tree and how it's interpreted. Building it is another problem, solved here with a few lines of recursive descent.
@@ -133,9 +135,9 @@ You started chopping text with regular expressions and ended up with:
 - **A terminal**, `Movement`, and **two nonterminals**, `Sequence` and `Repeat`.
 - **A context**, `Tally`, where the result builds up, and a parser that builds the tree.
 
-Its neighbours: the structure is a **Composite**; if you need many different operations over the tree (counting, validating, printing), a **Visitor** takes them out of the classes. And an **Iterator** can walk the tree without interpreting it.
+Its neighbours: the structure is a **Composite**, but Composite is about part–whole objects and Interpreter about giving meaning to the sentences of a grammar. If you need many different operations over the tree (counting, validating, printing), a **Visitor**, or a `switch` over the `sealed` interface, takes them out of the classes. And an **Iterator** can walk the tree without interpreting it.
 
-When not to use it: if the grammar is big or changes a lot, a parser generator (ANTLR) or an existing language (SpEL, JSON with a schema) saves you writing dozens of classes. And if there's no nesting, there's no grammar to model: splitting the text is enough.
+When not to use it: if the grammar is big or changes a lot, a parser generator (ANTLR) or an existing language (SpEL, JSON with a schema) saves you writing dozens of classes. And if there's no nesting, there's no recursion to model: splitting the text is enough.
 
 > [!key-idea]
 > When a text has rules that nest, turn it into a tree and let each node know how to evaluate itself.

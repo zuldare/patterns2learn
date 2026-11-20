@@ -30,6 +30,8 @@ class WodApiTest {
     @Test void errorsKeepTheUsualShape() throws Exception {
         mvc.perform(post("/api/wods/totals").contentType(MediaType.APPLICATION_JSON).content("{\"wod\":\"3 x (10 burpees\"}"))
            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("expected ')' at position 15"));
+        mvc.perform(post("/api/wods/totals").contentType(MediaType.APPLICATION_JSON).content("{\"wod\":\"10 burpees \uD83D\uDE00\"}"))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("unexpected '\uD83D\uDE00' at position 11"));
         mvc.perform(post("/api/wods/totals").contentType(MediaType.APPLICATION_JSON).content("{}"))
            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("the workout is empty"));
         mvc.perform(post("/api/wods/totals").contentType(MediaType.APPLICATION_JSON).content("{\"wod\":"))
