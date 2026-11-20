@@ -16,24 +16,29 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - A line that runs left to right on screen (+x, -y): controller → ScheduleService → ClassSession.Builder → ClassSession.
+ * Layout notes. Screen coordinates: sx = x − y (horizontal), sy = x + y (vertical):
+ * - The request zigzags left to right over two rows 7 apart in sy (enough for a long packet to park on
+ *   a diagonal between a block and the next block's label): controller (sx −5, sy 8) → ScheduleService
+ *   down a row (sx −1, sy 15) → ClassSession.Builder back up (sx 3, sy 8) → ClassSession (sx 8.6, sy 8).
+ * - The coach stands well below-left of the controller (sx −10, sy 18), off the platform, so its packet
+ *   parks lower than the controller → service one.
  * - The two "before" shapes (telescoping constructor, setters) take ScheduleService's spot.
- * - SessionTemplates (the director) sits above the builder on screen (-x, -y) and feeds it.
+ * - SessionTemplates (the director) sits straight above the builder (sx 3, sy 1) and feeds it.
  * - RestClient.Builder and RestClient only appear in spring-does-it, in the builder and product spots.
+ * - The platform hugs the blocks (x 0 → 9.8, y −2.5 → 9.5).
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 0.6, y: 11.2 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 11.4, d: 10.0, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'SessionController', ...at(1.6, 8.6), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'telescoping', kind: 'block', label: 'TelescopingSession', ...at(4.4, 6.4), tone: 'danger', icon: 'warning' },
-  { id: 'mutable', kind: 'block', label: 'MutableSession', ...at(4.4, 6.4), tone: 'danger', icon: 'warning' },
-  { id: 'service', kind: 'block', label: 'ScheduleService', ...at(4.4, 6.4), tone: 'neutral', icon: 'gear' },
-  { id: 'builder', kind: 'block', label: 'ClassSession.Builder', ...at(7.2, 4.2), tone: 'neutral', icon: 'plus' },
-  { id: 'session', kind: 'block', label: 'ClassSession', ...at(10.2, 2.0), tone: 'accent', icon: 'calendar' },
-  { id: 'templates', kind: 'block', label: 'SessionTemplates', ...at(3.0, 0.6), tone: 'neutral', icon: 'board' },
-  { id: 'restBuilder', kind: 'block', label: 'RestClient.Builder', ...at(7.2, 4.2), tone: 'accent', icon: 'plus' },
-  { id: 'restClient', kind: 'block', label: 'RestClient', ...at(10.2, 2.0), tone: 'accent', icon: 'arrow-in' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.4, y: 13.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: -2.5 }, size: { w: 9.8, d: 12, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'SessionController', ...at(1.5, 6.5), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'telescoping', kind: 'block', label: 'TelescopingSession', ...at(7, 8), tone: 'danger', icon: 'warning' },
+  { id: 'mutable', kind: 'block', label: 'MutableSession', ...at(7, 8), tone: 'danger', icon: 'warning' },
+  { id: 'service', kind: 'block', label: 'ScheduleService', ...at(7, 8), tone: 'neutral', icon: 'gear' },
+  { id: 'builder', kind: 'block', label: 'ClassSession.Builder', ...at(5.5, 2.5), tone: 'neutral', icon: 'plus' },
+  { id: 'session', kind: 'block', label: 'ClassSession', ...at(8.3, -0.3), tone: 'accent', icon: 'calendar' },
+  { id: 'templates', kind: 'block', label: 'SessionTemplates', ...at(2, -1), tone: 'neutral', icon: 'board' },
+  { id: 'restBuilder', kind: 'block', label: 'RestClient.Builder', ...at(5.5, 2.5), tone: 'accent', icon: 'plus' },
+  { id: 'restClient', kind: 'block', label: 'RestClient', ...at(8.3, -0.3), tone: 'accent', icon: 'arrow-in' },
 ];
 
 const SPRING = ['context', 'coach', 'controller', 'service', 'templates', 'builder', 'session'];
