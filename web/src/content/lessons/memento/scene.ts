@@ -21,10 +21,13 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  *   history (caretaker, down) at sx −1; two snapshots to the right of the history (sx 4.5).
  * - Before: ExposedDraftEditor in the service's spot, ExposedDraft in the draft's spot.
  * - spring-does-it: the transaction in the service's spot, the table in the draft's, the savepoint as a snapshot.
+ * - The coach stands below-left of the controller (sx −14, sy 15.5), off the platform's front edge, so the long
+ *   "POST /api/draft/undo" packet parks on the diagonal, clear of both; the platform hugs the blocks
+ *   (x 4.5 → 19.75, y 6.5 → 17.5) and its label sits between the coach and DraftHistory.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 4.4, y: 18.5 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 19.0, d: 17.0, h: FLOOR }, tone: 'neutral' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 7.9, y: 21.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 4.5, y: 6.5 }, size: { w: 15.25, d: 11, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'DraftController', ...at(6.0, 16.0), tone: 'neutral', icon: 'arrow-in' },
   { id: 'editor', kind: 'block', label: 'ExposedDraftEditor', ...at(8.25, 13.75), tone: 'danger', icon: 'warning' },
   { id: 'exposed', kind: 'block', label: 'ExposedDraft (getters + setters)', ...at(7.0, 8.0), tone: 'danger', icon: 'board' },
