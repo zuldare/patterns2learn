@@ -1,4 +1,4 @@
-import { fitViewBox, itemState, packetMarkup, packetWidth, parseBox, type Box, type ViewBox } from './render';
+import { fitViewBox, itemState, packetBox, packetMarkup, packetWidth, parseBox, type Box, type ViewBox } from './render';
 import { tween, type Tween } from './tween';
 import type { Packet, Scene, SceneStep } from './types';
 
@@ -130,6 +130,13 @@ export class LessonPlayer {
     for (const el of svg.querySelectorAll<SVGGElement>('.iso-entity:not(.is-hidden)')) {
       const b = parseBox(el.dataset.bbox);
       if (b) visible.push(b);
+    }
+    // Packets park mid-link: keep their pills in frame too, so a long message is never cut by the canvas edge.
+    for (const pk of this.scene.steps[this.current].packets) {
+      const link = svg.querySelector<SVGGElement>(`.iso-link[data-id="${cssEscape(pk.link)}"]`);
+      const mx = Number(link?.dataset.mx);
+      const my = Number(link?.dataset.my);
+      if (Number.isFinite(mx) && Number.isFinite(my) && link) visible.push(packetBox(mx, my, pk.label));
     }
     const to = fitViewBox(visible, full);
     const from = parseView(svg.getAttribute('viewBox') ?? undefined) ?? to;

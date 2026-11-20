@@ -25,7 +25,7 @@ export function escapeXml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-type StepState = Pick<SceneStep, 'visible' | 'highlight'>;
+type StepState = Pick<SceneStep, 'visible' | 'highlight'> & { packets?: SceneStep['packets'] };
 
 /**
  * Visibility and highlight of one scene item at a step: an entity is shown when
@@ -64,6 +64,12 @@ export const PACKET_H = 16;
 /** Width of a packet pill for `text` (keep in sync with `.iso-packet text` in engine.css). */
 export function packetWidth(text: string): number {
   return Math.ceil(text.length * PACKET_FONT * 0.62 + 14);
+}
+
+/** Box of a packet pill parked at (mx, my), the middle of its drawn link: the camera keeps it in frame. */
+export function packetBox(mx: number, my: number, text: string): Box {
+  const w = packetWidth(text) / 2;
+  return { minX: mx - w, minY: my - PACKET_H / 2, maxX: mx + w, maxY: my + PACKET_H / 2 };
 }
 
 /** Pill markup centred on (0, cy); `cls` prefixes the rect/text classes. */
@@ -241,7 +247,7 @@ const MARKER: Record<Link['style'], string> = {
 /** Sideways shift (px) of each of two links that join the same pair in opposite directions. */
 export const TWIN_OFFSET = 11;
 
-function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState, twin = false): string {
+function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState, twin = false, mids?: Map<string, ScreenPoint>): string {
   const from = byId.get(l.from);
   const to = byId.get(l.to);
   if (!from || !to) throw new Error(`link "${l.id}" references a missing entity`);
@@ -266,9 +272,11 @@ function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState, twin =
   const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t + ox, sy: c1.sy + (c2.sy - c1.sy) * t + oy });
   const p1 = at(t1);
   const p2 = at(t2);
+  const mid = { sx: (p1.sx + p2.sx) / 2, sy: (p1.sy + p2.sy) / 2 };
+  mids?.set(l.id, mid);
   return (
     `<g class="iso-link${stateClasses(step, l)} style-${l.style}" data-id="${escapeXml(l.id)}" data-from="${escapeXml(l.from)}" data-to="${escapeXml(l.to)}" ` +
-    `data-x1="${n(c1.sx + ox)}" data-y1="${n(c1.sy + oy)}" data-x2="${n(c2.sx + ox)}" data-y2="${n(c2.sy + oy)}">` +
+    `data-x1="${n(c1.sx + ox)}" data-y1="${n(c1.sy + oy)}" data-x2="${n(c2.sx + ox)}" data-y2="${n(c2.sy + oy)}" data-mx="${n(mid.sx)}" data-my="${n(mid.sy)}">` +
     `<path id="path-${escapeXml(l.id)}" class="iso-link-line" d="M${pt(p1)} L${pt(p2)}" marker-end="${MARKER[l.style]}"/>` +
     `</g>`
   );
@@ -318,8 +326,15 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     .map(({ p }) => p);
 
   const bounds = new Map(placed.map(p => [p.e.id, entityBounds(p)]));
+  const mids = new Map<string, ScreenPoint>();
+  const linksSvg = scene.links.map(l => linkMarkup(l, byId, step, scene.links.some(o => o.from === l.to && o.to === l.from), mids)).join('');
+  const packetBoxes = (s: StepState) =>
+    (s.packets ?? []).flatMap(pk => {
+      const m = mids.get(pk.link);
+      return m ? [packetBox(m.sx, m.sy, pk.label)] : [];
+    });
   const box: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-  for (const b of bounds.values()) {
+  for (const b of [...bounds.values(), ...scene.steps.flatMap(packetBoxes)]) {
     grow(box, { sx: b.minX, sy: b.minY });
     grow(box, { sx: b.maxX, sy: b.maxY });
   }
@@ -333,7 +348,7 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     full[3] = h;
   }
   // A baked step is framed like the player frames it, so the first paint doesn't jump when the script mounts.
-  const vb = step ? fitViewBox(placed.filter(p => !itemState(step, { id: p.e.id }).hidden).map(p => bounds.get(p.e.id)!), full) : full;
+  const vb = step ? fitViewBox([...placed.filter(p => !itemState(step, { id: p.e.id }).hidden).map(p => bounds.get(p.e.id)!), ...packetBoxes(step)], full) : full;
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" class="iso-scene" role="img"` +
     (label !== undefined ? ` aria-label="${escapeXml(label)}"` : '') +
@@ -341,7 +356,7 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     ` viewBox="${vb.map(n).join(' ')}" data-full-view="${full.map(n).join(' ')}">` +
     DEFS +
     `<g class="iso-entities">${ordered.map(p => entityMarkup(p, bounds.get(p.e.id)!, step)).join('')}</g>` +
-    `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step, scene.links.some(o => o.from === l.to && o.to === l.from))).join('')}</g>` +
+    `<g class="iso-links">${linksSvg}</g>` +
     `<g class="iso-packets"></g>` +
     `</svg>`
   );
