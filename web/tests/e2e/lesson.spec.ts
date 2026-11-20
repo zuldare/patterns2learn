@@ -125,7 +125,8 @@ test('on a short viewport the sticky step panel keeps Next reachable', async ({ 
 test.describe('with motion enabled', () => {
   test.use({ reducedMotion: 'no-preference' });
 
-  for (const [presses, step, packets] of [[5, 'request', 3], [6, 'extend', 0]] as const) {
+  // request sends 3 packets, but the reply replaces the request on the controller→service link: 2 remain.
+  for (const [presses, step, packets] of [[5, 'request', 2], [6, 'extend', 0]] as const) {
     test(`rapid ArrowRight ×${presses} during packets settles on ${step} with ${packets} packet(s)`, async ({ page }) => {
       await page.goto('/en/patterns/strategy/');
       const lesson = page.locator('[data-lesson]');

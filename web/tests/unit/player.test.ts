@@ -75,20 +75,36 @@ test('leaving a packet step mid-animation removes its packet', async () => {
   await vi.runAllTimersAsync();
   expect(root.querySelectorAll('.iso-packets > *').length).toBe(0);
 });
-test('animated packet rests at the destination end of its link', async () => {
+const mid = (link: SVGGElement) =>
+  `translate(${(Number(link.dataset.x1) + Number(link.dataset.x2)) / 2} ${(Number(link.dataset.y1) + Number(link.dataset.y2)) / 2})`;
+test('animated packet parks in the middle of its link, clear of both entities', async () => {
   const { root, p } = mount(); p.goTo(indexWithPackets);
   await vi.runAllTimersAsync();
   const link = root.querySelector<SVGGElement>('.iso-link[data-id="l-call"]')!;
   const pk = root.querySelector('.iso-packets > *')!;
   expect(pk.textContent).toContain('plan=monthly');
-  expect(pk.getAttribute('transform')).toBe(`translate(${link.dataset.x2} ${link.dataset.y2})`);
+  expect(pk.getAttribute('transform')).toBe(mid(link));
 });
-test('reverse packet rests at the link origin', async () => {
-  const { root, p } = mount(); p.goTo(5);
-  await vi.runAllTimersAsync();
+test('a packet starts at its source end: the origin, or the destination when reversed', async () => {
+  const { root, p } = mount(); p.goTo(indexWithPackets);
+  await vi.advanceTimersByTimeAsync(0);
   const link = root.querySelector<SVGGElement>('.iso-link[data-id="l-call"]')!;
-  const pk = root.querySelector('.iso-packets > *')!;
-  expect(pk.getAttribute('transform')).toBe(`translate(${link.dataset.x1} ${link.dataset.y1})`);
+  expect(root.querySelector('.iso-packets > *')!.getAttribute('transform')).toBe(`translate(${link.dataset.x1} ${link.dataset.y1})`);
+  p.goTo(5);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(root.querySelector('.iso-packets > *')!.getAttribute('transform')).toBe(`translate(${link.dataset.x2} ${link.dataset.y2})`);
+  await vi.runAllTimersAsync();
+  expect(root.querySelector('.iso-packets > *')!.getAttribute('transform')).toBe(mid(link));
+});
+test('a new packet on a link replaces the one resting there', async () => {
+  const root = document.createElement('div');
+  const twice = { ...scene, steps: [{ ...scene.steps[indexWithPackets], packets: [{ link: 'l-call', label: 'ask' }, { link: 'l-call', label: 'answer', reverse: true }] }] };
+  root.innerHTML = renderScene(twice);
+  document.body.append(root);
+  players.push(new LessonPlayer(root, twice, { reducedMotion: true }));
+  const packets = root.querySelectorAll('.iso-packets > *');
+  expect(packets.length).toBe(1);
+  expect(packets[0].textContent).toBe('answer');
 });
 test('reduced motion places packets at destination without animating', () => {
   const raf = vi.spyOn(window, 'requestAnimationFrame');

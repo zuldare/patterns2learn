@@ -1,4 +1,4 @@
-import { fitViewBox, MARGIN, MIN_ZOOM, parseBox, renderScene, type ViewBox } from '../../src/engine/render';
+import { fitViewBox, MARGIN, MIN_ZOOM, PACKET_H, PILL_H, packetMarkup, packetWidth, parseBox, pillWidth, renderScene, type ViewBox } from '../../src/engine/render';
 import type { Entity, Scene } from '../../src/engine/types';
 import { scene } from './fixtures/scene';
 
@@ -161,4 +161,11 @@ test('entities carry their bounds and a baked step is framed like the player fra
   const bbox = parseBox(one.match(/data-id="a" data-bbox="([^"]+)"/)![1])!;
   expect(bbox.maxX).toBeGreaterThan(bbox.minX);
   expect(parseBox('1 2 x 4')).toBeNull();
+});
+
+test('packets are a size smaller than labels', () => {
+  expect(packetWidth('latestBeat("PB-0042")')).toBeLessThan(pillWidth('latestBeat("PB-0042")'));
+  const m = packetMarkup('x');
+  expect(m).toContain(`height="${PACKET_H}"`);
+  expect(PACKET_H).toBeLessThan(PILL_H);
 });

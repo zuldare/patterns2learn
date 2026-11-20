@@ -50,12 +50,21 @@ function stateClasses(step: StepState | undefined, item: { id: string; from?: st
   return (hidden ? ' is-hidden' : '') + (highlighted ? ' is-highlighted' : '');
 }
 
-/** Width of a label pill for `text`, shared by entity labels and packets. */
+/** Width of a label pill for `text`. */
 export function pillWidth(text: string): number {
   return Math.ceil(text.length * CHAR_W + 18);
 }
 
 export const PILL_H = 20;
+
+/** Packets are a size smaller than labels so a message never reads as another component. */
+export const PACKET_FONT = 9.5;
+export const PACKET_H = 16;
+
+/** Width of a packet pill for `text` (keep in sync with `.iso-packet text` in engine.css). */
+export function packetWidth(text: string): number {
+  return Math.ceil(text.length * PACKET_FONT * 0.62 + 14);
+}
 
 /** Pill markup centred on (0, cy); `cls` prefixes the rect/text classes. */
 export function pillMarkup(text: string, cls: string, fill: string, cy = 0): string {
@@ -227,9 +236,13 @@ const DEFS =
   '<path d="M1,5 L7,1 L13,5 L7,9 Z" style="fill:var(--ink);fill:context-stroke"/></marker>' +
   '</defs>';
 
-/** Packet markup: a label pill centred on (0,0), moved along a link by the player. */
+/** Packet markup: a small pill centred on (0,0), moved along a link by the player. */
 export function packetMarkup(label: string): string {
-  return pillMarkup(label, 'iso-packet', 'var(--accent-soft)');
+  const w = packetWidth(label);
+  return (
+    `<rect class="iso-packet-pill" x="${n(-w / 2)}" y="${n(-PACKET_H / 2)}" width="${w}" height="${PACKET_H}" rx="${PACKET_H / 2}" style="fill:var(--accent-soft)"/>` +
+    `<text class="iso-packet-text" x="0" y="0" dy="0.35em" text-anchor="middle" style="fill:var(--ink)">${escapeXml(label)}</text>`
+  );
 }
 
 export type RenderOptions = {

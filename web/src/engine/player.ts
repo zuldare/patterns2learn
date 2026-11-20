@@ -1,4 +1,4 @@
-import { fitViewBox, itemState, packetMarkup, parseBox, pillWidth, type Box, type ViewBox } from './render';
+import { fitViewBox, itemState, packetMarkup, packetWidth, parseBox, type Box, type ViewBox } from './render';
 import { tween, type Tween } from './tween';
 import type { Packet, Scene, SceneStep } from './types';
 
@@ -6,7 +6,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export const PACKET_MS = 600;
 /** How long the camera takes to reframe between steps. */
 export const ZOOM_MS = 450;
-/** Gap kept between a resting packet pill and the link end (arrowheads are 10–14 px). */
+/** Gap kept between a departing packet pill and the link end it leaves (arrowheads are 10–14 px). */
 const ARROW_CLEARANCE = 14;
 
 export type LessonPlayerOptions = {
@@ -172,32 +172,40 @@ export class LessonPlayer {
     const path = link.querySelector<SVGPathElement>('path');
     const [start, end] = packet.reverse ? [b, a] : [a, b];
 
+    // A new message on a link replaces the one resting there (a reply takes the request's place).
+    for (const old of this.packetLayer.querySelectorAll<SVGGElement>('.iso-packet')) {
+      if (old.dataset.link === packet.link) old.remove();
+    }
     const el = document.createElementNS(SVG_NS, 'g');
     el.setAttribute('class', 'iso-packet');
     el.dataset.link = packet.link;
     el.innerHTML = packetMarkup(packet.label);
     this.packetLayer.append(el);
 
-    // In browsers the pill follows the drawn path, inset by half its width at
-    // both ends so at rest it sits on the link just before the arrowhead
-    // instead of covering the entity or its label. happy-dom has no
-    // getPointAtLength, so there it interpolates between the stored endpoints.
-    const inset = pillWidth(packet.label) / 2 + ARROW_CLEARANCE;
+    // In browsers the pill leaves its source (inset by half its width, so it
+    // starts clear of the figure) and parks in the middle of the drawn path,
+    // like a label on the arrow: as far as it can be from both entities and
+    // their labels. happy-dom has no getPointAtLength, so there it interpolates
+    // from the source to the midpoint of the stored endpoints.
+    const inset = packetWidth(packet.label) / 2 + ARROW_CLEARANCE;
+    const mid = lerp(start, end, 0.5);
     const at = (t: number) => {
-      const p = pointOnPath(path, packet.reverse ? 1 - t : t, inset) ?? lerp(start, end, t);
+      const p = pointOnPath(path, t, inset, !!packet.reverse) ?? lerp(start, mid, t);
       el.setAttribute('transform', `translate(${round(p.x)} ${round(p.y)})`);
     };
     return at;
   }
 }
 
-function pointOnPath(path: SVGPathElement | null, t: number, inset: number): Pt | null {
+/** Point at travel progress `t` from the source end (inset) to the middle of the path. */
+function pointOnPath(path: SVGPathElement | null, t: number, inset: number, reverse: boolean): Pt | null {
   if (!path || typeof path.getTotalLength !== 'function' || typeof path.getPointAtLength !== 'function') return null;
   try {
     const total = path.getTotalLength();
     if (!(total > 0)) return null;
     const pad = Math.min(inset, total / 2);
-    const p = path.getPointAtLength(pad + t * (total - 2 * pad));
+    const along = pad + t * (total / 2 - pad);
+    const p = path.getPointAtLength(reverse ? total - along : along);
     return { x: p.x, y: p.y };
   } catch {
     return null;
