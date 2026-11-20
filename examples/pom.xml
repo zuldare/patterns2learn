@@ -61,5 +61,6 @@
     <module>behavioral/iterator</module>
     <module>behavioral/mediator</module>
     <module>behavioral/visitor</module>
+    <module>behavioral/memento</module>
   </modules>
 </project>
