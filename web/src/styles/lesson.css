@@ -246,10 +246,12 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 /* ---------- ≥ 960px: canvas column + text column ---------- */
 
 @media (min-width: 960px) {
+  /* Width of the step-text column, shared by .lesson__main and .lesson-end so the quiz lines up with the diagram. */
+  .lesson { --text-col: minmax(280px, 340px); }
   .lesson-shell { padding: 24px; }
   .lesson { gap: 32px; }
   .lesson__main {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    grid-template-columns: minmax(0, 1fr) var(--text-col);
     grid-template-areas:
       "head text"
       "canvas text"
@@ -282,7 +284,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   .course-tree { position: sticky; top: 24px; }
   /* Tree + text columns leave the diagram little room up to ~1440px: slim both there. */
   .lesson-shell { grid-template-columns: 200px minmax(0, 1fr); }
-  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); }
+  .lesson { --text-col: minmax(260px, 300px); }
   .site-header .tree-toggle,
   .course-tree .course-tree__close { display: none; }
 }
@@ -296,7 +298,12 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 /* ---------- Lesson end: quiz + donate ---------- */
 
 /* minmax(0, 1fr): a long word in a quiz option wraps instead of widening the column past a 320px screen. */
-.lesson-end { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; max-width: 760px; min-width: 0; }
+.lesson-end { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; min-width: 0; }
+/* ≥ 960px: same columns as .lesson__main, content in the first one, so the quiz is exactly as wide as the diagram and code. */
+@media (min-width: 960px) {
+  .lesson-end { grid-template-columns: minmax(0, 1fr) var(--text-col); column-gap: 20px; }
+  .lesson-end > * { grid-column: 1; }
+}
 .step-text__sheet { margin: 12px 0 0; }
 .lesson-end__run { margin: 0; }
 
@@ -348,5 +355,5 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 /* ≥ 1440px: room again for the roomier tree and text columns. */
 @media (min-width: 1440px) {
   .lesson-shell { grid-template-columns: 220px minmax(0, 1fr); }
-  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
+  .lesson { --text-col: minmax(280px, 340px); }
 }
