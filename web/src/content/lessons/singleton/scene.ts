@@ -23,13 +23,15 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  *   two copies read as two separate objects; classic and the Spring catalog share
  *   one central spot (never visible together).
  * - The timers only appear in spring-does-it, alone with the catalog.
+ * - BookingService sits ~5.4 u left of and ~5.4 v below the catalog, so a
+ *   "find Murph" pill parks on its link between the two labels, clear of both.
  */
 const entities: Entity[] = [
   { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 1.0, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
   { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 13.4, y: 8.0 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
   { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'WodController', ...at(2.5, 6.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'booking', kind: 'block', label: 'BookingService', ...at(7.2, 7.2), tone: 'neutral', icon: 'calendar' },
+  { id: 'booking', kind: 'block', label: 'BookingService', ...at(7.0, 8.0), tone: 'neutral', icon: 'calendar' },
   { id: 'catalogA', kind: 'block', label: 'WodCatalog #1', ...at(3.0, 2.4), tone: 'warn', icon: 'board' },
   { id: 'catalogB', kind: 'block', label: 'WodCatalog #2', ...at(10.6, 5.4), tone: 'warn', icon: 'board' },
   { id: 'classic', kind: 'block', label: 'ClassicWodCatalog', ...at(7.0, 2.6), tone: 'danger', icon: 'board' },
