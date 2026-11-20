@@ -184,15 +184,27 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 /* ---------- Course tree ---------- */
 
-/* The tree is its own card; "Curso" and each category fold with <details>. */
-.course-tree {
-  position: relative;
+/* The tree column holds two cards of the same shape: "Curso" (theory) and "Chuletas" (cheatsheets),
+   the latter tinted with the theme's amber so the two never get mixed up. Each card and each
+   category fold with <details>. */
+.course-tree { position: relative; display: grid; gap: 16px; align-content: start; }
+.tree-card {
   padding: 14px;
   background: var(--surface);
   border: 1.5px solid var(--ink);
   border-radius: var(--radius);
   box-shadow: var(--pop-shadow);
 }
+.tree-card--sheets {
+  --sheet: var(--warn);
+  background: color-mix(in srgb, var(--sheet) 9%, var(--surface));
+  border-color: var(--sheet);
+  box-shadow: 2px 3px 0 var(--sheet);
+}
+.tree-card--sheets .course-tree__title { color: var(--ink); }
+.tree-card--sheets .course-tree__title::before { content: "▤ "; color: var(--sheet); }
+.tree-card--sheets .course-tree__item:hover { border-color: var(--sheet); }
+.tree-card--sheets .course-tree__meta { color: var(--sheet); }
 .course-tree summary { list-style: none; cursor: pointer; }
 .course-tree summary::-webkit-details-marker { display: none; }
 .course-tree summary::before {
@@ -247,6 +259,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 @media (max-width: 1199.98px) {
   .course-tree { order: 2; }
   html.js .course-tree:not(.course-tree--static) {
+    align-content: start;
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
@@ -298,7 +311,8 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
     grid-template-columns: 220px minmax(0, 1fr);
     align-items: start;
   }
-  .course-tree { position: sticky; top: 24px; }
+  /* Both cards together may outgrow the screen: the sticky column scrolls on its own. */
+  .course-tree { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; padding: 0 6px 6px 0; }
   /* Tree + text columns leave the diagram little room up to ~1440px: slim both there. */
   .lesson-shell { grid-template-columns: 200px minmax(0, 1fr); }
   .lesson { --text-col: minmax(260px, 300px); }

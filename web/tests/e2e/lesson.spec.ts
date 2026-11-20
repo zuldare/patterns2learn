@@ -205,7 +205,7 @@ test('the sticky step panel never covers the quiz, which sits in its own card', 
 test('the course tree is a card whose course and categories fold, remembering what was folded', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/es/patterns/strategy/');
-  const tree = page.locator('#course-tree');
+  const tree = page.locator('#course-tree .tree-card--course');
   const card = await tree.evaluate((el) => parseFloat(getComputedStyle(el).borderTopWidth));
   expect(card).toBeGreaterThan(0);
 
@@ -225,6 +225,25 @@ test('the course tree is a card whose course and categories fold, remembering wh
   await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeHidden();
   await tree.locator('details[data-tree-key="root"] > summary').click();
   await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeVisible();
+});
+
+test('a cheatsheets card mirrors the course tree in its own colour and folds on its own', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/es/patterns/strategy/');
+  const course = page.locator('#course-tree .tree-card--course');
+  const sheets = page.locator('#course-tree .tree-card--sheets');
+  await expect(sheets.locator('.course-tree__title')).toHaveText('Chuletas');
+  const colour = (l: typeof course) => l.evaluate((el) => getComputedStyle(el).borderTopColor);
+  expect(await colour(sheets)).not.toBe(await colour(course));
+  const link = sheets.locator('a[href="/es/patterns/builder/cheatsheet/"]');
+  await link.scrollIntoViewIfNeeded();
+  await expect(link).toBeVisible();
+  await sheets.locator('details[data-tree-key="sheets:creational"] > summary').click();
+  await expect(link).toBeHidden();
+  await expect(course.locator('a[data-lesson-link="builder"]')).toBeVisible(); // folding one card leaves the other alone
+  await sheets.locator('details[data-tree-key="sheets:creational"] > summary').click();
+  await link.click();
+  await expect(page).toHaveURL(/\/es\/patterns\/builder\/cheatsheet\/$/);
 });
 
 test('the camera frames each step without changing the canvas height', async ({ page }) => {

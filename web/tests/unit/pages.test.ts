@@ -79,7 +79,12 @@ test('course tree shows all 23 GoF patterns, unfinished ones as coming soon', as
   for (const lang of ['es', 'en']) {
     for (const page of [`${lang}/index.html`, `${lang}/patterns/strategy/index.html`]) {
       const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
-      const tree = html.slice(html.indexOf('id="course-tree"'), html.indexOf('</aside>', html.indexOf('id="course-tree"')));
+      const tree = html.slice(html.indexOf('tree-card--course'), html.indexOf('tree-card--sheets'));
+      const sheets = html.slice(html.indexOf('tree-card--sheets'), html.indexOf('</aside>', html.indexOf('tree-card--sheets')));
+      // The cheatsheets card mirrors the course: same order, every finished lesson linked to its cheatsheet.
+      expect(sheets.match(/class="course-tree__item[ "]/g)?.length, page).toBe(23 + extra);
+      for (const s of slugs) expect(sheets, s).toContain(`href="/${lang}/patterns/${s}/cheatsheet/"`);
+      expect(sheets.indexOf('>Abstract Factory<')).toBeLessThan(sheets.indexOf('>Visitor<'));
       expect(tree.match(/class="course-tree__item[ "]/g)?.length, page).toBe(23 + extra);
       expect(tree.match(/course-tree__item--soon/g)?.length ?? 0, page).toBe(23 - done);
       expect(tree.match(lang === 'es' ? /Próximamente/g : /Coming soon/g)?.length ?? 0, page).toBe(23 - done);

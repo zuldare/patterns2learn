@@ -20,6 +20,7 @@ export const en = {
   themeDark: 'Dark theme',
   language: 'Language',
   course: 'Course',
+  cheatsheets: 'Cheatsheets',
   minutes: 'min',
   noCode: 'No code in this step.',
   steps: 'Steps',

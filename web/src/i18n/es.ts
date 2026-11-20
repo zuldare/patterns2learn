@@ -22,6 +22,7 @@ export const es: { [K in keyof typeof en]: string } = {
   themeDark: 'Tema oscuro',
   language: 'Idioma',
   course: 'Curso',
+  cheatsheets: 'Chuletas',
   minutes: 'min',
   noCode: 'Este paso no tiene código.',
   steps: 'Pasos',
