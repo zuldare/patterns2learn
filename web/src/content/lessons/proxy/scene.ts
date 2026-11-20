@@ -17,25 +17,28 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - The call chain runs left to right: controller → (proxy) → service → database.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). A staircase, so the scene stays narrow and its labels readable:
+ * - The athlete stands off the platform's back-left edge, high above the controller, and calls down into it.
+ * - Middle row, left to right: controller → (proxy) → service, about 6 units of x − y apart so each
+ *   parked packet sits between two blocks.
+ * - The database sits a row below, just right of the service, so INSERT + UPDATE parks on the drop.
  * - manual / handProxy / proxy share the "in front of the service" spot and
  *   real / service share the service spot: never visible together.
- * - BookingOperations sits below the chain so both implements arrows point down.
+ * - BookingOperations sits in the lower row between proxy and service so both implements arrows point down.
  * - ProxyFactory only appears in spring-does-it, in the controller's spot (hidden then), left of the proxy it builds.
  */
 const entities: Entity[] = [
-  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'BookingController', ...at(2.5, 6.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'manual', kind: 'block', label: 'ManualTxBookingService', ...at(5.6, 4.0), tone: 'danger', icon: 'warning' },
-  { id: 'handProxy', kind: 'block', label: 'TxBookingProxy', ...at(5.6, 4.0), tone: 'warn', icon: 'shield' },
-  { id: 'proxy', kind: 'block', label: 'BookingService (proxy)', ...at(5.6, 4.0), tone: 'accent', icon: 'shield' },
-  { id: 'real', kind: 'block', label: 'PlainBookingService', ...at(8.6, 2.4), tone: 'neutral', icon: 'calendar' },
-  { id: 'service', kind: 'block', label: 'BookingService', ...at(8.6, 2.4), tone: 'neutral', icon: 'calendar' },
-  { id: 'ops', kind: 'interface', label: 'BookingOperations', ...at(9.8, 7.8, IFACE), tone: 'neutral' },
-  { id: 'db', kind: 'block', label: 'Database', ...at(11.4, 1.6), tone: 'neutral', icon: 'db' },
-  { id: 'pf', kind: 'block', label: 'ProxyFactory', ...at(1.8, 5.4), tone: 'accent', icon: 'gear' },
+  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: -3.6, y: -1.6 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 1.5, y: -4.3 }, size: { w: 13.55, d: 8.8, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'BookingController', ...at(3, 3), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'manual', kind: 'block', label: 'ManualTxBookingService', ...at(5.9, 0.1), tone: 'danger', icon: 'warning' },
+  { id: 'handProxy', kind: 'block', label: 'TxBookingProxy', ...at(5.9, 0.1), tone: 'warn', icon: 'shield' },
+  { id: 'proxy', kind: 'block', label: 'BookingService (proxy)', ...at(5.9, 0.1), tone: 'accent', icon: 'shield' },
+  { id: 'real', kind: 'block', label: 'PlainBookingService', ...at(8.8, -2.8), tone: 'neutral', icon: 'calendar' },
+  { id: 'service', kind: 'block', label: 'BookingService', ...at(8.8, -2.8), tone: 'neutral', icon: 'calendar' },
+  { id: 'ops', kind: 'interface', label: 'BookingOperations', ...at(10.85, 2.15, IFACE), tone: 'neutral' },
+  { id: 'db', kind: 'block', label: 'Database', ...at(13.55, -0.05), tone: 'neutral', icon: 'db' },
+  { id: 'pf', kind: 'block', label: 'ProxyFactory', ...at(3, 3), tone: 'accent', icon: 'gear' },
 ];
 
 const SPRING = ['athlete', 'context', 'controller', 'proxy', 'service', 'db'];
