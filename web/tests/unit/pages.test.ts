@@ -108,6 +108,7 @@ test.each([
   ['mediator', 'behavioral'],
   ['prototype', 'creational'],
   ['visitor', 'behavioral'],
+  ['bridge', 'structural'],
 ])('%s lesson and cheatsheet link to the runnable example', (slug, category) => {
   const href = `href="https://github.com/zuldare/patterns2learn/tree/main/examples/${category}/${slug}"`;
   for (const lang of ['es', 'en']) {

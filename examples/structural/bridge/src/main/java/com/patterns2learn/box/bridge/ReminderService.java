@@ -24,11 +24,10 @@ public class ReminderService {
         this.channels = new TreeMap<>(channels);    // every Channel bean, by name
     }
 
-    // @step:pick
     public Delivery remind(String memberId, String kind, String channelName) {
         Preference p = members.get(memberId == null ? "" : memberId.strip().toLowerCase(Locale.ROOT));
         if (p == null) throw new UnknownMemberException(abbreviate(memberId));
-        Channel channel = channel(channelName == null ? p.channel() : channelName);   // the member's, unless overridden
+        Channel channel = channel(channelName == null ? p.channel() : channelName);   // theirs, unless overridden
         Reminder reminder = switch (kind == null ? "" : kind.strip().toLowerCase(Locale.ROOT)) {
             case "class" -> new ClassReminder(channel, "Hyrox prep", LocalTime.of(18, 0));
             case "payment" -> new PaymentReminder(channel, new BigDecimal("89.00"), LocalDate.of(2026, 12, 1));
@@ -36,7 +35,6 @@ public class ReminderService {
         };
         return reminder.send(p.member());
     }
-    // @end
 
     public List<String> channelNames() {
         return List.copyOf(channels.keySet());
