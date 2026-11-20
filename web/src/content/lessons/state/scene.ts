@@ -16,25 +16,30 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +2.5:
- * - Left to right: controller (sx −13) → MembershipService (sx −7) → Membership, the context (sx −2.5).
- * - The four states form a small state diagram on the right: TRIAL (sx 2, up), ACTIVE (sx 6.5),
- *   FROZEN (sx 11, up) and EXPIRED (sx 11, down); links between them are the transitions.
- * - Repository and database below the service. SwitchingMembership (before) takes Membership's spot.
+ * Layout notes. Screen coordinates: sx = x − y (horizontal), sy = x + y (vertical); three rows 7 apart in sy.
+ * - Middle row (sy 19), left to right: controller (sx −9) → MembershipService (sx −3.8) → Membership, the
+ *   context (sx 1) → ACTIVE (sx 7.6); each gap leaves room for the packet that parks on that link.
+ * - The four states form a small state diagram around ACTIVE: TRIAL up-left (sx 2.8, sy 14), FROZEN up-right
+ *   (sx 12.1, sy 15) and EXPIRED down-right (sx 12.1, sy 23); links between them are the transitions.
+ *   Opposite transitions (freeze/resume, expire/renew) share one drawn line, so their parked packets coincide.
+ * - Bottom row (sy 26): repository below the service, database to its right.
+ * - The athlete stands below-left of the controller (sx −12, sy 29), off the platform, so the long
+ *   POST packet parks on the diagonal, clear of the controller and the repository's label.
+ * - SwitchingMembership (before) takes Membership's spot. The platform hugs the blocks.
  */
 const entities: Entity[] = [
-  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.65, y: 19.3 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 18.6, d: 17.6, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'MembershipController', ...at(3.0, 16.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'service', kind: 'block', label: 'MembershipService', ...at(6.0, 13.0), tone: 'neutral', icon: 'gear' },
-  { id: 'switching', kind: 'block', label: 'SwitchingMembership', ...at(8.25, 10.75), tone: 'danger', icon: 'warning' },
-  { id: 'membership', kind: 'block', label: 'Membership', ...at(8.25, 10.75), tone: 'accent', icon: 'ticket' },
-  { id: 'trial', kind: 'block', label: 'TRIAL', ...at(7.5, 5.5), tone: 'neutral', icon: 'tag' },
-  { id: 'active', kind: 'block', label: 'ACTIVE', ...at(12.75, 6.25), tone: 'accent', icon: 'key' },
-  { id: 'frozen', kind: 'block', label: 'FROZEN', ...at(13.0, 2.0), tone: 'neutral', icon: 'timer' },
-  { id: 'expired', kind: 'block', label: 'EXPIRED', ...at(18.0, 7.0), tone: 'warn', icon: 'warning' },
-  { id: 'repo', kind: 'block', label: 'MembershipRepository', ...at(10.0, 17.0), tone: 'neutral', icon: 'gear' },
-  { id: 'db', kind: 'block', label: 'membership table', ...at(13.75, 16.25), tone: 'neutral', icon: 'db' },
+  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 7.9, y: 19.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 3.5, y: -0.05 }, size: { w: 15.55, d: 16.45, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'MembershipController', ...at(5, 14), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'service', kind: 'block', label: 'MembershipService', ...at(7.6, 11.4), tone: 'neutral', icon: 'gear' },
+  { id: 'switching', kind: 'block', label: 'SwitchingMembership', ...at(10, 9), tone: 'danger', icon: 'warning' },
+  { id: 'membership', kind: 'block', label: 'Membership', ...at(10, 9), tone: 'accent', icon: 'ticket' },
+  { id: 'trial', kind: 'block', label: 'TRIAL', ...at(8.4, 5.6), tone: 'neutral', icon: 'tag' },
+  { id: 'active', kind: 'block', label: 'ACTIVE', ...at(13.3, 5.7), tone: 'accent', icon: 'key' },
+  { id: 'frozen', kind: 'block', label: 'FROZEN', ...at(13.55, 1.45), tone: 'neutral', icon: 'timer' },
+  { id: 'expired', kind: 'block', label: 'EXPIRED', ...at(17.55, 5.45), tone: 'warn', icon: 'warning' },
+  { id: 'repo', kind: 'block', label: 'MembershipRepository', ...at(11.1, 14.9), tone: 'neutral', icon: 'gear' },
+  { id: 'db', kind: 'block', label: 'membership table', ...at(13.7, 12.3), tone: 'neutral', icon: 'db' },
 ];
 
 const STATES = ['trial', 'active', 'frozen', 'expired'];
