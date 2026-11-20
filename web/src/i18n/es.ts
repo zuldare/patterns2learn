@@ -25,6 +25,8 @@ export const es: { [K in keyof typeof en]: string } = {
   minutes: 'min',
   noCode: 'Este paso no tiene código.',
   steps: 'Pasos',
+  madeBy: 'Hecho por',
+  authorLinks: 'Enlaces del autor',
   skipToContent: 'Saltar al contenido',
   tagline: 'Design patterns, the Spring Boot way',
   intro: 'Un curso interactivo de patrones de diseño con diagramas isométricos y código Spring Boot real.',

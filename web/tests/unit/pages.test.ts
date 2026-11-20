@@ -17,6 +17,17 @@ test('build emits both locales with hreflang, step sections and svg', async () =
   expect(readFileSync(`${webRoot}/dist/index.html`, 'utf8')).toContain('<noscript>');
 }, 120_000);
 
+test('every page has a footer with the author LinkedIn and GitHub links', () => {
+  for (const page of ['es/index.html', 'en/index.html', 'es/patterns/strategy/index.html', 'en/patterns/strategy/cheatsheet/index.html']) {
+    const html = readFileSync(`${webRoot}/dist/${page}`, 'utf8');
+    const footer = html.slice(html.indexOf('<footer class="site-footer"'), html.indexOf('</footer>'));
+    expect(footer).toContain('href="https://www.linkedin.com/in/jaimehernandezortiz"');
+    expect(footer).toContain('href="https://github.com/zuldare"');
+    expect(footer).toContain('aria-label="LinkedIn"');
+    expect(footer).toContain('aria-label="GitHub"');
+  }
+});
+
 test('SEO and a11y basics on strategy pages', () => {
   const html = readFileSync(`${webRoot}/dist/es/patterns/strategy/index.html`, 'utf8');
   expect(html).toMatch(/<link rel="canonical" href="https:\/\/patterns2learn\.vercel\.app\/es\/patterns\/strategy\/?"/);

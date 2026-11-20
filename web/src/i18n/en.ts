@@ -23,6 +23,8 @@ export const en = {
   minutes: 'min',
   noCode: 'No code in this step.',
   steps: 'Steps',
+  madeBy: 'Made by',
+  authorLinks: 'Author links',
   skipToContent: 'Skip to content',
   tagline: 'Design patterns, the Spring Boot way',
   intro: 'An interactive course on design patterns with isometric diagrams and real Spring Boot code.',

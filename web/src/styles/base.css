@@ -101,6 +101,36 @@ main:focus { outline: none; }
 }
 @media (min-width: 960px) { .site-header { padding: 14px 24px; } }
 
+/* ---------- Footer ---------- */
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 14px 16px;
+  border-top: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (min-width: 960px) { .site-footer { padding: 14px 24px; } }
+.site-footer__credit { margin: 0; }
+.site-footer__credit a { color: inherit; }
+.site-footer__links { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.site-footer__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  color: var(--ink);
+}
+.site-footer__icon:hover { color: var(--accent-ink); background: var(--accent-soft); }
+.site-footer__icon:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+
 .brand {
   display: flex;
   flex-direction: column;
