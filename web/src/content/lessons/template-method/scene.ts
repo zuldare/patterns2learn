@@ -17,25 +17,32 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - Both senders stand off the front-left edge, left of the "Spring context" label.
+ * Layout notes (u = x − y across, v = x + y down):
+ * - Middle row (v 12): the coach off the platform's left corner (u −6) →
+ *   ResultImportController (u 0); the partner app stands below-left in front of
+ *   the platform (u −4, v 20) and climbs to it, left of the "Spring context" label.
  * - The copy-paste importers and the template subclasses share two spots
- *   (never visible together); the abstract ResultImporter sits to their right
- *   so both "extends" arrows point the same way, and it saves into the repository.
- * - JdbcTemplate only appears in spring-does-it, behind the repository.
+ *   (never visible together), a diamond around the controller: CSV up-right
+ *   (u 5, v 5), JSON down-right (u 5, v 19); 7 rows apart so "importAll()" and
+ *   "score: 0" park on the diagonals, clear of the labels.
+ * - The abstract ResultImporter closes the diamond on the right (u 10, v 12)
+ *   so both "extends" arrows point at it, and saves straight down into the
+ *   repository (u 10, v 19), which the copy-paste JSON importer reaches across.
+ * - JdbcTemplate only appears in spring-does-it, in ResultImporter's spot,
+ *   straight above the repository so the long query parks on the way up.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 0.6, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'partner', kind: 'actor', label: 'Partner app', pos: { x: 3.4, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'ResultImportController', ...at(2.5, 6.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'csvBefore', kind: 'block', label: 'CopyPasteCsvImporter', ...at(5.5, 4.0), tone: 'warn', icon: 'file' },
-  { id: 'jsonBefore', kind: 'block', label: 'CopyPasteJsonImporter', ...at(6.5, 7.5), tone: 'warn', icon: 'file' },
-  { id: 'csv', kind: 'block', label: 'CsvResultImporter', ...at(5.5, 4.0), tone: 'neutral', icon: 'file' },
-  { id: 'json', kind: 'block', label: 'JsonResultImporter', ...at(6.5, 7.5), tone: 'neutral', icon: 'file' },
-  { id: 'template', kind: 'interface', label: 'ResultImporter', ...at(9.0, 2.5, IFACE), tone: 'neutral' },
-  { id: 'repo', kind: 'block', label: 'ResultRepository', ...at(11.0, 6.0), tone: 'neutral', icon: 'db' },
-  { id: 'jdbc', kind: 'block', label: 'JdbcTemplate', ...at(11.0, 1.4), tone: 'accent', icon: 'gear' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.4, y: 9.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'partner', kind: 'actor', label: 'Partner app', pos: { x: 7.4, y: 11.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 3.5, y: -1.5 }, size: { w: 12.5, d: 10, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'ResultImportController', ...at(6, 6), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'csvBefore', kind: 'block', label: 'CopyPasteCsvImporter', ...at(5, 0), tone: 'warn', icon: 'file' },
+  { id: 'jsonBefore', kind: 'block', label: 'CopyPasteJsonImporter', ...at(12, 7), tone: 'warn', icon: 'file' },
+  { id: 'csv', kind: 'block', label: 'CsvResultImporter', ...at(5, 0), tone: 'neutral', icon: 'file' },
+  { id: 'json', kind: 'block', label: 'JsonResultImporter', ...at(12, 7), tone: 'neutral', icon: 'file' },
+  { id: 'template', kind: 'interface', label: 'ResultImporter', ...at(11, 1, IFACE), tone: 'neutral' },
+  { id: 'repo', kind: 'block', label: 'ResultRepository', ...at(14.5, 4.5), tone: 'neutral', icon: 'db' },
+  { id: 'jdbc', kind: 'block', label: 'JdbcTemplate', ...at(11, 1), tone: 'accent', icon: 'gear' },
 ];
 
 const SENDERS = ['coach', 'partner', 'controller'];
