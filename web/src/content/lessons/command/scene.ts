@@ -17,27 +17,33 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted
- * by +1.5 on both axes so nothing leaves the platform:
- * - Left to right: controller (sx −9) → FrontDesk, the invoker (sx −4) → Command (sx 1) →
- *   Book/Cancel/Move in a column (sx 6) → ClassRoster, the receiver (sx 11).
- * - The undo history sits below the invoker. FrontDeskService (before) takes the invoker's spot.
- * - spring-does-it: TaskExecutor in the history's spot, the Runnable in the Command spot; the Runnable runs a desk command.
+ * Layout notes. Positions come from screen coordinates (u = x − y across, v = x + y down):
+ * - The request zigzags down the left so its long packets park on diagonals instead of
+ *   widening the scene: the front desk stands up-left, off the platform's back-left side
+ *   (u −10, v 7) → controller on the middle row (u −9, v 16) → FrontDesk, the invoker, on
+ *   the bottom row (u −5, v 24) → up to Command on the middle row (u 0, v 16).
+ * - Middle row, left to right: Command (u 0) → Book/Cancel/Move in a column (u 5: v 9, 16,
+ *   23) → ClassRoster, the receiver (u 10).
+ * - The undo history sits right of the invoker on the bottom row (u 2, v 25), under
+ *   Command and clear of MoveCommand's label. FrontDeskService (before) takes the invoker's spot.
+ * - The context label lands below-left of the invoker, clear of the request.
+ * - spring-does-it: TaskExecutor in the history's spot, the Runnable in the Command spot; the
+ *   Runnable runs a desk command down-left, the executor's run() comes up from the right.
  */
 const entities: Entity[] = [
-  { id: 'desk', kind: 'actor', label: 'Front desk', pos: { x: 2.4, y: 15.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 15.2, d: 14.6, h: FLOOR }, tone: 'neutral' },
+  { id: 'desk', kind: 'actor', label: 'Front desk', pos: { x: -2.1, y: 7.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 2, y: 0.5 }, size: { w: 13.5, d: 15.5, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'DeskController', ...at(3.5, 12.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'service', kind: 'block', label: 'FrontDeskService', ...at(6.0, 10.0), tone: 'danger', icon: 'warning' },
-  { id: 'invoker', kind: 'block', label: 'FrontDesk', ...at(6.0, 10.0), tone: 'accent', icon: 'board' },
-  { id: 'history', kind: 'block', label: 'undo history', ...at(10.0, 14.0), tone: 'neutral', icon: 'file' },
-  { id: 'command', kind: 'interface', label: 'Command', ...at(8.5, 7.5, IFACE), tone: 'neutral' },
-  { id: 'book', kind: 'block', label: 'BookCommand', ...at(7.5, 1.5), tone: 'neutral', icon: 'plus' },
-  { id: 'cancel', kind: 'block', label: 'CancelCommand', ...at(11.0, 5.0), tone: 'neutral', icon: 'ticket' },
-  { id: 'move', kind: 'block', label: 'MoveCommand', ...at(14.5, 8.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'roster', kind: 'block', label: 'ClassRoster', ...at(13.5, 2.5), tone: 'neutral', icon: 'calendar' },
-  { id: 'executor', kind: 'block', label: 'TaskExecutor', ...at(10.0, 14.0), tone: 'accent', icon: 'timer' },
-  { id: 'runnable', kind: 'block', label: 'Runnable lateBooking', ...at(8.5, 7.5), tone: 'neutral', icon: 'bell' },
+  { id: 'service', kind: 'block', label: 'FrontDeskService', ...at(9.5, 14.5), tone: 'danger', icon: 'warning' },
+  { id: 'invoker', kind: 'block', label: 'FrontDesk', ...at(9.5, 14.5), tone: 'accent', icon: 'board' },
+  { id: 'history', kind: 'block', label: 'undo history', ...at(13.5, 11.5), tone: 'neutral', icon: 'file' },
+  { id: 'command', kind: 'interface', label: 'Command', ...at(8, 8, IFACE), tone: 'neutral' },
+  { id: 'book', kind: 'block', label: 'BookCommand', ...at(7, 2), tone: 'neutral', icon: 'plus' },
+  { id: 'cancel', kind: 'block', label: 'CancelCommand', ...at(10.5, 5.5), tone: 'neutral', icon: 'ticket' },
+  { id: 'move', kind: 'block', label: 'MoveCommand', ...at(14, 9), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'roster', kind: 'block', label: 'ClassRoster', ...at(13, 3), tone: 'neutral', icon: 'calendar' },
+  { id: 'executor', kind: 'block', label: 'TaskExecutor', ...at(13.5, 11.5), tone: 'accent', icon: 'timer' },
+  { id: 'runnable', kind: 'block', label: 'Runnable lateBooking', ...at(8, 8), tone: 'neutral', icon: 'bell' },
 ];
 
 const COMMANDS = ['command', 'book', 'cancel', 'move'];
