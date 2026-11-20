@@ -22,11 +22,13 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  *   implementations in a column on the right (sx 5).
  * - Objects (Murph's tree): Murph on the left (sx −6), its three children in the middle column (sx −1),
  *   and the 20-rounds block's three movements on the right (sx 5). The tree reads left to right.
- * - Controller and coach further left (sx −10.5, −14.5). The flat WOD (before) and the
- *   CompositePropertySource (spring-does-it) take Murph's spot.
+ * - Controller further left (sx −10.5); the coach stands off the platform below-left of it
+ *   (sx −13.5, 10 rows of v lower), so the long "GET /api/wods/murph" pill parks on that diagonal,
+ *   below the controller's label. The flat WOD (before) and the CompositePropertySource
+ *   (spring-does-it) take Murph's spot.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: -0.85, y: 13.65 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 4.15, y: 17.65 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
   { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 13.2, d: 12.4, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'WodController', ...at(1.25, 11.75), tone: 'neutral', icon: 'arrow-in' },
   { id: 'flat', kind: 'block', label: 'FlatWod', ...at(3.5, 9.5), tone: 'danger', icon: 'warning' },
