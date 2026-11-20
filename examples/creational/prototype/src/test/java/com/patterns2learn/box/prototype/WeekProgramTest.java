@@ -37,6 +37,14 @@ class WeekProgramTest {
         assertThat(library.names()).containsExactly("deload-week", "strength-block");
     }
 
+    @Test void structureIsValidated() {
+        assertThatThrownBy(() -> new WeekProgram("W", null)).hasMessage("a week needs 1 to 7 days");
+        assertThatThrownBy(() -> new WeekProgram("W", List.of(new DayPlan("Mon", List.of("a")), new DayPlan("mon", List.of("b")))))
+            .hasMessage("each day can appear only once");
+        assertThatThrownBy(() -> new DayPlan(" ", List.of("a"))).hasMessage("day is required");
+        assertThatThrownBy(() -> new ProgramLibrary().newWeek("strength-block", "W").day(null)).hasMessage("no plan for ");
+    }
+
     @Test void plansAreValidated() {
         WeekProgram w = library.newWeek("strength-block", "W");
         assertThatThrownBy(() -> w.rename(" ")).isInstanceOf(InvalidProgramException.class).hasMessage("name is required");

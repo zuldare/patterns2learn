@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 /** The prototype registry: named templates. It only ever hands out copies. */
 @Component
 public class ProgramLibrary {
-    private final Map<String, WeekProgram> prototypes = new TreeMap<>(Map.of(
+    /** Read-only after construction: the prototypes themselves are never handed out or changed. */
+    private final Map<String, WeekProgram> prototypes = java.util.Collections.unmodifiableMap(new TreeMap<>(Map.of(
         "strength-block", new WeekProgram("Strength block", List.of(
             new DayPlan("Mon", List.of("5x5 deadlift", "Fran")),
             new DayPlan("Tue", List.of("10' row", "skill: handstands")),
@@ -18,7 +19,7 @@ public class ProgramLibrary {
         "deload-week", new WeekProgram("Deload week", List.of(
             new DayPlan("Mon", List.of("20' easy row", "mobility")),
             new DayPlan("Wed", List.of("technique: cleans")),
-            new DayPlan("Fri", List.of("partner WOD, light"))))));
+            new DayPlan("Fri", List.of("partner WOD, light")))))));
 
     // @step:registry
     public WeekProgram newWeek(String template, String name) {

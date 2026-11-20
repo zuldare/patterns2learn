@@ -19,7 +19,8 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
  * - Left to right: controller (sx −10) → WeekService (sx −5.5) → ProgramLibrary (sx −1, up).
  * - On the right, the template week (up) and the copied week (down), each with its Wednesday next to it.
- * - Before: ShallowCopyService takes WeekService's spot and the copied week points at the template's Wednesday.
+ * - Week 46 (last week) takes the template's spot in the first four steps; the template comes in with the registry.
+ * - Before: ShallowCopyService takes WeekService's spot and Week 47 points at Week 46's Wednesday.
  * - spring-does-it: the base bean definition in the template week's spot, its clone in the copy's spot.
  */
 const entities: Entity[] = [
@@ -31,8 +32,10 @@ const entities: Entity[] = [
   { id: 'library', kind: 'block', label: 'ProgramLibrary', ...at(7.0, 8.0), tone: 'accent', icon: 'board' },
   { id: 'tmplWeek', kind: 'block', label: 'Strength block', ...at(9.25, 5.75), tone: 'neutral', icon: 'calendar' },
   { id: 'tmplDay', kind: 'block', label: 'Wed: back squat', ...at(11.5, 3.5), tone: 'neutral', icon: 'file' },
+  { id: 'week46', kind: 'block', label: 'Week 46', ...at(9.25, 5.75), tone: 'neutral', icon: 'calendar' },
+  { id: 'week46Day', kind: 'block', label: 'Wed (week 46)', ...at(11.5, 3.5), tone: 'neutral', icon: 'file' },
   { id: 'copyWeek', kind: 'block', label: 'Week 47', ...at(14.75, 11.25), tone: 'accent', icon: 'calendar' },
-  { id: 'copyDay', kind: 'block', label: 'Wed: front squat', ...at(17.0, 9.0), tone: 'accent', icon: 'file' },
+  { id: 'copyDay', kind: 'block', label: 'Wed (week 47)', ...at(17.0, 9.0), tone: 'accent', icon: 'file' },
   { id: 'baseDef', kind: 'block', label: 'BeanDefinition (singleton)', ...at(9.25, 5.75), tone: 'neutral', icon: 'file' },
   { id: 'copyDef', kind: 'block', label: 'clone (prototype)', ...at(14.75, 11.25), tone: 'accent', icon: 'file' },
 ];
@@ -50,15 +53,17 @@ const scene: Scene = {
     { id: 'l-library-tmpl', from: 'library', to: 'tmplWeek', style: 'call' },
     { id: 'l-tmpl-day', from: 'tmplWeek', to: 'tmplDay', style: 'call' },
     { id: 'l-tmpl-copy', from: 'tmplWeek', to: 'copyWeek', style: 'call' },
-    { id: 'l-copy-shared', from: 'copyWeek', to: 'tmplDay', style: 'call' },
+    { id: 'l-copy-shared', from: 'copyWeek', to: 'week46Day', style: 'call' },
+    { id: 'l-46-day', from: 'week46', to: 'week46Day', style: 'call' },
+    { id: 'l-46-copy', from: 'week46', to: 'copyWeek', style: 'call' },
     { id: 'l-copy-day', from: 'copyWeek', to: 'copyDay', style: 'call' },
     { id: 'l-def-clone', from: 'baseDef', to: 'copyDef', style: 'call' },
   ],
   steps: [
     {
       id: 'problem',
-      visible: ['controller', 'shallow', 'tmplWeek', 'tmplDay', 'copyWeek'],
-      highlight: ['shallow', 'tmplDay'],
+      visible: ['controller', 'shallow', 'week46', 'week46Day', 'copyWeek'],
+      highlight: ['shallow', 'week46Day'],
       packets: [
         { link: 'l-shallow-copy', label: 'new list, same days' },
         { link: 'l-copy-shared', label: 'edit Wed' },
@@ -67,21 +72,21 @@ const scene: Scene = {
     },
     {
       id: 'smell',
-      visible: ['controller', 'shallow', 'tmplWeek', 'tmplDay', 'copyWeek'],
+      visible: ['controller', 'shallow', 'week46', 'week46Day', 'copyWeek'],
       highlight: ['shallow'],
       packets: [],
       code: { file: `${MAIN}/before/ShallowCopyService.java`, region: 'shallow', highlight: [1, 2] },
     },
     {
       id: 'prototype',
-      visible: ['tmplWeek', 'tmplDay', 'copyWeek', 'copyDay'],
-      highlight: ['tmplWeek', 'copyWeek'],
-      packets: [{ link: 'l-tmpl-copy', label: 'copy()' }],
+      visible: ['week46', 'week46Day', 'copyWeek', 'copyDay'],
+      highlight: ['week46', 'copyWeek'],
+      packets: [{ link: 'l-46-copy', label: 'copy()' }],
       code: { file: `${MAIN}/WeekProgram.java`, region: 'prototype', highlight: [2, 4, 5] },
     },
     {
       id: 'day-copy',
-      visible: ['tmplWeek', 'tmplDay', 'copyWeek', 'copyDay'],
+      visible: ['week46', 'week46Day', 'copyWeek', 'copyDay'],
       highlight: ['copyDay'],
       packets: [{ link: 'l-copy-day', label: 'own list' }],
       code: { file: `${MAIN}/DayPlan.java`, region: 'day-copy', highlight: [2, 3] },
@@ -113,7 +118,7 @@ const scene: Scene = {
         { link: 'l-service-library', label: 'newWeek()' },
         { link: 'l-tmpl-copy', label: 'copy()' },
       ],
-      code: { file: `${TEST}/web/WeekApiTest.java`, region: 'request', highlight: [1, 3, 5, 7, 9] },
+      code: { file: `${TEST}/web/WeekApiTest.java`, region: 'request', highlight: [1, 3, 5, 7, 8] },
     },
     {
       id: 'spring-does-it',

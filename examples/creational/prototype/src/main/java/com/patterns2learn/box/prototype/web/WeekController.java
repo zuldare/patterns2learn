@@ -17,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class WeekController {
     public record NewWeek(String template, String name) {}
     public record DayChange(List<String> movements) {}
+    public record CopyRequest(String name) {}
 
     private final WeekService weeks;
 
@@ -29,6 +30,18 @@ public class WeekController {
         WeekView week = weeks.create(req.template(), req.name());
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{id}").buildAndExpand(week.id()).toUri();
         return ResponseEntity.created(location).body(week);
+    }
+
+    @PostMapping("/api/weeks/{id}/copy")
+    public ResponseEntity<WeekView> copy(@PathVariable long id, @RequestBody CopyRequest req) {
+        WeekView week = weeks.copyWeek(id, req.name());
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/weeks/{id}").buildAndExpand(week.id()).toUri();
+        return ResponseEntity.created(location).body(week);
+    }
+
+    @GetMapping("/api/templates")
+    public List<String> templates() {
+        return weeks.templates();
     }
 
     @PutMapping("/api/weeks/{id}/days/{day}")

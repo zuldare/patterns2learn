@@ -9,7 +9,8 @@ public class DayPlan {
     private final List<String> movements = new ArrayList<>();
 
     public DayPlan(String day, List<String> movements) {
-        this.day = day;
+        if (day == null || day.isBlank()) throw new InvalidProgramException("day is required");
+        this.day = day.strip();
         replace(movements);
     }
 

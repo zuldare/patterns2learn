@@ -33,7 +33,8 @@ class SpringDoesItTooTest {
             context.refresh();
             @SuppressWarnings("unchecked") ArrayList<String> first = (ArrayList<String>) context.getBean("list");
             first.add("changed");
-            assertThat(context.getBean("list")).isNotSameAs(first).asList().isEmpty();   // built afresh, not copied
+            @SuppressWarnings("unchecked") ArrayList<String> second = (ArrayList<String>) context.getBean("list");
+            assertThat(second).isNotSameAs(first).isEmpty();   // built afresh, not copied
         }
     }
 }

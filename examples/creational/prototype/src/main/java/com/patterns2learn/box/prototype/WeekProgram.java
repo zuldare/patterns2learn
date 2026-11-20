@@ -10,6 +10,10 @@ public class WeekProgram {
 
     public WeekProgram(String name, List<DayPlan> days) {
         rename(name);
+        if (days == null || days.isEmpty() || days.size() > 7) throw new InvalidProgramException("a week needs 1 to 7 days");
+        if (days.stream().map(d -> d.day().toLowerCase(java.util.Locale.ROOT)).distinct().count() != days.size()) {
+            throw new InvalidProgramException("each day can appear only once");
+        }
         this.days = new ArrayList<>(days);
     }
 
@@ -30,8 +34,9 @@ public class WeekProgram {
     }
 
     public DayPlan day(String day) {
-        return days.stream().filter(d -> d.day().equalsIgnoreCase(day == null ? "" : day.strip()))
-            .findFirst().orElseThrow(() -> new UnknownDayException(day));
+        String wanted = day == null ? "" : day.strip();
+        return days.stream().filter(d -> d.day().equalsIgnoreCase(wanted))
+            .findFirst().orElseThrow(() -> new UnknownDayException(wanted.length() <= 10 ? wanted : wanted.substring(0, 10) + "…"));
     }
 
     public String name() { return name; }

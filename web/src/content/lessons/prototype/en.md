@@ -6,7 +6,7 @@ level: beginner
 recap:
   intent: Create new objects by copying an existing one that serves as a model, and let the object itself know how to be copied.
   participants:
-    - Prototype (WeekProgram, DayPlan), which declare copy() and know how to copy themselves
+    - Prototype (WeekProgram, DayPlan), which know how to copy themselves with copy(). In GoF the client copies through a shared interface without knowing the class; here every template is the same class and only its data differs
     - Prototype registry (ProgramLibrary), which keeps named templates and only hands out copies
     - Client (WeekService), which asks for a copy and customises it
   pros:
@@ -16,7 +16,7 @@ recap:
   cons:
     - Deep copying needs every mutable piece to know how to copy itself, and it's easy to miss one
     - With cross-references or cycles, copying properly gets complicated
-    - Java's clone() is shallow and clumsy; a copy() of your own is almost always better
+    - If an object holds identity or resources (an id, a connection), the copy needs adjusting after copying
   related:
     - Abstract Factory
     - Memento
@@ -26,10 +26,10 @@ quiz:
     options:
       - Because WeekProgram kept the days in a static field
       - Because Spring injected the same week in both places
-      - Because the list was new, but the days inside it were the same objects
+      - Because both weeks shared the same DayPlan objects
       - Because rename() also modified the original week
     answer: 2
-    explain: new ArrayList<>(lastWeek.days()) copies the list, not the DayPlans it holds. Both weeks pointed at the same Wednesday.
+    explain: lastWeek.days() returns a new list, but with the same DayPlans inside. Both weeks pointed at the same Wednesday.
   - q: Who knows how a DayPlan is copied?
     options:
       - The DayPlan itself, with its copy() method
@@ -49,20 +49,20 @@ quiz:
   - q: If WeekProgram and DayPlan were immutable, what would happen to copy()?
     options:
       - It would have to be even deeper
-      - It would no longer be needed, because sharing what never changes is safe
+      - It would no longer be needed
       - You'd have to implement Cloneable no matter what
       - You'd have to declare both classes with prototype scope
     answer: 1
     explain: The problem with a shallow copy is someone changing something shared. If nothing can change, sharing is free and safe; "changing" would mean creating a new object.
 ---
 ## @step:problem — Copying last week
-Every week, the coach starts from a template ("Strength block") or from the previous week and changes some day. The first version, `ShallowCopyService`, copies the week from outside: it creates a new week with a **new list of days**.
+Every week, the coach starts from the previous week (or a template) and changes some day. The first version, `ShallowCopyService`, copies Week 46 from outside: it creates Week 47 with a **new list of days**.
 
 But the days in that list are **the same objects**. When the coach changes Week 47's Wednesday to front squats, the previous week's Wednesday changes too. The `ShallowCopyServiceTest` test proves it.
 
 > [!problem]
 > A shallow copy creates a new container with the same pieces inside. Editing a piece affects both copies.
-@describe: ShallowCopyService, highlighted in red, creates Week 47 with a new list but the same days; editing Wednesday from Week 47 edits the template's, also highlighted.
+@describe: ShallowCopyService, highlighted in red, creates Week 47 with a new list but the same days; editing Wednesday from Week 47 edits Week 46's, also highlighted.
 
 ## @step:smell — Copying from outside
 On top of that, whoever copies has to know what the week looks like inside: which fields it has and which ones must be copied deeply. If tomorrow `DayPlan` gains a mutable field (the coach's notes, say), every place that copies weeks has to be remembered and touched.
@@ -74,11 +74,13 @@ On top of that, whoever copies has to know what the week looks like inside: whic
 ## @step:prototype — Each object knows how to copy itself
 Prototype puts the copy inside the object: `WeekProgram.copy()` creates a new week and, for each day, asks it for **its** copy.
 
-Whoever needs a week like another just does `template.copy()` and changes what's needed. They don't know what fields a week has or what must be copied deeply.
+Whoever needs a week like another just does `week46.copy()` and changes what's needed. They don't know what fields a week has or what must be copied deeply.
+
+In GoF, the client also copies through a shared interface without knowing the prototype's class. Here every week is the same class and only its data differs, which is the most common form day to day.
 
 > [!key-idea]
 > The object that serves as a model is the one that knows how to make copies of itself.
-@describe: The Strength block template and Week 47, highlighted: copy() creates the new week from the template.
+@describe: Week 46 and Week 47, highlighted: copy() creates the new week from the previous one.
 
 ## @step:day-copy — The copy goes all the way down
 `DayPlan.copy()` creates a new day with **its own list** of movements (the constructor copies it). So the copy is deep at every level: a new week, new days, new lists.
@@ -97,17 +99,17 @@ The test does what used to fail: it creates Week 47 from "strength-block", chang
 @describe: The template's Wednesday and Week 47's, highlighted, are now different objects: editing one doesn't change the other.
 
 ## @step:request — Through the API
-1. `POST /api/weeks` with `template: "strength-block"` and `name: "Week 47"`: 201 and the new week.
+1. `POST /api/weeks` with `template: "strength-block"` and `name: "Week 47"`: 201 and the new week. (To copy a stored week, `POST /api/weeks/{id}/copy` does the same with its `copy()`.)
 2. `PUT /api/weeks/{id}/days/Wed` with the new movements.
 3. `GET /api/templates/strength-block`: the template is unchanged.
 
 Templates or weeks that don't exist give 404; an empty name or a day with no movements, 400.
-@describe: POST /api/weeks travels from the coach to the controller, create() to WeekService and newWeek() to ProgramLibrary, which copies the template into Week 47; WeekService and Week 47 are highlighted.
+@describe: POST /api/weeks travels from the coach to the controller, create() to WeekService and newWeek() to ProgramLibrary, which copies the template into Week 47; WeekService and Week 47 are highlighted (the Wednesday edit and the template check aren't animated).
 
 ## @step:spring-does-it — Spring already does it for you
 Careful with the name: Spring's **`prototype`** scope doesn't copy any object. Every time you ask for the bean, it creates a **new** one from its definition, with its constructor and dependencies.
 
-Where Spring does use the Prototype idea is in the **bean definitions** themselves: `cloneBeanDefinition()` returns a copy of a definition that you can change (its scope, say) without touching the original. And when combining a child definition with its parent's, Spring starts from a copy of the parent's and applies the child's changes.
+Where Spring does use the Prototype idea is in the **bean definitions** themselves: `cloneBeanDefinition()` returns a copy of a definition that you can change (its scope, say) without touching the original. And this one is the GoF form: the method is abstract on `AbstractBeanDefinition` and each kind of definition knows how to copy itself. And when combining a child definition with its parent's, Spring starts from a copy of the parent's and applies the child's changes.
 
 > [!spring]
 > The example test does both: it clones a definition and changes its scope leaving the original intact, and it checks that a `prototype` bean is built anew each time instead of being copied.
@@ -120,7 +122,7 @@ You started with a shallow copy that shared the days and ended up with:
 - **A prototype registry**, `ProgramLibrary`, that only hands out copies.
 - **A client** that copies and customises without knowing a week's insides.
 
-Don't mix it up with its neighbours: **Abstract Factory** creates families of objects with classes; Prototype creates objects by copying a model, and sometimes a factory keeps prototypes and copies them. **Memento** also copies state, but to be able to go back, not to create new objects.
+Don't mix it up with its neighbours: **Abstract Factory** creates families of objects with one concrete factory per family; Prototype creates objects by copying a model, and sometimes a factory keeps prototypes and copies them. **Memento** also copies state, but to be able to go back, not to create new objects. And copying a **Composite** means copying its whole tree: exactly this lesson's deep copy.
 
 And when you don't need it: if the objects are immutable, sharing them is safe and there's nothing to copy; and if building one from scratch is just as easy, a constructor or a builder is enough.
 
