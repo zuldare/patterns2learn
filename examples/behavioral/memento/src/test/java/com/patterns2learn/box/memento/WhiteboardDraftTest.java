@@ -22,6 +22,15 @@ class WhiteboardDraftTest {
         assertThat(draft.movements()).containsExactly("21-15-9 thrusters", "pull-ups");
     }
 
+    @Test void clearingLeavesABlankButValidDraft() {
+        WhiteboardDraft draft = new WhiteboardDraft("Fran", List.of("thrusters"), 10);
+        draft.clear();
+        assertThat(draft.title()).isEqualTo("Untitled");
+        assertThat(draft.movements()).isEmpty();
+        assertThat(draft.timeCapMinutes()).isEqualTo(20);
+        assertThatThrownBy(() -> new DraftHistory(0)).isInstanceOf(IllegalArgumentException.class);
+    }
+
     @Test void undoGoesBackOneSnapshotAtATime() {
         WhiteboardDraft draft = new WhiteboardDraft("Fran", List.of("thrusters"), 10);
         DraftHistory history = new DraftHistory();
@@ -63,5 +72,6 @@ class WhiteboardDraftTest {
         assertThatThrownBy(() -> new WhiteboardDraft("W", List.of("a"), 0)).hasMessage("time cap must be between 1 and 90 minutes");
         assertThatThrownBy(() -> new WhiteboardDraft("W", java.util.Collections.nCopies(13, "a"), 10)).hasMessage("at most 12 movements");
         assertThatThrownBy(() -> new WhiteboardDraft("W", java.util.Arrays.asList("a", " "), 10)).hasMessage("movements cannot be blank");
+        assertThatThrownBy(() -> new WhiteboardDraft("W", List.of("x".repeat(61)), 10)).hasMessage("a movement is at most 60 characters");
     }
 }

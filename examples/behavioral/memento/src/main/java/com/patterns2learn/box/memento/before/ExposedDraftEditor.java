@@ -18,7 +18,7 @@ public class ExposedDraftEditor {
         savedMovements = List.copyOf(draft.getMovements());
         draft.setTitle("Untitled");
         draft.setMovements(List.of());
-        draft.setTimeCapMinutes(0);                          // …and the time cap was never saved
+        draft.setTimeCapMinutes(20);                         // …and the time cap was never saved
     }
 
     public void undo() {

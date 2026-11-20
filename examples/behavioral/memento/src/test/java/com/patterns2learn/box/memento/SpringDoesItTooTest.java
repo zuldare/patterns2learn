@@ -22,6 +22,7 @@ class SpringDoesItTooTest {
             status.rollbackToSavepoint(savepoint);          // back to it; the transaction goes on
             // @end
             int n = jdbc.sql("select count(*) from pr").query(Integer.class).single();
+            assertThat(jdbc.sql("select kg from pr").query(Integer.class).single()).isEqualTo(70);   // the typo is gone
             status.setRollbackOnly();
             return n;
         });

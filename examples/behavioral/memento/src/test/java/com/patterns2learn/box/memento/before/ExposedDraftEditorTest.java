@@ -17,6 +17,6 @@ class ExposedDraftEditorTest {
         editor.undo();
 
         assertThat(draft.getTitle()).isEqualTo("Fran");
-        assertThat(draft.getTimeCapMinutes()).isZero();     // nobody remembered to copy the time cap
+        assertThat(draft.getTimeCapMinutes()).isEqualTo(20);  // still the cleared value: nobody copied the 10
     }
 }

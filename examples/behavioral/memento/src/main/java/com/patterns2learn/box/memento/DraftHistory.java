@@ -13,6 +13,7 @@ public class DraftHistory {
     }
 
     public DraftHistory(int size) {
+        if (size < 1) throw new IllegalArgumentException("the history needs room for at least one snapshot");
         this.size = size;
     }
 

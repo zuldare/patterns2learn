@@ -49,6 +49,7 @@ public class WhiteboardDraft {
         List<String> cleaned = new ArrayList<>();
         for (String m : newMovements) {
             if (m == null || m.isBlank()) throw new InvalidDraftException("movements cannot be blank");
+            if (m.strip().length() > 60) throw new InvalidDraftException("a movement is at most 60 characters");
             cleaned.add(m.strip());
         }
         title = newTitle.strip();
@@ -57,11 +58,13 @@ public class WhiteboardDraft {
         timeCapMinutes = newCap;
     }
 
-    /** Wipes the board (the kind of change an inverse operation can't easily undo). */
+    static final int DEFAULT_CAP = 20;
+
+    /** Wipes the board back to a blank, valid draft (a change with no easy inverse operation). */
     public void clear() {
         title = "Untitled";
         movements.clear();
-        timeCapMinutes = 0;
+        timeCapMinutes = DEFAULT_CAP;
     }
 
     public String title() { return title; }

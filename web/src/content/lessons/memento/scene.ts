@@ -50,6 +50,7 @@ const scene: Scene = {
     { id: 'l-service-draft', from: 'service', to: 'draft', style: 'call' },
     { id: 'l-service-history', from: 'service', to: 'history', style: 'call' },
     { id: 'l-draft-snap', from: 'draft', to: 'snap1', style: 'call' },
+    { id: 'l-snap-draft', from: 'snap1', to: 'draft', style: 'call' },
     { id: 'l-history-snap1', from: 'history', to: 'snap1', style: 'call' },
     { id: 'l-history-snap2', from: 'history', to: 'snap2', style: 'call' },
     { id: 'l-tx-table', from: 'tx', to: 'table', style: 'call' },
@@ -75,7 +76,7 @@ const scene: Scene = {
       visible: ['draft', 'snap1'],
       highlight: ['draft', 'snap1'],
       packets: [{ link: 'l-draft-snap', label: 'snapshot()' }],
-      code: { file: `${MAIN}/WhiteboardDraft.java`, region: 'memento', highlight: [2, 3, 7, 14, 15, 18] },
+      code: { file: `${MAIN}/WhiteboardDraft.java`, region: 'memento', highlight: [2, 3, 4, 5, 7, 9, 14, 15, 18] },
     },
     {
       id: 'caretaker',
@@ -83,7 +84,7 @@ const scene: Scene = {
       highlight: ['history'],
       packets: [
         { link: 'l-history-snap1', label: 'push()' },
-        { link: 'l-history-snap2', label: 'pop()' },
+        { link: 'l-history-snap1', label: 'pop()' },
       ],
       code: { file: `${MAIN}/DraftHistory.java`, region: 'caretaker', highlight: [2, 3, 7, 8] },
     },
@@ -95,13 +96,13 @@ const scene: Scene = {
         { link: 'l-service-draft', label: 'snapshot() · edit()' },
         { link: 'l-service-history', label: 'save()' },
       ],
-      code: { file: `${MAIN}/DraftService.java`, region: 'service', highlight: [2, 3, 4, 15] },
+      code: { file: `${MAIN}/DraftService.java`, region: 'service', highlight: [1, 2, 3, 4, 15] },
     },
     {
       id: 'undo',
       visible: ['service', 'draft', 'history', 'snap1', 'snap2'],
       highlight: ['draft', 'snap1'],
-      packets: [{ link: 'l-draft-snap', label: 'restore()' }],
+      packets: [{ link: 'l-snap-draft', label: 'restore()' }],
       code: { file: `${TEST}/WhiteboardDraftTest.java`, region: 'undo', highlight: [4, 5, 6, 9] },
     },
     {
@@ -124,7 +125,7 @@ const scene: Scene = {
         { link: 'l-tx-savepoint', label: 'createSavepoint()' },
         { link: 'l-tx-table', label: 'rollbackToSavepoint()' },
       ],
-      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'savepoint', highlight: [2, 3, 4] },
+      code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'savepoint', highlight: [1, 2, 3, 4] },
     },
     {
       id: 'recap',
