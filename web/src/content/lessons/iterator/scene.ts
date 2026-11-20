@@ -16,24 +16,27 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
- * - Left to right: controller (sx −10) → Leaderboard, the client (sx −5.5) → PagedResultIterator (sx 3.5)
- *   → the result table (sx 8). ResultHistory, the aggregate, sits above (sx −1, up) and hands out iterators.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). A staircase, so the scene stays narrow and its labels readable:
+ * - The coach stands off the platform's back-left edge, high above the controller, and calls down into it
+ *   (the long GET packet parks on that steep link, where width costs nothing).
+ * - Middle row, left to right: controller → Leaderboard, the client (6 units of x − y on) → PagedResultIterator
+ *   (8 more). ResultHistory, the aggregate, sits a row above between them and hands out iterators.
+ * - The result table sits a row below, 3 units right of the iterator, so its packets park on the drop.
  * - The two "before" classes take the Leaderboard's spot.
  * - spring-does-it: JdbcClient in ResultHistory's spot, the Stream in the iterator's spot.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.9, y: 18.0 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 15.4, d: 16.4, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'LeaderboardController', ...at(5.5, 15.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'loadAll', kind: 'block', label: 'LoadEverythingLeaderboard', ...at(7.75, 13.25), tone: 'danger', icon: 'warning' },
-  { id: 'offsetLoop', kind: 'block', label: 'OffsetLoopReport', ...at(7.75, 13.25), tone: 'danger', icon: 'warning' },
-  { id: 'leaderboard', kind: 'block', label: 'Leaderboard', ...at(7.75, 13.25), tone: 'neutral', icon: 'medal' },
-  { id: 'history', kind: 'block', label: 'ResultHistory', ...at(6.5, 7.5), tone: 'accent', icon: 'board' },
-  { id: 'iterator', kind: 'block', label: 'PagedResultIterator', ...at(12.25, 8.75), tone: 'accent', icon: 'arrow-in' },
-  { id: 'db', kind: 'block', label: 'result table', ...at(14.5, 6.5), tone: 'neutral', icon: 'db' },
-  { id: 'jdbc', kind: 'block', label: 'JdbcClient', ...at(6.5, 7.5), tone: 'accent', icon: 'gear' },
-  { id: 'stream', kind: 'block', label: 'Stream<Result>', ...at(12.25, 8.75), tone: 'accent', icon: 'arrow-in' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.4, y: 5.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 8.5, y: 0 }, size: { w: 15.5, d: 11.5, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'LeaderboardController', ...at(10, 10), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'loadAll', kind: 'block', label: 'LoadEverythingLeaderboard', ...at(13, 7), tone: 'danger', icon: 'warning' },
+  { id: 'offsetLoop', kind: 'block', label: 'OffsetLoopReport', ...at(13, 7), tone: 'danger', icon: 'warning' },
+  { id: 'leaderboard', kind: 'block', label: 'Leaderboard', ...at(13, 7), tone: 'neutral', icon: 'medal' },
+  { id: 'history', kind: 'block', label: 'ResultHistory', ...at(11.5, 1.5), tone: 'accent', icon: 'board' },
+  { id: 'iterator', kind: 'block', label: 'PagedResultIterator', ...at(17, 3), tone: 'accent', icon: 'arrow-in' },
+  { id: 'db', kind: 'block', label: 'result table', ...at(22.5, 5.5), tone: 'neutral', icon: 'db' },
+  { id: 'jdbc', kind: 'block', label: 'JdbcClient', ...at(11.5, 1.5), tone: 'accent', icon: 'gear' },
+  { id: 'stream', kind: 'block', label: 'Stream<Result>', ...at(17, 3), tone: 'accent', icon: 'arrow-in' },
 ];
 
 const SPRING = ['context', 'coach', 'controller', 'leaderboard', 'history', 'iterator', 'db'];
