@@ -8,7 +8,7 @@
   flex-direction: column;
   gap: 24px;
   padding: 16px;
-  max-width: 1600px;
+  max-width: 1760px;
   margin: 0 auto;
 }
 
@@ -36,7 +36,7 @@
 
 .iso-canvas {
   margin: 0;
-  padding: 12px;
+  padding: 8px;
   border: 1.5px solid var(--line);
   border-radius: var(--radius);
   background-color: var(--bg);
@@ -56,6 +56,10 @@
   background-position: -1px -1px;
 }
 .iso-canvas .iso-scene { max-height: min(62vh, 560px); }
+/* Desktop: the diagram is the star, so it gets most of the viewport height. */
+@media (min-width: 960px) {
+  .iso-canvas .iso-scene { max-height: min(72vh, 760px); }
+}
 /* Landscape phones: 62vh of a short screen is a strip; let the diagram take most of the height. */
 @media (max-height: 520px) and (orientation: landscape) {
   .iso-canvas .iso-scene { max-height: 82vh; }
@@ -106,8 +110,9 @@
 .step-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 0.93rem;
   background: var(--surface);
   border: 1.5px solid var(--ink);
   border-radius: var(--radius);
@@ -117,11 +122,11 @@ html:not(.js) .step-text + .step-text { border-top: 1.5px dashed var(--line); pa
 .step-text__count {
   margin: 0 0 0.25rem;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.step-text__title { font-size: 1.15rem; margin-bottom: 0.6rem; }
+.step-text__title { font-size: 1.05rem; margin-bottom: 0.5rem; }
 /* Long inline code (method chains, CGLIB names) may break anywhere rather than push the panel sideways. */
 .step-text code { overflow-wrap: anywhere; }
 .step-controls { display: flex; justify-content: space-between; gap: 12px; }
@@ -203,7 +208,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border: 1.5px solid transparent;
   border-radius: 8px;
   color: var(--ink);
@@ -243,14 +248,14 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   .lesson-shell { padding: 24px; }
   .lesson { gap: 32px; }
   .lesson__main {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
     grid-template-areas:
       "head text"
       "canvas text"
       "bar text"
       "code text";
     grid-template-rows: auto auto auto 1fr;
-    column-gap: 24px;
+    column-gap: 20px;
     align-items: start;
   }
   .lesson__head { grid-area: head; }
@@ -262,7 +267,7 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   /* With JS one step shows at a time: cap it to the viewport so Back/Next stay
      reachable on long steps (without JS all steps flow in the page instead). */
   html.js .step-panel { max-height: calc(100vh - 32px); overflow-y: auto; }
-  html.js .step-panel .step-controls { position: sticky; bottom: -18px; margin-bottom: -18px; padding: 8px 0 18px; background: var(--surface); }
+  html.js .step-panel .step-controls { position: sticky; bottom: -14px; margin-bottom: -14px; padding: 8px 0 14px; background: var(--surface); }
 }
 
 /* ---------- ≥ 1200px: tree column ---------- */
@@ -270,13 +275,13 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 @media (min-width: 1200px) {
   .lesson-shell {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: 220px minmax(0, 1fr);
     align-items: start;
   }
   .course-tree { position: sticky; top: 24px; }
   /* Tree + text columns leave the diagram little room up to ~1440px: slim both there. */
-  .lesson-shell { grid-template-columns: 216px minmax(0, 1fr); }
-  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(280px, 330px); }
+  .lesson-shell { grid-template-columns: 200px minmax(0, 1fr); }
+  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); }
   .site-header .tree-toggle,
   .course-tree .course-tree__close { display: none; }
 }
@@ -339,6 +344,6 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 /* ≥ 1440px: room again for the roomier tree and text columns. */
 @media (min-width: 1440px) {
-  .lesson-shell { grid-template-columns: 240px minmax(0, 1fr); }
-  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); }
+  .lesson-shell { grid-template-columns: 220px minmax(0, 1fr); }
+  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
 }
