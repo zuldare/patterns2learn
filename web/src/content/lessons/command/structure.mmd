@@ -1,0 +1,42 @@
+classDiagram
+  direction LR
+  class DeskCommands {
+    <<Client>>
+    +book(session, athlete) Command
+    +cancel(session, athlete) Command
+    +move(athlete, from, to) Command
+  }
+  class FrontDesk {
+    <<Invoker>>
+    +run(Command command) String
+    +undo() String
+  }
+  class Command {
+    <<Command>>
+    +execute() void
+    +undo() void
+    +describe() String
+  }
+  class BookCommand {
+    <<ConcreteCommand>>
+  }
+  class CancelCommand {
+    <<ConcreteCommand>>
+  }
+  class MoveCommand {
+    <<ConcreteCommand>>
+  }
+  class ClassRoster {
+    <<Receiver>>
+    +book(session, athlete) void
+    +cancel(session, athlete) int
+    +restore(session, index, athlete) void
+  }
+  FrontDesk o-- Command : history
+  Command <|.. BookCommand
+  Command <|.. CancelCommand
+  Command <|.. MoveCommand
+  DeskCommands ..> Command : creates
+  BookCommand --> ClassRoster
+  CancelCommand --> ClassRoster
+  MoveCommand --> ClassRoster

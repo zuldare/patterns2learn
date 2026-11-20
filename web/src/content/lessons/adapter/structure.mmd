@@ -1,0 +1,31 @@
+classDiagram
+  direction LR
+  class ZoneBoard {
+    <<Client>>
+    +zoneOf(String athleteId) Optional~ZoneReading~
+  }
+  class HeartRateMonitor {
+    <<Target>>
+    +current(String athleteId) Optional~HeartRate~
+  }
+  class PulseBandMonitor {
+    <<Adapter>>
+    +current(String athleteId) Optional~HeartRate~
+  }
+  class HeartLinkMonitor {
+    <<Adapter>>
+    +current(String athleteId) Optional~HeartRate~
+  }
+  class PulseBandClient {
+    <<Adaptee>>
+    +latestBeat(String serial) PulseBandBeat
+  }
+  class HeartLinkHub {
+    <<Adaptee>>
+    +readSample(int channel) String
+  }
+  ZoneBoard --> HeartRateMonitor
+  HeartRateMonitor <|.. PulseBandMonitor
+  HeartRateMonitor <|.. HeartLinkMonitor
+  PulseBandMonitor --> PulseBandClient : adaptee
+  HeartLinkMonitor --> HeartLinkHub : adaptee

@@ -1,0 +1,20 @@
+classDiagram
+  direction TB
+  class ResultImporter {
+    <<AbstractClass>>
+    +importAll(String payload) ImportReport
+    #parse(String payload)* List~Result~
+    #afterImport(ImportReport report) void
+    -validate(Result r)$ Optional~String~
+  }
+  class CsvResultImporter {
+    <<ConcreteClass>>
+    #parse(String payload) List~Result~
+  }
+  class JsonResultImporter {
+    <<ConcreteClass>>
+    #parse(String payload) List~Result~
+    #afterImport(ImportReport report) void
+  }
+  ResultImporter <|-- CsvResultImporter
+  ResultImporter <|-- JsonResultImporter

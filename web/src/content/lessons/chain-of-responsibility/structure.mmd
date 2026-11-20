@@ -1,0 +1,34 @@
+classDiagram
+  direction LR
+  class AccessControl {
+    <<Client>>
+    +decide(CheckIn checkIn) AccessDecision
+  }
+  class AccessRule {
+    <<Handler>>
+    +check(checkIn, chain) AccessDecision
+  }
+  class AccessChain {
+    <<Handler>>
+    +proceed(CheckIn checkIn) AccessDecision
+  }
+  class AuditRule {
+    <<ConcreteHandler>>
+  }
+  class MembershipRule {
+    <<ConcreteHandler>>
+  }
+  class WaiverRule {
+    <<ConcreteHandler>>
+  }
+  class CapacityRule {
+    <<ConcreteHandler>>
+  }
+  AccessControl --> AccessRule : rules
+  AccessControl ..> AccessChain : starts
+  AccessChain --> AccessRule : next
+  AccessRule ..> AccessChain : proceeds
+  AccessRule <|.. AuditRule
+  AccessRule <|.. MembershipRule
+  AccessRule <|.. WaiverRule
+  AccessRule <|.. CapacityRule

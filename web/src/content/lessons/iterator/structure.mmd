@@ -1,0 +1,29 @@
+classDiagram
+  direction LR
+  class Leaderboard {
+    <<Client>>
+    +top(wod, n) List~Placing~
+  }
+  class Iterable {
+    <<Aggregate>>
+    +iterator() Iterator~Result~
+  }
+  class ResultHistory {
+    <<ConcreteAggregate>>
+    +fastest(String wod) Iterable~Result~
+  }
+  class Iterator {
+    <<Iterator>>
+    +hasNext() boolean
+    +next() Result
+  }
+  class PagedResultIterator {
+    <<ConcreteIterator>>
+    +hasNext() boolean
+    +next() Result
+  }
+  Leaderboard --> ResultHistory
+  Leaderboard ..> Iterator : walks
+  ResultHistory ..> Iterable : returns
+  Iterator <|.. PagedResultIterator
+  ResultHistory ..> PagedResultIterator : creates

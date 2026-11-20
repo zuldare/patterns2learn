@@ -1,0 +1,21 @@
+classDiagram
+  direction LR
+  class BookingController {
+    <<Client>>
+    +book(sessionId, athlete) Booking
+  }
+  class BookingOperations {
+    <<Subject>>
+    +book(sessionId, athlete) Booking
+  }
+  class PlainBookingService {
+    <<RealSubject>>
+  }
+  class TxBookingProxy {
+    <<Proxy>>
+    +book(sessionId, athlete) Booking
+  }
+  BookingController --> BookingOperations
+  BookingOperations <|.. PlainBookingService
+  BookingOperations <|.. TxBookingProxy
+  TxBookingProxy --> PlainBookingService : target

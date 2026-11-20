@@ -1,0 +1,42 @@
+classDiagram
+  direction LR
+  class Workout {
+    <<ObjectStructure>>
+    +visit(WorkoutVisitor~R~ visitor) R
+  }
+  class WorkoutElement {
+    <<Element>>
+    +accept(WorkoutVisitor visitor) void
+  }
+  class Lift {
+    <<ConcreteElement>>
+    +accept(WorkoutVisitor visitor) void
+  }
+  class Gymnastics {
+    <<ConcreteElement>>
+    +accept(WorkoutVisitor visitor) void
+  }
+  class Cardio {
+    <<ConcreteElement>>
+    +accept(WorkoutVisitor visitor) void
+  }
+  class WorkoutVisitor {
+    <<Visitor>>
+    +visitLift(Lift lift) void
+    +visitGymnastics(Gymnastics g) void
+    +visitCardio(Cardio c) void
+    +result() R
+  }
+  class EquipmentVisitor {
+    <<ConcreteVisitor>>
+  }
+  class CalorieVisitor {
+    <<ConcreteVisitor>>
+  }
+  Workout o-- WorkoutElement
+  WorkoutElement <|.. Lift
+  WorkoutElement <|.. Gymnastics
+  WorkoutElement <|.. Cardio
+  WorkoutVisitor <|.. EquipmentVisitor
+  WorkoutVisitor <|.. CalorieVisitor
+  WorkoutElement ..> WorkoutVisitor : accepts

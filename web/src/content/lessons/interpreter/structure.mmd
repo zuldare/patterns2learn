@@ -1,0 +1,40 @@
+classDiagram
+  direction LR
+  class WodController {
+    <<Client>>
+    +totals(WodRequest req) Totals
+  }
+  class WodParser {
+    <<Client>>
+    +parse(String text) WodExpression
+  }
+  class Tally {
+    <<Context>>
+    ~add(movement, n)
+    +totals() Map~String, Integer~
+    +reps() int
+  }
+  class WodExpression {
+    <<AbstractExpression>>
+    +interpret(Tally tally, long factor)
+  }
+  class Movement {
+    <<TerminalExpression>>
+    +interpret(Tally tally, long factor)
+  }
+  class Sequence {
+    <<NonterminalExpression>>
+    +interpret(Tally tally, long factor)
+  }
+  class Repeat {
+    <<NonterminalExpression>>
+    +interpret(Tally tally, long factor)
+  }
+  WodController --> WodParser
+  WodController ..> Tally : creates
+  WodParser ..> WodExpression : builds
+  WodExpression <|.. Movement
+  WodExpression <|.. Sequence
+  WodExpression <|.. Repeat
+  Sequence o-- WodExpression : parts
+  Repeat o-- WodExpression : body

@@ -7,6 +7,7 @@ import printCss from '../../../../styles/print.css?url';
 import { highlightJava } from '../../../../lib/highlight';
 import { renderScene } from '../../../../engine/render';
 import { listLessons, resolveSteps } from '../../../../lib/lessons';
+import { structureOf } from '../../../../lib/structure';
 import type { Lesson } from '../../../../engine/types';
 import { locales, t, type Locale } from '../../../../i18n';
 
@@ -29,6 +30,7 @@ const last = steps.find((s) => s.id === 'recap') ?? steps[steps.length - 1]!;
 const svg = renderScene(lesson.scene, { step: last, label: text.title });
 const codeHtml = last.snippet ? await highlightJava(last.snippet.code, last.code?.highlight ?? []) : undefined;
 const codeFile = last.snippet?.file.split('/').pop();
+const uml = structureOf(lesson.slug);
 ---
 <BaseLayout lang={lang} title={`${t(lang, 'cheatsheet')}: ${text.title} — patterns2learn`} description={recap.intent} path={`/patterns/${lesson.slug}/cheatsheet/`}>
   <link slot="head" rel="stylesheet" href={printCss} media="print" />
@@ -46,6 +48,15 @@ const codeFile = last.snippet?.file.split('/').pop();
       <h2>{t(lang, 'intent')}</h2>
       <p>{recap.intent}</p>
     </section>
+    {uml && (
+      <section class="sheet__uml" aria-labelledby="uml-title">
+        <h2 id="uml-title">{t(lang, 'structure')}</h2>
+        {/* Mermaid source; scripts/uml.ts swaps it for the rendered SVG. Without JS the source stays readable. */}
+        <figure class="sheet__uml-figure" role="img" aria-label={t(lang, 'structureAlt')}>
+          <pre class="sheet__uml-src" data-uml>{uml}</pre>
+        </figure>
+      </section>
+    )}
     <div class="sheet__cols">
       <section class="sheet__diagram">
         <div class="sheet__svg" set:html={svg} />
@@ -82,6 +93,7 @@ const codeFile = last.snippet?.file.split('/').pop();
 </BaseLayout>
 
 <script>
+  import '../../../../scripts/uml';
   document.querySelector<HTMLButtonElement>('[data-action="print"]')?.addEventListener('click', () => window.print());
 </script>
 
@@ -97,6 +109,10 @@ const codeFile = last.snippet?.file.split('/').pop();
   .sheet__cols--even { grid-template-columns: 1fr 1fr; }
   .sheet__svg { border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg); padding: 8px; }
   .sheet__svg svg { display: block; width: 100%; height: auto; max-height: 280px; }
+  .sheet__uml-figure { margin: 0; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg); padding: 12px; overflow-x: auto; }
+  .sheet__uml-src { margin: 0; font-size: 0.8rem; color: var(--muted); white-space: pre-wrap; }
+  .sheet__uml-src[data-rendered] { white-space: normal; }
+  .sheet__uml-figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; max-height: 520px; }
   .sheet__code { border: 1.5px solid var(--ink); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
   .sheet__tags { list-style: none; padding: 0 !important; display: flex !important; flex-wrap: wrap; gap: 8px !important; }
   .sheet__tags li { border: 1.5px solid var(--line); border-radius: 999px; padding: 0 10px; background: var(--surface); }

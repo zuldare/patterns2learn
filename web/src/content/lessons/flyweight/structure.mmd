@@ -1,0 +1,25 @@
+classDiagram
+  direction LR
+  class SetLog {
+    <<Client>>
+    +log(athlete, movement, reps, kg) LoggedSet
+  }
+  class LoggedSet {
+    <<Client>>
+    +line() String
+  }
+  class MovementCatalog {
+    <<FlyweightFactory>>
+    +get(String name) Movement
+    +created() int
+  }
+  class Movement {
+    <<Flyweight>>
+    +name() String
+    +standard() String
+    +line(athlete, reps, kg) String
+  }
+  SetLog --> MovementCatalog
+  SetLog o-- LoggedSet
+  LoggedSet --> Movement
+  MovementCatalog o-- Movement : pool

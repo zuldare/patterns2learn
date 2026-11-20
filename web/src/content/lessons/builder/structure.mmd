@@ -1,0 +1,26 @@
+classDiagram
+  direction LR
+  class ScheduleService {
+    <<Client>>
+    +schedule(SessionRequest req) Scheduled
+    +fromTemplate(template, startsAt, coach) Scheduled
+  }
+  class SessionTemplates {
+    <<Director>>
+    +build(template, startsAt, coach) ClassSession
+  }
+  class Builder["ClassSession.Builder"] {
+    <<Builder>>
+    +minutes(int minutes) Builder
+    +capacity(int capacity) Builder
+    +coach(String coach) Builder
+    +build() ClassSession
+  }
+  class ClassSession {
+    <<Product>>
+    +builder(name, startsAt)$ Builder
+  }
+  ScheduleService --> SessionTemplates
+  ScheduleService ..> Builder : uses
+  SessionTemplates ..> Builder : uses
+  Builder ..> ClassSession : creates

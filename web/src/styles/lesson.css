@@ -30,7 +30,24 @@
 }
 
 .lesson__title { font-size: 1.5rem; font-weight: 700; }
-.lesson__summary { margin: 0.25rem 0 0; color: var(--muted); }
+.lesson__lede { display: grid; gap: 8px; margin: 10px 0 0; }
+.lesson__lede dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lesson__lede dd { margin: 2px 0 0; }
+/* The intent is the pattern's one-line promise: it reads first and stands out; the application (the
+   lesson's story) follows in the muted body tone. */
+.lesson__intent dd {
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+  font-weight: 500;
+  color: var(--ink);
+}
+.lesson__application dd { color: var(--muted); }
 
 /* ---------- Canvas ---------- */
 

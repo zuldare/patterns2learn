@@ -1,0 +1,35 @@
+classDiagram
+  direction LR
+  class FloorMediator {
+    <<Mediator>>
+    +timerStarted()
+    +athleteFinished(athlete, seconds)
+    +capReached()
+  }
+  class ClassFloor {
+    <<ConcreteMediator>>
+  }
+  class WodTimer {
+    <<ConcreteColleague>>
+    +start()
+    +cap()
+  }
+  class FinishLine {
+    <<ConcreteColleague>>
+    +finish(athlete, seconds)
+  }
+  class Music {
+    <<ConcreteColleague>>
+    +play(volume)
+    +stop()
+  }
+  class Screen {
+    <<ConcreteColleague>>
+    +showClock()
+    +showResults(results)
+  }
+  WodTimer --> FloorMediator
+  FinishLine --> FloorMediator
+  FloorMediator <|.. ClassFloor
+  ClassFloor --> Music
+  ClassFloor --> Screen

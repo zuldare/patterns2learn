@@ -1,0 +1,41 @@
+classDiagram
+  direction LR
+  class WodPlanner {
+    <<Creator>>
+    +plan(WodRequest request) WodPlan
+    #createWorkout(WodRequest request) Workout
+  }
+  class AmrapPlanner {
+    <<ConcreteCreator>>
+    #createWorkout(WodRequest request) Workout
+  }
+  class EmomPlanner {
+    <<ConcreteCreator>>
+  }
+  class ForTimePlanner {
+    <<ConcreteCreator>>
+  }
+  class Workout {
+    <<Product>>
+    +summary() String
+    +scoreUnit() String
+  }
+  class Amrap {
+    <<ConcreteProduct>>
+  }
+  class Emom {
+    <<ConcreteProduct>>
+  }
+  class ForTime {
+    <<ConcreteProduct>>
+  }
+  WodPlanner <|-- AmrapPlanner
+  WodPlanner <|-- EmomPlanner
+  WodPlanner <|-- ForTimePlanner
+  WodPlanner ..> Workout : uses
+  Workout <|.. Amrap
+  Workout <|.. Emom
+  Workout <|.. ForTime
+  AmrapPlanner ..> Amrap : creates
+  EmomPlanner ..> Emom : creates
+  ForTimePlanner ..> ForTime : creates

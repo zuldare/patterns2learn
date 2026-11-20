@@ -44,6 +44,8 @@ body { font-size: 9.5pt; line-height: 1.35; }
 .sheet__cols { gap: 10pt; }
 .sheet__svg { padding: 2pt; border-color: #999; }
 .sheet__svg svg { max-height: 62mm; }
+.sheet__uml-figure { padding: 2pt; border-color: #999; }
+.sheet__uml-figure svg { max-height: 58mm; }
 .sheet__code, .sheet__svg, .sheet section { break-inside: avoid; }
 .sheet__code { border-color: #000; box-shadow: none; }
 .sheet .code-snippet pre.shiki { font-size: 7pt; line-height: 1.4; padding: 4pt 0 6pt; overflow: visible; white-space: pre-wrap; }

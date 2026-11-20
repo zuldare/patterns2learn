@@ -1,0 +1,27 @@
+classDiagram
+  direction LR
+  class WodSummary {
+    <<Client>>
+    +of(WorkoutPart wod)$ WodSummary
+  }
+  class WorkoutPart {
+    <<Component>>
+    +reps() int
+    +seconds() int
+    +lines() List~String~
+  }
+  class Movement {
+    <<Leaf>>
+  }
+  class Run {
+    <<Leaf>>
+  }
+  class Block {
+    <<Composite>>
+    +parts() List~WorkoutPart~
+  }
+  WodSummary --> WorkoutPart
+  WorkoutPart <|.. Movement
+  WorkoutPart <|.. Run
+  WorkoutPart <|.. Block
+  Block o-- WorkoutPart : parts

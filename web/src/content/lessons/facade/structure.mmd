@@ -1,0 +1,48 @@
+classDiagram
+  direction LR
+  class MemberController {
+    <<Client>>
+    +join(JoinRequest request) Welcome
+  }
+  class KioskController {
+    <<Client>>
+    +join(name, email, plan) Welcome
+  }
+  class OnboardingFacade {
+    <<Facade>>
+    +join(JoinRequest req) Welcome
+  }
+  class MemberRegistry {
+    <<Subsystem>>
+    +register(name, email) Member
+    +remove(id)
+  }
+  class AccessCards {
+    <<Subsystem>>
+    +issue(memberId) String
+    +revoke(card)
+  }
+  class Billing {
+    <<Subsystem>>
+    +subscribe(memberId, plan, paymentToken) Subscription
+  }
+  class Waivers {
+    <<Subsystem>>
+    +send(Member member)
+  }
+  class IntroClasses {
+    <<Subsystem>>
+    +bookIntro(memberId) String
+  }
+  class Mailer {
+    <<Subsystem>>
+    +welcome(member, card, introClass)
+  }
+  MemberController --> OnboardingFacade
+  KioskController --> OnboardingFacade
+  OnboardingFacade --> MemberRegistry
+  OnboardingFacade --> AccessCards
+  OnboardingFacade --> Billing
+  OnboardingFacade --> Waivers
+  OnboardingFacade --> IntroClasses
+  OnboardingFacade --> Mailer

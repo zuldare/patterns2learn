@@ -1,0 +1,20 @@
+classDiagram
+  direction LR
+  class WodController {
+    <<Client>>
+    +list() List~Wod~
+    +add(Wod wod) Wod
+  }
+  class BookingService {
+    <<Client>>
+    +book(String wod) Booking
+  }
+  class WodCatalog {
+    <<Singleton>>
+    -Map~String, Wod~ wods
+    +find(String name) Optional~Wod~
+    +all() List~Wod~
+    +add(Wod wod) void
+  }
+  WodController --> WodCatalog
+  BookingService --> WodCatalog

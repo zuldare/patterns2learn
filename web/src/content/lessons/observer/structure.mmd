@@ -1,0 +1,26 @@
+classDiagram
+  direction LR
+  class ResultService {
+    <<ConcreteSubject>>
+    +record(LiftResult r) boolean
+  }
+  class ApplicationEventPublisher {
+    <<Subject>>
+    +publishEvent(event)
+  }
+  class NotificationListener {
+    <<ConcreteObserver>>
+    +on(PersonalRecordEvent e)
+  }
+  class LeaderboardListener {
+    <<ConcreteObserver>>
+    +on(PersonalRecordEvent e)
+  }
+  class BadgeListener {
+    <<ConcreteObserver>>
+    +on(PersonalRecordEvent e)
+  }
+  ResultService --> ApplicationEventPublisher
+  ApplicationEventPublisher ..> NotificationListener : notifies
+  ApplicationEventPublisher ..> LeaderboardListener : notifies
+  ApplicationEventPublisher ..> BadgeListener : notifies

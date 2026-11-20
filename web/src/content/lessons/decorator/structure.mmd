@@ -1,0 +1,37 @@
+classDiagram
+  direction LR
+  class Membership {
+    <<Component>>
+    +description() String
+    +monthlyFee() Money
+  }
+  class BasicMembership {
+    <<ConcreteComponent>>
+    +description() String
+    +monthlyFee() Money
+  }
+  class MembershipDecorator {
+    <<Decorator>>
+    #Membership inner
+  }
+  class PhysioAddOn {
+    <<ConcreteDecorator>>
+    +description() String
+    +monthlyFee() Money
+  }
+  class NutritionAddOn {
+    <<ConcreteDecorator>>
+  }
+  class OpenGymAddOn {
+    <<ConcreteDecorator>>
+  }
+  class StudentDiscount {
+    <<ConcreteDecorator>>
+  }
+  Membership <|.. BasicMembership
+  Membership <|.. MembershipDecorator
+  MembershipDecorator o-- Membership : inner
+  MembershipDecorator <|-- PhysioAddOn
+  MembershipDecorator <|-- NutritionAddOn
+  MembershipDecorator <|-- OpenGymAddOn
+  MembershipDecorator <|-- StudentDiscount

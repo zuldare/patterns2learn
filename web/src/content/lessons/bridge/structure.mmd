@@ -1,0 +1,33 @@
+classDiagram
+  direction LR
+  class Reminder {
+    <<Abstraction>>
+    +send(Member member) Delivery
+    #title() String
+    #body(Member member) String
+  }
+  class ClassReminder {
+    <<RefinedAbstraction>>
+  }
+  class PaymentReminder {
+    <<RefinedAbstraction>>
+  }
+  class Channel {
+    <<Implementor>>
+    +deliver(to, title, body) Delivery
+  }
+  class EmailChannel {
+    <<ConcreteImplementor>>
+  }
+  class SmsChannel {
+    <<ConcreteImplementor>>
+  }
+  class PushChannel {
+    <<ConcreteImplementor>>
+  }
+  Reminder <|-- ClassReminder
+  Reminder <|-- PaymentReminder
+  Reminder o-- Channel : channel
+  Channel <|.. EmailChannel
+  Channel <|.. SmsChannel
+  Channel <|.. PushChannel

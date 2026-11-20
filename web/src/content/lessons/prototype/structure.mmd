@@ -1,0 +1,25 @@
+classDiagram
+  direction LR
+  class WeekService {
+    <<Client>>
+    +create(template, name) WeekView
+    +copyWeek(id, name) WeekView
+  }
+  class ProgramLibrary {
+    <<PrototypeManager>>
+    +newWeek(template, name) WeekProgram
+    +names() List~String~
+  }
+  class WeekProgram {
+    <<Prototype>>
+    +copy() WeekProgram
+    +rename(newName) WeekProgram
+  }
+  class DayPlan {
+    <<Prototype>>
+    +copy() DayPlan
+    +replace(newMovements)
+  }
+  WeekService --> ProgramLibrary
+  ProgramLibrary o-- WeekProgram
+  WeekProgram *-- DayPlan

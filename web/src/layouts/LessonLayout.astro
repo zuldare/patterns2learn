@@ -12,7 +12,7 @@ import RunItLink from '../components/RunItLink.astro';
 import StepPanel from '../components/StepPanel.astro';
 import type { Lesson } from '../engine/types';
 import { resolveSteps } from '../lib/lessons';
-import type { Locale } from '../i18n';
+import { t, type Locale } from '../i18n';
 
 interface Props {
   lang: Locale;
@@ -60,7 +60,10 @@ const sceneJson = JSON.stringify(lesson.scene).replace(/</g, '\\u003c');
       <div class="lesson__main">
       <header class="lesson__head">
         <h1 class="lesson__title" id="lesson-title">{text.title}</h1>
-        <p class="lesson__summary">{text.summary}</p>
+        <dl class="lesson__lede">
+          <div class="lesson__intent"><dt>{t(lang, 'intent')}</dt><dd>{text.recap.intent}</dd></div>
+          <div class="lesson__application"><dt>{t(lang, 'application')}</dt><dd>{text.summary}</dd></div>
+        </dl>
       </header>
       <IsoCanvas scene={lesson.scene} steps={steps} label={text.title} />
       <StepBar lang={lang} steps={steps} />

@@ -1,0 +1,28 @@
+classDiagram
+  direction LR
+  class PricingService {
+    <<Context>>
+    -Map~String, PricingStrategy~ strategies
+    +quote(PricingRequest request) Money
+  }
+  class PricingStrategy {
+    <<Strategy>>
+    +priceFor(PricingRequest request) Money
+  }
+  class MonthlyPricing {
+    <<ConcreteStrategy>>
+  }
+  class TenPackPricing {
+    <<ConcreteStrategy>>
+  }
+  class DropInPricing {
+    <<ConcreteStrategy>>
+  }
+  class StudentPricing {
+    <<ConcreteStrategy>>
+  }
+  PricingService o-- PricingStrategy
+  PricingStrategy <|.. MonthlyPricing
+  PricingStrategy <|.. TenPackPricing
+  PricingStrategy <|.. DropInPricing
+  PricingStrategy <|.. StudentPricing

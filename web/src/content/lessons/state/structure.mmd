@@ -1,0 +1,33 @@
+classDiagram
+  direction LR
+  class Membership {
+    <<Context>>
+    -MembershipState state
+    +checkIn() void
+    +freeze() void
+    +renew() void
+  }
+  class MembershipState {
+    <<State>>
+    +checkIn(Membership m)* MembershipState
+    +freeze(Membership m) MembershipState
+    +resume(Membership m) MembershipState
+    +renew(Membership m) MembershipState
+  }
+  class TRIAL {
+    <<ConcreteState>>
+  }
+  class ACTIVE {
+    <<ConcreteState>>
+  }
+  class FROZEN {
+    <<ConcreteState>>
+  }
+  class EXPIRED {
+    <<ConcreteState>>
+  }
+  Membership o-- MembershipState
+  MembershipState <|-- TRIAL
+  MembershipState <|-- ACTIVE
+  MembershipState <|-- FROZEN
+  MembershipState <|-- EXPIRED

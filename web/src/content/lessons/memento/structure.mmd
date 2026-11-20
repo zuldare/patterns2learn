@@ -1,0 +1,19 @@
+classDiagram
+  direction LR
+  class WhiteboardDraft {
+    <<Originator>>
+    +snapshot() Snapshot
+    +restore(Snapshot s)
+    +edit(title, movements, cap)
+    +clear()
+  }
+  class Snapshot {
+    <<Memento>>
+  }
+  class DraftHistory {
+    <<Caretaker>>
+    +save(Snapshot snapshot)
+    +undo() Snapshot
+  }
+  WhiteboardDraft ..> Snapshot : creates
+  DraftHistory o-- Snapshot

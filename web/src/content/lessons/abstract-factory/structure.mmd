@@ -1,0 +1,41 @@
+classDiagram
+  direction LR
+  class FranPlanner {
+    <<Client>>
+    +plan(DivisionKit kit) WodCard
+  }
+  class DivisionKit {
+    <<AbstractFactory>>
+    +barbell() Barbell
+    +pull() PullVariant
+    +scorecard() Scorecard
+  }
+  class RxKit {
+    <<ConcreteFactory>>
+  }
+  class ScaledKit {
+    <<ConcreteFactory>>
+  }
+  class TeensKit {
+    <<ConcreteFactory>>
+  }
+  class Scorecard {
+    <<AbstractProduct>>
+    +score(seconds, reps, totalReps) String
+  }
+  class TimedScorecard {
+    <<ConcreteProduct>>
+  }
+  class TeensScorecard {
+    <<ConcreteProduct>>
+  }
+  FranPlanner --> DivisionKit
+  FranPlanner --> Scorecard
+  DivisionKit <|.. RxKit
+  DivisionKit <|.. ScaledKit
+  DivisionKit <|.. TeensKit
+  Scorecard <|.. TimedScorecard
+  Scorecard <|.. TeensScorecard
+  RxKit ..> TimedScorecard : creates
+  ScaledKit ..> TimedScorecard : creates
+  TeensKit ..> TeensScorecard : creates
