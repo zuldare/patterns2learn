@@ -17,31 +17,32 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes (screen x ∝ x − y, screen y ∝ (x + y) / 2; horizontal gaps shrink by cos 30°, so keep them ≥ 4):
- * - Left to right on screen: controller → ZoneBoard → HeartRateMonitor (the socket).
- * - The two adapters plug into the socket from the right, PulseBand above, HeartLink below;
- *   each vendor SDK sits further right of its adapter.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). Three rows, so the scene stays narrow and its labels readable:
+ * - Middle row, left to right: coach → controller → ZoneBoard → HeartRateMonitor (the socket). Blocks that
+ *   exchange a packet stand about 6 units of x − y apart, so the parked packet sits between them.
+ * - PulseBandMonitor plugs into the socket from the row above, HeartLinkMonitor from the row below;
+ *   each vendor SDK sits to the right of its adapter.
  * - VendorBoundZoneBoard (before) takes ZoneBoard's spot.
  * - spring-does-it reuses the same spots: DispatcherServlet (board), HandlerAdapter (socket),
- *   the two HandlerAdapters (adapters); their handlers sit further right because the adapters' names are long.
+ *   the two HandlerAdapters (adapters) and their handlers (the SDKs' spots).
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 6.0, y: 14.6 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 17.9, d: 13.2, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'ZoneController', ...at(7.5, 12.5), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'boundBoard', kind: 'block', label: 'VendorBoundZoneBoard', ...at(8.1, 9.1), tone: 'danger', icon: 'warning' },
-  { id: 'board', kind: 'block', label: 'ZoneBoard', ...at(8.1, 9.1), tone: 'neutral', icon: 'board' },
-  { id: 'monitor', kind: 'interface', label: 'HeartRateMonitor', ...at(10.1, 7.1, IFACE), tone: 'neutral' },
-  { id: 'pulseAdapter', kind: 'block', label: 'PulseBandMonitor', ...at(9.85, 3.35), tone: 'accent', icon: 'plug' },
-  { id: 'heartAdapter', kind: 'block', label: 'HeartLinkMonitor', ...at(13.25, 6.75), tone: 'accent', icon: 'plug' },
-  { id: 'pulseSdk', kind: 'block', label: 'PulseBandClient', ...at(12.1, 1.1), tone: 'neutral', icon: 'heart' },
-  { id: 'heartSdk', kind: 'block', label: 'HeartLinkHub', ...at(15.5, 4.5), tone: 'neutral', icon: 'heart' },
-  { id: 'dispatcher', kind: 'block', label: 'DispatcherServlet', ...at(8.1, 9.1), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'handlerAdapter', kind: 'interface', label: 'HandlerAdapter', ...at(10.1, 7.1, IFACE), tone: 'neutral' },
-  { id: 'rmha', kind: 'block', label: 'RequestMappingHandlerAdapter', ...at(9.85, 3.35), tone: 'accent', icon: 'plug' },
-  { id: 'hrha', kind: 'block', label: 'HttpRequestHandlerAdapter', ...at(13.25, 6.75), tone: 'accent', icon: 'plug' },
-  { id: 'restHandler', kind: 'block', label: '@GetMapping zone()', ...at(14.2, 0.7), tone: 'neutral', icon: 'gear' },
-  { id: 'legacyHandler', kind: 'block', label: '/legacy/ping', ...at(17.2, 3.7), tone: 'neutral', icon: 'file' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 2.4, y: 11.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 3.25, y: -6.25 }, size: { w: 16.5, d: 17, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'ZoneController', ...at(4.75, 9.25), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'boundBoard', kind: 'block', label: 'VendorBoundZoneBoard', ...at(7.75, 6.25), tone: 'danger', icon: 'warning' },
+  { id: 'board', kind: 'block', label: 'ZoneBoard', ...at(7.75, 6.25), tone: 'neutral', icon: 'board' },
+  { id: 'monitor', kind: 'interface', label: 'HeartRateMonitor', ...at(10.75, 3.25, IFACE), tone: 'neutral' },
+  { id: 'pulseAdapter', kind: 'block', label: 'PulseBandMonitor', ...at(6.25, -1.25), tone: 'accent', icon: 'plug' },
+  { id: 'heartAdapter', kind: 'block', label: 'HeartLinkMonitor', ...at(14.75, 7.25), tone: 'accent', icon: 'plug' },
+  { id: 'pulseSdk', kind: 'block', label: 'PulseBandClient', ...at(9.75, -4.75), tone: 'neutral', icon: 'heart' },
+  { id: 'heartSdk', kind: 'block', label: 'HeartLinkHub', ...at(18.25, 3.75), tone: 'neutral', icon: 'heart' },
+  { id: 'dispatcher', kind: 'block', label: 'DispatcherServlet', ...at(7.75, 6.25), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'handlerAdapter', kind: 'interface', label: 'HandlerAdapter', ...at(10.75, 3.25, IFACE), tone: 'neutral' },
+  { id: 'rmha', kind: 'block', label: 'RequestMappingHandlerAdapter', ...at(6.25, -1.25), tone: 'accent', icon: 'plug' },
+  { id: 'hrha', kind: 'block', label: 'HttpRequestHandlerAdapter', ...at(14.75, 7.25), tone: 'accent', icon: 'plug' },
+  { id: 'restHandler', kind: 'block', label: '@GetMapping zone()', ...at(9.75, -4.75), tone: 'neutral', icon: 'gear' },
+  { id: 'legacyHandler', kind: 'block', label: '/legacy/ping', ...at(18.25, 3.75), tone: 'neutral', icon: 'file' },
 ];
 
 const SPRING = ['context', 'coach', 'controller', 'board', 'monitor', 'pulseAdapter', 'pulseSdk'];

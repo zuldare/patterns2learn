@@ -1,4 +1,4 @@
-import { fitViewBox, MARGIN, MIN_ZOOM, PACKET_H, PILL_H, packetMarkup, packetWidth, parseBox, pillWidth, renderScene, type ViewBox } from '../../src/engine/render';
+import { fitViewBox, MARGIN, MAX_ASPECT, MIN_ZOOM, PACKET_H, PILL_H, packetMarkup, packetWidth, parseBox, pillWidth, renderScene, type ViewBox } from '../../src/engine/render';
 import type { Entity, Scene } from '../../src/engine/types';
 import { scene } from './fixtures/scene';
 
@@ -168,4 +168,28 @@ test('packets are a size smaller than labels', () => {
   const m = packetMarkup('x');
   expect(m).toContain(`height="${PACKET_H}"`);
   expect(PACKET_H).toBeLessThan(PILL_H);
+});
+
+const bbox = (svg: string, id: string) => parseBox(new RegExp(`data-id="${id}" data-bbox="([^"]+)"`).exec(svg)?.[1])!;
+const fullView = (svg: string) => /data-full-view="([^"]+)"/.exec(svg)![1].split(' ').map(Number);
+
+test('the camera frames a container by its label only, so an empty platform never zooms the scene out', () => {
+  const floor: Entity = { id: 'floor', kind: 'container', label: 'ctx', pos: { x: -20, y: -20 }, size: { w: 60, d: 60, h: 0.25 }, tone: 'neutral' };
+  const svg = renderScene({ ...miniScene, entities: [floor, ...miniScene.entities] });
+  const b = bbox(svg, 'floor');
+  expect(b.maxX - b.minX).toBe(pillWidth('ctx'));
+  expect(b.maxY - b.minY).toBe(PILL_H);
+});
+test(`the canvas is never wider than ${MAX_ASPECT} times its height`, () => {
+  const row: Scene = { entities: [block('a', 0, 0), block('b', 12, -12)], links: [], steps: [{ id: 's', visible: ['a', 'b'], highlight: [], packets: [] }] };
+  const [, , w, h] = fullView(renderScene(row));
+  expect(w / h).toBeCloseTo(MAX_ASPECT, 5);
+});
+test('a link arriving from above stops short of its target label instead of crossing it', () => {
+  // `top` sits straight above `low` on screen (same x - y), so the link runs vertically into low's label.
+  const scene2: Scene = { entities: [block('top', 0, 0), block('low', 4, 4)], links: [{ id: 'v', from: 'top', to: 'low', style: 'call' }], steps: [{ id: 's', visible: ['top', 'low'], highlight: [], packets: [] }] };
+  const svg = renderScene(scene2);
+  const d = /id="path-v" class="iso-link-line" d="M([-\d.]+),([-\d.]+) L([-\d.]+),([-\d.]+)"/.exec(svg)!.slice(1).map(Number);
+  const label = /data-id="low"[^]*?<g class="iso-label" transform="translate\(([-\d.]+) ([-\d.]+)\)"/.exec(svg)!.slice(1).map(Number);
+  expect(d[3]).toBeLessThan(label[1] - PILL_H / 2);
 });

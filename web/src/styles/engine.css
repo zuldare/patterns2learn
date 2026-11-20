@@ -4,7 +4,8 @@
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
+  /* Platforms may run past the framed blocks: the canvas edge cuts them. */
+  overflow: hidden;
   font-family: var(--font);
 }
 

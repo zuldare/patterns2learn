@@ -78,6 +78,9 @@ export function pillMarkup(text: string, cls: string, fill: string, cy = 0): str
 export type Box = { minX: number; minY: number; maxX: number; maxY: number };
 export type ViewBox = [number, number, number, number];
 
+/** The canvas is never wider than this times its height. */
+export const MAX_ASPECT = 2;
+
 /** A step never zooms in further than this share of the whole scene's width, so a lone block doesn't fill the canvas. */
 export const MIN_ZOOM = 0.55;
 
@@ -145,16 +148,25 @@ type Placed = { e: Entity; ctx: FigureCtx; box: Box3 };
 /** Where the label pill of an entity is centred: just above the highest point of its figure. */
 function labelAnchor({ e, box }: Placed): ScreenPoint {
   if (e.kind === 'container') {
-    // Just below the middle of the front-left edge, clear of the blocks it holds.
-    const edge = project({ x: e.pos.x + e.size.w / 2, y: e.pos.y + e.size.d, z: e.pos.z ?? 0 });
+    // Just below the front-left edge, a few tiles in from the left corner: the camera frames the blocks,
+    // not the whole platform, so the label sits near where the flow starts, past the actor in front.
+    const edge = project({ x: e.pos.x + Math.min(5, e.size.w / 2), y: e.pos.y + e.size.d, z: e.pos.z ?? 0 });
     return { sx: edge.sx, sy: edge.sy + PILL_H / 2 + 10 };
   }
   return { sx: topMid(box).sx, sy: topFace(box)[0].sy - PILL_H / 2 - 6 };
 }
 
-/** Screen-space bounds of an entity: its figure, its footprint and its label pill. */
+/**
+ * Screen-space bounds of an entity: its figure, its footprint and its label pill. A container counts
+ * only its label: the camera frames the blocks standing on it and lets the platform run past the
+ * canvas edge, instead of zooming out to show empty floor.
+ */
 function entityBounds(p: Placed): Box {
   const box: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  if (p.e.kind === 'container') {
+    growPill(box, labelAnchor(p), p.e.label);
+    return box;
+  }
   for (const b of [p.box, { ...p.e.pos, z: p.e.pos.z ?? 0, ...p.e.size }]) {
     for (const [dx, dy, dz] of [[0, 0, 0], [b.w, 0, 0], [0, b.d, 0], [b.w, b.d, 0], [0, 0, b.h], [b.w, 0, b.h], [0, b.d, b.h], [b.w, b.d, b.h]]) {
       grow(box, project({ x: b.x + dx, y: b.y + dy, z: b.z + dz }));
@@ -196,6 +208,30 @@ function rimT(box: Box3, c: ScreenPoint, to: ScreenPoint): number {
   return best;
 }
 
+/** Parameter range [t0, t1] of the segment a→b inside the label pill of `p` (Liang–Barsky), or null. */
+function labelSpan(p: Placed, a: ScreenPoint, b: ScreenPoint): [number, number] | null {
+  const c = labelAnchor(p);
+  const hw = pillWidth(p.e.label) / 2 + LABEL_CLEARANCE;
+  const hh = PILL_H / 2 + LABEL_CLEARANCE;
+  const dx = b.sx - a.sx;
+  const dy = b.sy - a.sy;
+  let t0 = 0;
+  let t1 = 1;
+  for (const [q, r] of [[-dx, a.sx - (c.sx - hw)], [dx, c.sx + hw - a.sx], [-dy, a.sy - (c.sy - hh)], [dy, c.sy + hh - a.sy]]) {
+    if (q === 0) {
+      if (r < 0) return null;
+      continue;
+    }
+    const t = r / q;
+    if (q < 0) t0 = Math.max(t0, t);
+    else t1 = Math.min(t1, t);
+  }
+  return t0 <= t1 ? [t0, t1] : null;
+}
+
+/** Room kept between a link and a label it would otherwise cross. */
+const LABEL_CLEARANCE = 4;
+
 const MARKER: Record<Link['style'], string> = {
   call: 'url(#iso-arrow)',
   implements: 'url(#iso-triangle)',
@@ -210,8 +246,14 @@ function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState): strin
   const c2 = topMid(to.box);
   const len = Math.hypot(c2.sx - c1.sx, c2.sy - c1.sy) || 1;
   const gap = LINK_GAP / len;
-  const t1 = Math.min(0.45, rimT(from.box, c1, c2) + gap);
-  const t2 = Math.max(0.55, 1 - rimT(to.box, c2, c1) - gap);
+  let t1 = Math.min(0.45, rimT(from.box, c1, c2) + gap);
+  let t2 = Math.max(0.55, 1 - rimT(to.box, c2, c1) - gap);
+  // A link heading up would run through its own block's label, and one arriving from above through
+  // its target's: start past the first and stop short of the second (the arrow then points at the name).
+  const out = labelSpan(from, c1, c2);
+  if (out && out[0] < 0.5) t1 = Math.max(t1, out[1] + gap);
+  const into = labelSpan(to, c1, c2);
+  if (into && into[1] > 0.5) t2 = Math.min(t2, into[0] - gap);
   const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t, sy: c1.sy + (c2.sy - c1.sy) * t });
   const p1 = at(t1);
   const p2 = at(t2);
@@ -275,6 +317,12 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
   if (!Number.isFinite(box.minX)) Object.assign(box, { minX: 0, minY: 0, maxX: 0, maxY: 0 });
 
   const full: ViewBox = [box.minX - MARGIN, box.minY - MARGIN, box.maxX - box.minX + 2 * MARGIN, box.maxY - box.minY + 2 * MARGIN];
+  // A wide, flat scene would make a strip of a canvas: keep at least 1 / MAX_ASPECT of height, centred.
+  if (full[2] / full[3] > MAX_ASPECT) {
+    const h = full[2] / MAX_ASPECT;
+    full[1] -= (h - full[3]) / 2;
+    full[3] = h;
+  }
   // A baked step is framed like the player frames it, so the first paint doesn't jump when the script mounts.
   const vb = step ? fitViewBox(placed.filter(p => !itemState(step, { id: p.e.id }).hidden).map(p => bounds.get(p.e.id)!), full) : full;
   return (

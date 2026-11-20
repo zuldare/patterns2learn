@@ -17,29 +17,29 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - The chain runs as a diagonal row towards the back-right corner:
- *   AuditRule → MembershipRule → WaiverRule → CapacityRule, in @Order order.
- * - The GoF handlers reuse the last three spots; the monolith sits alone.
- * - AccessRule (the interface) sits below the row; the servlet filter demo
- *   reuses the empty middle of the platform.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y):
+ * - The request flows as one gently zig-zagging row, left to right: controller → AccessControl →
+ *   AuditRule → MembershipRule → WaiverRule → CapacityRule (@Order order), about 5 units of x − y
+ *   apart so each parked packet sits between two blocks, under neither label.
+ * - The GoF handlers reuse the last three spots; the monolith takes AuditRule's.
+ * - AccessRule (the interface) sits below the rules; the servlet filter demo reuses the left half.
  */
 const entities: Entity[] = [
-  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'CheckInController', ...at(1.8, 7.4), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'monolith', kind: 'block', label: 'MonolithicCheckIn', ...at(5.6, 3.4), tone: 'danger', icon: 'warning' },
-  { id: 'gMember', kind: 'block', label: 'MembershipHandler', ...at(7.2, 1.9), tone: 'warn', icon: 'calendar' },
-  { id: 'gWaiver', kind: 'block', label: 'WaiverHandler', ...at(9.8, 2.8), tone: 'warn', icon: 'file' },
-  { id: 'gCapacity', kind: 'block', label: 'CapacityHandler', ...at(11.6, 4.6), tone: 'warn', icon: 'ten' },
-  { id: 'access', kind: 'block', label: 'AccessControl', ...at(3.8, 4.6), tone: 'neutral', icon: 'gear' },
-  { id: 'audit', kind: 'block', label: 'AuditRule', ...at(4.6, 1.0), tone: 'neutral', icon: 'board' },
-  { id: 'membership', kind: 'block', label: 'MembershipRule', ...at(7.2, 1.9), tone: 'neutral', icon: 'calendar' },
-  { id: 'waiver', kind: 'block', label: 'WaiverRule', ...at(9.8, 2.8), tone: 'neutral', icon: 'file' },
-  { id: 'capacity', kind: 'block', label: 'CapacityRule', ...at(11.6, 4.6), tone: 'neutral', icon: 'ten' },
-  { id: 'iface', kind: 'interface', label: 'AccessRule', ...at(7.6, 7.6, IFACE), tone: 'neutral' },
-  { id: 'filter', kind: 'block', label: 'WaiverHeaderFilter', ...at(5.0, 4.6), tone: 'accent', icon: 'shield' },
-  { id: 'servlet', kind: 'block', label: 'DispatcherServlet', ...at(9.4, 4.6), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 2.65, y: 11.65 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: -1, y: -6.75 }, size: { w: 13.95, d: 17.25, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'CheckInController', ...at(5, 9), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'monolith', kind: 'block', label: 'MonolithicCheckIn', ...at(7.75, 6.25), tone: 'danger', icon: 'warning' },
+  { id: 'gMember', kind: 'block', label: 'MembershipHandler', ...at(3.25, 0.75), tone: 'warn', icon: 'calendar' },
+  { id: 'gWaiver', kind: 'block', label: 'WaiverHandler', ...at(6.5, -2.5), tone: 'warn', icon: 'file' },
+  { id: 'gCapacity', kind: 'block', label: 'CapacityHandler', ...at(9.25, -5.25), tone: 'warn', icon: 'ten' },
+  { id: 'access', kind: 'block', label: 'AccessControl', ...at(7.75, 6.25), tone: 'neutral', icon: 'gear' },
+  { id: 'audit', kind: 'block', label: 'AuditRule', ...at(0.5, 3.5), tone: 'neutral', icon: 'board' },
+  { id: 'membership', kind: 'block', label: 'MembershipRule', ...at(3.25, 0.75), tone: 'neutral', icon: 'calendar' },
+  { id: 'waiver', kind: 'block', label: 'WaiverRule', ...at(6.5, -2.5), tone: 'neutral', icon: 'file' },
+  { id: 'capacity', kind: 'block', label: 'CapacityRule', ...at(9.25, -5.25), tone: 'neutral', icon: 'ten' },
+  { id: 'iface', kind: 'interface', label: 'AccessRule', ...at(11.25, 2.75, IFACE), tone: 'neutral' },
+  { id: 'filter', kind: 'block', label: 'WaiverHeaderFilter', ...at(7.75, 6.25), tone: 'accent', icon: 'shield' },
+  { id: 'servlet', kind: 'block', label: 'DispatcherServlet', ...at(11.25, 2.75), tone: 'neutral', icon: 'arrow-in' },
 ];
 
 const RULES = ['audit', 'membership', 'waiver', 'capacity'];
