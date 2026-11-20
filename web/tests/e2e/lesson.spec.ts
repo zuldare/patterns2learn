@@ -161,7 +161,7 @@ test('the theme button cycles paper → blueprint → dark → paper and remembe
 
 for (const width of [1440, 375])
   test(`no step text overflows its panel sideways, in any lesson or language (${width}px)`, async ({ page }) => {
-    test.setTimeout(180_000);   // walks every step of every lesson in two languages; grows with the course
+    test.setTimeout(360_000);   // walks every step of every lesson in two languages; grows with the course
     const { readdirSync } = await import('node:fs');
     const slugs = readdirSync('src/content/lessons').filter((d) => !d.startsWith('_'));
     await page.setViewportSize({ width, height: 900 });
@@ -225,3 +225,29 @@ test('the course tree is a card whose course and categories fold, remembering wh
   await tree.locator('details[data-tree-key="root"] > summary').click();
   await expect(tree.locator('a[data-lesson-link="strategy"]')).toBeVisible();
 });
+
+test('the camera frames each step without changing the canvas height', async ({ page }) => {
+  await page.goto('/es/patterns/bridge/');
+  const svg = page.locator('.iso-scene');
+  const read = async () => svg.evaluate((el) => ({
+    vb: el.getAttribute('viewBox')!.split(' ').map(Number),
+    full: el.getAttribute('data-full-view')!.split(' ').map(Number),
+    h: Math.round(el.getBoundingClientRect().height),
+  }));
+  const first = await read();
+  expect(first.vb[2]).toBeLessThan(first.full[2]);                         // step 1 is zoomed in
+  expect(first.vb[2] / first.vb[3]).toBeCloseTo(first.full[2] / first.full[3], 2);
+  await page.evaluate(() => { location.hash = 'step-recap'; });
+  await expect.poll(async () => (await read()).vb[2]).toBeGreaterThan(first.vb[2]);   // the recap shows more
+  expect((await read()).h).toBe(first.h);
+});
+
+for (const width of [320, 768, 1024, 1280, 1920])
+  test(`no page scrolls sideways at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const path of ['/es/', '/en/', '/es/patterns/bridge/', '/es/patterns/interpreter/', '/en/patterns/chain-of-responsibility/', '/es/patterns/bridge/cheatsheet/']) {
+      await page.goto(path);
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(over, path).toBeLessThanOrEqual(0);
+    }
+  });

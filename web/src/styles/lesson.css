@@ -1,6 +1,7 @@
 /* Lesson layout (spec §5.1): 1 column < 960px, 2 columns 960–1199px (tree in a
-   drawer), 3 columns ≥ 1200px. Mobile order = DOM order: diagram, step bar,
-   text, code. */
+   drawer), 3 columns ≥ 1200px (slimmer tree and text up to 1440px so the diagram
+   keeps room). Mobile order = DOM order: diagram, step bar, text, code. Below 600px
+   the diagram keeps a minimum width and pans; each step is framed by the player. */
 
 .lesson-shell {
   display: flex;
@@ -55,6 +56,17 @@
   background-position: -1px -1px;
 }
 .iso-canvas .iso-scene { max-height: min(62vh, 560px); }
+/* Landscape phones: 62vh of a short screen is a strip; let the diagram take most of the height. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .iso-canvas .iso-scene { max-height: 82vh; }
+}
+/* Phones: below ~540px a whole scene shrinks to unreadable labels, so the diagram keeps a minimum
+   width and the stage pans sideways (the player centres it on each step). */
+@media (max-width: 599.98px) {
+  .iso-canvas { padding: 8px; }
+  .iso-canvas__stage { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  .iso-canvas .iso-scene { display: block; min-width: 540px; }
+}
 /* The initial (possibly resumed) snapshot snaps into place; fades start once
    the lesson script marks the article as mounted. */
 [data-lesson]:not([data-animate]) :is(.iso-entity, .iso-link) { transition: none; }
@@ -262,6 +274,9 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
     align-items: start;
   }
   .course-tree { position: sticky; top: 24px; }
+  /* Tree + text columns leave the diagram little room up to ~1440px: slim both there. */
+  .lesson-shell { grid-template-columns: 216px minmax(0, 1fr); }
+  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(280px, 330px); }
   .site-header .tree-toggle,
   .course-tree .course-tree__close { display: none; }
 }
@@ -274,7 +289,8 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 
 /* ---------- Lesson end: quiz + donate ---------- */
 
-.lesson-end { display: grid; gap: 24px; max-width: 760px; }
+/* minmax(0, 1fr): a long word in a quiz option wraps instead of widening the column past a 320px screen. */
+.lesson-end { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; max-width: 760px; min-width: 0; }
 .step-text__sheet { margin: 12px 0 0; }
 .lesson-end__run { margin: 0; }
 
@@ -296,8 +312,8 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
   border-radius: var(--radius);
   background: var(--bg);
 }
-.quiz-q__legend { padding: 0 6px; font-weight: 700; }
-.quiz-option { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; cursor: pointer; }
+.quiz-q__legend { padding: 0 6px; font-weight: 700; overflow-wrap: anywhere; }
+.quiz-option { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; cursor: pointer; overflow-wrap: anywhere; }
 .quiz-option input { margin-top: 0.3em; accent-color: var(--accent-strong); flex: none; }
 .quiz-status { margin: 6px 0 0; font-weight: 700; }
 .quiz-status:empty { display: none; }
@@ -320,3 +336,9 @@ html:not(.js) .code-snippet + .code-snippet { border-top: 1.5px dashed var(--lin
 }
 .donate-card__title { font-size: 1.1rem; margin-bottom: 6px; }
 .donate-card__text { margin: 0 0 12px; color: var(--muted); }
+
+/* ≥ 1440px: room again for the roomier tree and text columns. */
+@media (min-width: 1440px) {
+  .lesson-shell { grid-template-columns: 240px minmax(0, 1fr); }
+  .lesson__main { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); }
+}

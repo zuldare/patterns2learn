@@ -1,4 +1,4 @@
-import { renderScene } from '../../src/engine/render';
+import { fitViewBox, MARGIN, MIN_ZOOM, parseBox, renderScene, type ViewBox } from '../../src/engine/render';
 import type { Entity, Scene } from '../../src/engine/types';
 import { scene } from './fixtures/scene';
 
@@ -132,4 +132,33 @@ test('label pills sit above the top of taller figures', () => {
     const circles = [...g.querySelectorAll('.iso-figure circle.fig-head')].map(c => Number(c.getAttribute('cy')) - Number(c.getAttribute('r')));
     expect(labelY + 10).toBeLessThanOrEqual(Math.min(...ys, ...circles)); // PILL_H/2 = 10
   }
+});
+
+test('fitViewBox frames the visible boxes, keeps the scene aspect and never zooms past MIN_ZOOM', () => {
+  const full: ViewBox = [0, 0, 1000, 500];
+  const [x, y, w, h] = fitViewBox([{ minX: 100, minY: 100, maxX: 300, maxY: 200 }], full);
+  expect(w / h).toBeCloseTo(2);
+  expect(w).toBeGreaterThanOrEqual(1000 * MIN_ZOOM);
+  expect(x + w / 2).toBeCloseTo(200);
+  expect(y + h / 2).toBeCloseTo(150);
+  // a selection as big as the scene (or nothing visible) shows the whole scene
+  expect(fitViewBox([{ minX: 0, minY: 0, maxX: 1000, maxY: 500 }], full)).toEqual(full);
+  expect(fitViewBox([], full)).toEqual(full);
+  // a tall selection widens to keep the aspect, with the margin around it
+  const tall = fitViewBox([{ minX: 400, minY: 0, maxX: 420, maxY: 300 }], full);
+  expect(tall[3]).toBeGreaterThanOrEqual(300 + 2 * MARGIN);
+  expect(tall[2] / tall[3]).toBeCloseTo(2);
+});
+test('entities carry their bounds and a baked step is framed like the player frames it', () => {
+  const wide: Scene = { ...miniScene, entities: [block('a', 0, 0), block('b', 12, 0), block('c', 0, 12)], links: [] };
+  const all = renderScene(wide);
+  const one = renderScene(wide, { step: { visible: ['a'], highlight: [] } });
+  const vb = (svg: string) => svg.match(/ viewBox="([^"]+)"/)![1].split(' ').map(Number);
+  const full = one.match(/data-full-view="([^"]+)"/)![1].split(' ').map(Number);
+  expect(vb(all)).toEqual(full);
+  expect(vb(one)[2]).toBeLessThan(full[2]);
+  expect(vb(one)[2] / vb(one)[3]).toBeCloseTo(full[2] / full[3]);
+  const bbox = parseBox(one.match(/data-id="a" data-bbox="([^"]+)"/)![1])!;
+  expect(bbox.maxX).toBeGreaterThan(bbox.minX);
+  expect(parseBox('1 2 x 4')).toBeNull();
 });

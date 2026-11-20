@@ -27,3 +27,17 @@ test('without JS every step and the code are shown', async ({ browser }) => {
   await expect(page.locator('.code-snippets')).toBeVisible();
   await ctx.close();
 });
+
+test('on a phone the diagram keeps readable labels: the stage pans, the page does not', async ({ page }) => {
+  await page.goto('/es/patterns/bridge/');
+  const stage = page.locator('.iso-canvas__stage');
+  const { pans, centred } = await stage.evaluate((s) => ({
+    pans: s.scrollWidth > s.clientWidth,
+    centred: Math.abs(s.scrollLeft - (s.scrollWidth - s.clientWidth) / 2) <= 2,
+  }));
+  expect(pans).toBe(true);
+  expect(centred).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  const label = await page.locator('.iso-entity:not(.is-hidden) .iso-label-text').first().evaluate((t) => t.getBoundingClientRect().height);
+  expect(label).toBeGreaterThanOrEqual(9);
+});

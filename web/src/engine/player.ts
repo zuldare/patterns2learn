@@ -1,9 +1,11 @@
-import { itemState, packetMarkup, pillWidth } from './render';
+import { fitViewBox, itemState, packetMarkup, parseBox, pillWidth, type Box, type ViewBox } from './render';
 import { tween, type Tween } from './tween';
 import type { Packet, Scene, SceneStep } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 export const PACKET_MS = 600;
+/** How long the camera takes to reframe between steps. */
+export const ZOOM_MS = 450;
 /** Gap kept between a resting packet pill and the link end (arrowheads are 10–14 px). */
 const ARROW_CLEARANCE = 14;
 
@@ -30,6 +32,8 @@ export class LessonPlayer {
   private current = 0;
   private generation = 0;
   private running: Tween | null = null;
+  private zooming: Tween | null = null;
+  private framed = false;
   private readonly svg: SVGSVGElement | null;
   private readonly packetLayer: Element | null;
   private readonly reducedMotion: boolean;
@@ -74,6 +78,7 @@ export class LessonPlayer {
 
   destroy(): void {
     this.stopAnimation();
+    this.zooming?.cancel();
     this.root.removeEventListener('keydown', this.onKey);
   }
 
@@ -111,8 +116,33 @@ export class LessonPlayer {
       el.classList.toggle('is-hidden', hidden);
       el.classList.toggle('is-highlighted', highlighted);
     }
+    this.reframe();
     this.root.dataset.step = step.id;
     this.svg?.setAttribute('aria-describedby', `describe-${step.id}`);
+  }
+
+  /** Moves the camera (the svg viewBox) to frame the visible entities; snaps on the first step or with reduced motion. */
+  private reframe(): void {
+    const svg = this.svg;
+    const full = parseView(svg?.dataset.fullView);
+    if (!svg || !full) return;
+    const visible: Box[] = [];
+    for (const el of svg.querySelectorAll<SVGGElement>('.iso-entity:not(.is-hidden)')) {
+      const b = parseBox(el.dataset.bbox);
+      if (b) visible.push(b);
+    }
+    const to = fitViewBox(visible, full);
+    const from = parseView(svg.getAttribute('viewBox') ?? undefined) ?? to;
+    this.zooming?.cancel();
+    this.zooming = null;
+    const set = (v: ViewBox) => svg.setAttribute('viewBox', v.map(x => String(Math.round(x * 100) / 100)).join(' '));
+    centreStage(svg);
+    if (!this.framed || this.reducedMotion || from.every((v, i) => Math.abs(v - to[i]) < 0.5)) {
+      this.framed = true;
+      set(to);
+      return;
+    }
+    this.zooming = tween(ZOOM_MS, t => set(from.map((v, i) => v + (to[i] - v) * t) as ViewBox));
   }
 
   private async playPackets(step: SceneStep, gen: number): Promise<void> {
@@ -176,6 +206,17 @@ function pointOnPath(path: SVGPathElement | null, t: number, inset: number): Pt 
 
 const lerp = (a: Pt, b: Pt, t: number): Pt => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 const round = (v: number): number => Math.round(v * 100) / 100 + 0;
+
+/** On narrow screens the stage scrolls sideways (lesson.css): keep the framed step in the middle. */
+function centreStage(svg: SVGSVGElement): void {
+  const stage = svg.parentElement;
+  if (stage && stage.scrollWidth > stage.clientWidth) stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) / 2;
+}
+
+function parseView(attr: string | undefined): ViewBox | null {
+  const v = (attr ?? '').split(' ').map(Number);
+  return v.length === 4 && v.every(Number.isFinite) && v[2] > 0 && v[3] > 0 ? (v as ViewBox) : null;
+}
 
 function cssEscape(s: string): string {
   return typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(s) : s.replace(/["\\]/g, '\\$&');

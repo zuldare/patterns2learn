@@ -66,7 +66,40 @@ export function pillMarkup(text: string, cls: string, fill: string, cy = 0): str
   );
 }
 
-type Box = { minX: number; minY: number; maxX: number; maxY: number };
+export type Box = { minX: number; minY: number; maxX: number; maxY: number };
+export type ViewBox = [number, number, number, number];
+
+/** A step never zooms in further than this share of the whole scene's width, so a lone block doesn't fill the canvas. */
+export const MIN_ZOOM = 0.55;
+
+/**
+ * The viewBox that frames a step: the union of its visible entities plus the margin, grown to the whole
+ * scene's aspect ratio (so the canvas keeps its height from step to step) and to at least MIN_ZOOM of its
+ * width. Shared by the static render and the player so both frame a step the same way.
+ */
+export function fitViewBox(visible: Box[], full: ViewBox): ViewBox {
+  if (visible.length === 0) return full;
+  const u: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  for (const b of visible) {
+    grow(u, { sx: b.minX, sy: b.minY });
+    grow(u, { sx: b.maxX, sy: b.maxY });
+  }
+  const aspect = full[2] / full[3];
+  let w = Math.max(u.maxX - u.minX + 2 * MARGIN, full[2] * MIN_ZOOM);
+  let h = u.maxY - u.minY + 2 * MARGIN;
+  if (w / h < aspect) w = h * aspect;
+  else h = w / aspect;
+  if (w >= full[2] || h >= full[3]) return full;
+  const cx = (u.minX + u.maxX) / 2;
+  const cy = (u.minY + u.maxY) / 2;
+  return [cx - w / 2, cy - h / 2, w, h];
+}
+
+/** Parses a `data-bbox` attribute ("minX minY maxX maxY"). */
+export function parseBox(attr: string | undefined): Box | null {
+  const v = (attr ?? '').split(' ').map(Number);
+  return v.length === 4 && v.every(Number.isFinite) ? { minX: v[0], minY: v[1], maxX: v[2], maxY: v[3] } : null;
+}
 
 function grow(box: Box, p: ScreenPoint): void {
   box.minX = Math.min(box.minX, p.sx);
@@ -110,12 +143,24 @@ function labelAnchor({ e, box }: Placed): ScreenPoint {
   return { sx: topMid(box).sx, sy: topFace(box)[0].sy - PILL_H / 2 - 6 };
 }
 
-function entityMarkup(p: Placed, step?: StepState): string {
+/** Screen-space bounds of an entity: its figure, its footprint and its label pill. */
+function entityBounds(p: Placed): Box {
+  const box: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  for (const b of [p.box, { ...p.e.pos, z: p.e.pos.z ?? 0, ...p.e.size }]) {
+    for (const [dx, dy, dz] of [[0, 0, 0], [b.w, 0, 0], [0, b.d, 0], [b.w, b.d, 0], [0, 0, b.h], [b.w, 0, b.h], [0, b.d, b.h], [b.w, b.d, b.h]]) {
+      grow(box, project({ x: b.x + dx, y: b.y + dy, z: b.z + dz }));
+    }
+  }
+  growPill(box, labelAnchor(p), p.e.label);
+  return box;
+}
+
+function entityMarkup(p: Placed, bounds: Box, step?: StepState): string {
   const { e, ctx } = p;
   const a = labelAnchor(p);
   const fill = e.kind === 'container' ? 'var(--bg)' : 'var(--surface)';
   return (
-    `<g class="iso-entity${stateClasses(step, { id: e.id })} kind-${e.kind} tone-${e.tone}" data-id="${escapeXml(e.id)}">` +
+    `<g class="iso-entity${stateClasses(step, { id: e.id })} kind-${e.kind} tone-${e.tone}" data-id="${escapeXml(e.id)}" data-bbox="${[bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].map(n).join(' ')}">` +
     figureMarkup(e, ctx) +
     `<g class="iso-label" transform="translate(${n(a.sx)} ${n(a.sy)})">${pillMarkup(e.label, 'iso-label', fill)}</g>` +
     `</g>`
@@ -208,25 +253,24 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     .sort((a, b) => depth(a.p.e) - depth(b.p.e) || a.i - b.i)
     .map(({ p }) => p);
 
+  const bounds = new Map(placed.map(p => [p.e.id, entityBounds(p)]));
   const box: Box = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-  for (const p of placed) {
-    for (const b of [p.box, { ...p.e.pos, z: p.e.pos.z ?? 0, ...p.e.size }]) {
-      for (const [dx, dy, dz] of [[0, 0, 0], [b.w, 0, 0], [0, b.d, 0], [b.w, b.d, 0], [0, 0, b.h], [b.w, 0, b.h], [0, b.d, b.h], [b.w, b.d, b.h]]) {
-        grow(box, project({ x: b.x + dx, y: b.y + dy, z: b.z + dz }));
-      }
-    }
-    growPill(box, labelAnchor(p), p.e.label);
+  for (const b of bounds.values()) {
+    grow(box, { sx: b.minX, sy: b.minY });
+    grow(box, { sx: b.maxX, sy: b.maxY });
   }
   if (!Number.isFinite(box.minX)) Object.assign(box, { minX: 0, minY: 0, maxX: 0, maxY: 0 });
 
-  const vb = [box.minX - MARGIN, box.minY - MARGIN, box.maxX - box.minX + 2 * MARGIN, box.maxY - box.minY + 2 * MARGIN];
+  const full: ViewBox = [box.minX - MARGIN, box.minY - MARGIN, box.maxX - box.minX + 2 * MARGIN, box.maxY - box.minY + 2 * MARGIN];
+  // A baked step is framed like the player frames it, so the first paint doesn't jump when the script mounts.
+  const vb = step ? fitViewBox(placed.filter(p => !itemState(step, { id: p.e.id }).hidden).map(p => bounds.get(p.e.id)!), full) : full;
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" class="iso-scene" role="img"` +
     (label !== undefined ? ` aria-label="${escapeXml(label)}"` : '') +
     (describedBy !== undefined ? ` aria-describedby="${escapeXml(describedBy)}"` : '') +
-    ` viewBox="${vb.map(n).join(' ')}">` +
+    ` viewBox="${vb.map(n).join(' ')}" data-full-view="${full.map(n).join(' ')}">` +
     DEFS +
-    `<g class="iso-entities">${ordered.map(p => entityMarkup(p, step)).join('')}</g>` +
+    `<g class="iso-entities">${ordered.map(p => entityMarkup(p, bounds.get(p.e.id)!, step)).join('')}</g>` +
     `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step)).join('')}</g>` +
     `<g class="iso-packets"></g>` +
     `</svg>`
