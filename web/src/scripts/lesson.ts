@@ -2,6 +2,7 @@ import { LessonPlayer } from '../engine/player';
 import type { Scene } from '../engine/types';
 import { loadProgress, saveStep } from '../lib/progress';
 import './tree-progress';
+import './tree-drawer';
 
 const CODE_BREAKPOINT = '(max-width: 959.98px)';
 
@@ -18,25 +19,6 @@ function mountCodePanel(root: HTMLElement): void {
   set(!window.matchMedia(CODE_BREAKPOINT).matches);
   panel.dataset.mounted = '';
   toggle?.addEventListener('click', () => set(panel.dataset.open !== 'true'));
-}
-
-function mountTreeDrawer(): void {
-  const tree = document.getElementById('course-tree');
-  const toggles = document.querySelectorAll<HTMLButtonElement>('[data-action="toggle-tree"]');
-  const opener = document.querySelector<HTMLButtonElement>('.site-header [data-action="toggle-tree"]');
-  if (!tree) return;
-  const set = (open: boolean, restoreFocus = false) => {
-    tree.dataset.open = String(open);
-    for (const t of toggles) t.setAttribute('aria-expanded', String(open));
-    if (open) tree.querySelector<HTMLElement>('a, button')?.focus();
-    else if (restoreFocus) opener?.focus();
-  };
-  for (const t of toggles) {
-    t.addEventListener('click', () => set(tree.dataset.open !== 'true', true));
-  }
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape' && tree.dataset.open === 'true') set(false, true);
-  });
 }
 
 function mountLesson(root: HTMLElement): void {
@@ -121,4 +103,3 @@ function mountLesson(root: HTMLElement): void {
 
 const root = document.querySelector<HTMLElement>('[data-lesson]');
 if (root) mountLesson(root);
-mountTreeDrawer();

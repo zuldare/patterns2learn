@@ -10,9 +10,11 @@ interface Props {
   current?: string;
   /** Plain in-page list (home): no drawer, no close button. */
   static?: boolean;
+  /** Which card `current` belongs to: the lesson being read, or the cheatsheet being viewed. */
+  section?: 'course' | 'sheets';
 }
 
-const { lang, lessons, current, static: isStatic = false } = Astro.props;
+const { lang, lessons, current, static: isStatic = false, section = 'course' } = Astro.props;
 const groups = catalogGroups(lessons);
 const trees = [
   { kind: 'course', title: t(lang, 'course'), keyPrefix: '', href: (slug: string) => `/${lang}/patterns/${slug}/` },
@@ -34,7 +36,7 @@ const trees = [
             class="course-tree__group"
             open
             data-tree-key={`${keyPrefix}${cat}`}
-            data-current={kind === 'course' && items.some((i) => i.slug === current) ? 'true' : undefined}
+            data-current={kind === section && items.some((i) => i.slug === current) ? 'true' : undefined}
           >
             <summary class="course-tree__cat">
               <span>{t(lang, cat)}</span>
@@ -48,7 +50,7 @@ const trees = [
                       <a
                         class="course-tree__item"
                         href={href(slug)}
-                        aria-current={slug === current ? 'page' : undefined}
+                        aria-current={section === 'course' && slug === current ? 'page' : undefined}
                         data-lesson-link={slug}
                       >
                         <span class="course-tree__name">{l.texts[lang].title}</span>
@@ -56,7 +58,7 @@ const trees = [
                         <span class="course-tree__meta">{l.texts[lang].minutes} {t(lang, 'minutes')}</span>
                       </a>
                     ) : (
-                      <a class="course-tree__item" href={href(slug)}>
+                      <a class="course-tree__item" href={href(slug)} aria-current={section === 'sheets' && slug === current ? 'page' : undefined}>
                         <span class="course-tree__name">{l.texts[lang].title}</span>
                         <span class="course-tree__meta" aria-hidden="true">↗</span>
                       </a>

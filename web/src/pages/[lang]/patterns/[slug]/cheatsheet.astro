@@ -1,6 +1,8 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import '../../../../styles/code.css';
+import '../../../../styles/lesson.css';
+import CourseTree from '../../../../components/CourseTree.astro';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import RunItLink from '../../../../components/RunItLink.astro';
 import printCss from '../../../../styles/print.css?url';
@@ -14,14 +16,14 @@ import { locales, t, type Locale } from '../../../../i18n';
 export const getStaticPaths = (async () => {
   const lessons = await listLessons();
   return locales.flatMap((lang) =>
-    lessons.map((lesson) => ({ params: { lang, slug: lesson.slug }, props: { lesson } })),
+    lessons.map((lesson) => ({ params: { lang, slug: lesson.slug }, props: { lesson, lessons } })),
   );
 }) satisfies GetStaticPaths;
 
-interface Props { lesson: Lesson }
+interface Props { lesson: Lesson; lessons: Lesson[] }
 
 const lang = Astro.params.lang as Locale;
-const { lesson } = Astro.props;
+const { lesson, lessons } = Astro.props;
 const text = lesson.texts[lang];
 const { recap } = text;
 const steps = resolveSteps(lesson, lang);
@@ -32,8 +34,10 @@ const codeHtml = last.snippet ? await highlightJava(last.snippet.code, last.code
 const codeFile = last.snippet?.file.split('/').pop();
 const uml = structureOf(lesson.slug);
 ---
-<BaseLayout lang={lang} title={`${t(lang, 'cheatsheet')}: ${text.title} — patterns2learn`} description={recap.intent} path={`/patterns/${lesson.slug}/cheatsheet/`}>
+<BaseLayout lang={lang} title={`${t(lang, 'cheatsheet')}: ${text.title} — patterns2learn`} description={recap.intent} path={`/patterns/${lesson.slug}/cheatsheet/`} hasTree>
   <link slot="head" rel="stylesheet" href={printCss} media="print" />
+  <div class="lesson-shell sheet-shell">
+  <CourseTree lang={lang} lessons={lessons} current={lesson.slug} section="sheets" />
   <article class="sheet">
     <header class="sheet__head">
       <div>
@@ -81,24 +85,30 @@ const uml = structureOf(lesson.slug);
         <h2>{t(lang, 'cons')}</h2>
         <ul class="sheet__cons">{recap.cons.map((p) => <li>{p}</li>)}</ul>
       </section>
+      {recap.related.length > 0 && (
+        <section class="sheet__related">
+          <h2>{t(lang, 'related')}</h2>
+          <ul class="sheet__tags">{recap.related.map((r) => <li>{r}</li>)}</ul>
+        </section>
+      )}
     </div>
-    {recap.related.length > 0 && (
-      <section class="sheet__related">
-        <h2>{t(lang, 'related')}</h2>
-        <ul class="sheet__tags">{recap.related.map((r) => <li>{r}</li>)}</ul>
-      </section>
-    )}
     <p class="sheet__back"><a href={`/${lang}/patterns/${lesson.slug}/`}>← {text.title}</a> · <RunItLink lang={lang} lesson={lesson} /></p>
   </article>
+  </div>
 </BaseLayout>
 
 <script>
   import '../../../../scripts/uml';
+  import '../../../../scripts/tree-drawer';
+  import '../../../../scripts/tree-folds';
+  import '../../../../scripts/tree-progress';
   document.querySelector<HTMLButtonElement>('[data-action="print"]')?.addEventListener('click', () => window.print());
 </script>
 
 <style is:global>
   .sheet { max-width: 900px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 18px; }
+  /* Inside the shell (tree column on the left), the shell already pads the page. */
+  .sheet-shell .sheet { width: 100%; padding: 0 0 48px; }
   .sheet__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
   .sheet__kicker { margin: 0; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
   .sheet__title { font-size: 1.8rem; }
@@ -106,7 +116,7 @@ const uml = structureOf(lesson.slug);
   .sheet p { margin: 0; }
   .sheet ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
   .sheet__cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-  .sheet__cols--even { grid-template-columns: 1fr 1fr; }
+  .sheet__cols--even { grid-template-columns: 1fr 1fr 0.8fr; }
   .sheet__svg { border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg); padding: 8px; }
   .sheet__svg svg { display: block; width: 100%; height: auto; max-height: 280px; }
   .sheet__uml-figure { margin: 0; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--bg); padding: 12px; overflow-x: auto; }

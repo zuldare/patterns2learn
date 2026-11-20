@@ -46,3 +46,29 @@ test('the lesson header shows the intent, then the application', async ({ page }
   await expect(terms).toHaveText(['Intención', 'Aplicación']);
   await expect(page.locator('.lesson__application dd')).toContainText('Fran no es igual');
 });
+
+test('a cheatsheet keeps the course and cheatsheet cards, with itself marked', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/es/patterns/builder/cheatsheet/');
+  await expect(page.locator('#course-tree .tree-card--course')).toBeVisible();
+  const current = page.locator('#course-tree .tree-card--sheets [aria-current="page"]');
+  await expect(current).toHaveAttribute('href', '/es/patterns/builder/cheatsheet/');
+  await expect(page.locator('#course-tree .tree-card--course [aria-current]')).toHaveCount(0);
+});
+
+for (const lang of ['es', 'en'] as const) {
+  test(`${lang}: every cheatsheet prints on one A4 page`, async ({ page }) => {
+    test.setTimeout(120_000);
+    const over: string[] = [];
+    for (const slug of lessonSlugs) {
+      await page.goto(`/${lang}/patterns/${slug}/cheatsheet/`);
+      await expect(page.locator('.sheet__uml [data-uml]')).toHaveAttribute('data-rendered', 'true', { timeout: 15_000 });
+      await page.emulateMedia({ media: 'print' });
+      const pdf = (await page.pdf({ format: 'A4' })).toString('latin1');
+      const pages = pdf.match(/\/Type\s*\/Page[^s]/g)?.length ?? 0;
+      if (pages !== 1) over.push(`${slug}: ${pages} pages`);
+      await page.emulateMedia({ media: 'screen' });
+    }
+    expect(over).toEqual([]);
+  });
+}
