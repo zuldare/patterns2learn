@@ -63,5 +63,6 @@
     <module>behavioral/visitor</module>
     <module>behavioral/memento</module>
     <module>structural/flyweight</module>
+    <module>behavioral/interpreter</module>
   </modules>
 </project>
