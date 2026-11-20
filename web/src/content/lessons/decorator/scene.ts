@@ -17,31 +17,37 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - The decorator chain runs diagonally from the quoter to the basic plan:
- *   NutritionAddOn → PhysioAddOn → BasicMembership, each wrapping the next.
- * - The "one subclass per combination" blocks of the before steps reuse those
- *   three spots, so the explosion and the chain occupy the same place.
- * - StudentDiscount sits in front of the chain; Membership below it. The
- *   decorators are drawn on the platform for readability, but they're plain
- *   objects the quoter creates per quote, not beans (the text says so).
- * - BeanPostProcessor and AuditedMembership only appear in spring-does-it.
+ * Layout notes (u = x − y across, v = x + y down; 32 / 16 px per unit):
+ * - Three rows, two columns. The decorator chain runs straight down the right column:
+ *   NutritionAddOn (top) → PhysioAddOn → BasicMembership, each wrapping the next; rows are
+ *   7 v apart so a pill parked on a vertical link sits between a figure and the next label.
+ * - The left column mirrors it: MembershipQuoter (top, beside NutritionAddOn), StudentDiscount
+ *   (middle, beside PhysioAddOn, 5.5 u apart so a monthlyFee() pill fits) and Membership (bottom).
+ * - MembershipController sits further left, diagonally below the quoter; the athlete stands off the
+ *   platform below-left of it so the long "physio + nutrition" pill parks on that diagonal, and left
+ *   of the "Spring context" label.
+ * - The "one subclass per combination" blocks of the before steps reuse the chain's
+ *   three spots, so the explosion and the chain occupy the same place. The decorators are
+ *   drawn on the platform for readability, but they're plain objects the quoter creates per
+ *   quote, not beans (the text says so).
+ * - BeanPostProcessor (quoter's spot) and AuditedMembership (NutritionAddOn's spot) only appear
+ *   in spring-does-it.
  */
 const entities: Entity[] = [
-  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'MembershipController', ...at(1.8, 7.4), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'quoter', kind: 'block', label: 'MembershipQuoter', ...at(3.6, 3.6), tone: 'neutral', icon: 'gear' },
-  { id: 'c1', kind: 'block', label: 'BasicWithPhysio', ...at(6.4, 1.4), tone: 'warn', icon: 'plus' },
-  { id: 'c2', kind: 'block', label: 'BasicWithNutrition', ...at(9.2, 2.4), tone: 'warn', icon: 'plus' },
-  { id: 'c3', kind: 'block', label: 'BasicWithPhysioAndNutrition', ...at(11.4, 4.8), tone: 'danger', icon: 'warning' },
-  { id: 'nutrition', kind: 'block', label: 'NutritionAddOn', ...at(6.4, 1.4), tone: 'neutral', icon: 'plus' },
-  { id: 'physio', kind: 'block', label: 'PhysioAddOn', ...at(9.2, 2.4), tone: 'neutral', icon: 'plus' },
-  { id: 'basic', kind: 'block', label: 'BasicMembership', ...at(11.4, 4.8), tone: 'neutral', icon: 'calendar' },
-  { id: 'student', kind: 'block', label: 'StudentDiscount', ...at(5.6, 6.0), tone: 'neutral', icon: 'tag' },
-  { id: 'iface', kind: 'interface', label: 'Membership', ...at(8.6, 8.4, IFACE), tone: 'neutral' },
-  { id: 'bpp', kind: 'block', label: 'BeanPostProcessor', ...at(2.0, 1.6), tone: 'accent', icon: 'gear' },
-  { id: 'audited', kind: 'block', label: 'AuditedMembership', ...at(6.4, 1.4), tone: 'accent', icon: 'shield' },
+  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 5.15, y: 14.65 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 1.5, y: 0 }, size: { w: 12.75, d: 12.95, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'MembershipController', ...at(3.5, 10), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'quoter', kind: 'block', label: 'MembershipQuoter', ...at(3, 4.25), tone: 'neutral', icon: 'gear' },
+  { id: 'c1', kind: 'block', label: 'BasicWithPhysio', ...at(5.75, 1.5), tone: 'warn', icon: 'plus' },
+  { id: 'c2', kind: 'block', label: 'BasicWithNutrition', ...at(9.25, 5), tone: 'warn', icon: 'plus' },
+  { id: 'c3', kind: 'block', label: 'BasicWithPhysioAndNutrition', ...at(12.75, 8.5), tone: 'danger', icon: 'warning' },
+  { id: 'nutrition', kind: 'block', label: 'NutritionAddOn', ...at(5.75, 1.5), tone: 'neutral', icon: 'plus' },
+  { id: 'physio', kind: 'block', label: 'PhysioAddOn', ...at(9.25, 5), tone: 'neutral', icon: 'plus' },
+  { id: 'basic', kind: 'block', label: 'BasicMembership', ...at(12.75, 8.5), tone: 'neutral', icon: 'calendar' },
+  { id: 'student', kind: 'block', label: 'StudentDiscount', ...at(6.5, 7.75), tone: 'neutral', icon: 'tag' },
+  { id: 'iface', kind: 'interface', label: 'Membership', ...at(10, 11.25, IFACE), tone: 'neutral' },
+  { id: 'bpp', kind: 'block', label: 'BeanPostProcessor', ...at(3, 4.25), tone: 'accent', icon: 'gear' },
+  { id: 'audited', kind: 'block', label: 'AuditedMembership', ...at(5.75, 1.5), tone: 'accent', icon: 'shield' },
 ];
 
 const BEFORE = ['athlete', 'controller', 'c1', 'c2', 'c3'];
