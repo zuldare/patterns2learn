@@ -23,6 +23,18 @@ class VisitorTest {
         assertThat(PatternMatchingCalories.of(fran)).isEqualTo(new Workout(fran).visit(new CalorieVisitor()));
     }
 
+    @Test void equipmentCoversEveryMachineAndIgnoresCase() {
+        Workout w = new Workout(List.of(new Gymnastics("Toes-to-bar", 20), new Cardio("bike", 500), new Cardio("ski", 500), new Cardio("run", 400)));
+        assertThat(w.visit(new EquipmentVisitor())).containsExactly("pull-up bar", "assault bike", "ski erg");
+    }
+
+    @Test void aVisitorIsForOneWalkBecauseItAccumulates() {
+        Workout w = new Workout(List.of(new Gymnastics("burpees", 30)));
+        CalorieVisitor reused = new CalorieVisitor();
+        w.visit(reused);
+        assertThat(w.visit(reused)).isEqualTo(24);   // twice the 12: use a new visitor per walk
+    }
+
     @Test void elementsAreValidated() {
         assertThatThrownBy(() -> new Lift(" ", 40, 5)).isInstanceOf(InvalidElementException.class).hasMessage("lift name is required");
         assertThatThrownBy(() -> new Lift("snatch", 0, 5)).hasMessage("load must be between 1 and 300 kg");
@@ -31,6 +43,6 @@ class VisitorTest {
         assertThatThrownBy(() -> new Cardio("swim", 500)).hasMessage("machine must be row, bike, ski or run");
         assertThatThrownBy(() -> new Cardio("row", 50)).hasMessage("distance must be between 100 and 10000 m");
         assertThatThrownBy(() -> new Workout(List.of())).hasMessage("a workout needs 1 to 20 elements");
-        assertThatThrownBy(() -> new Workout(java.util.Arrays.asList(new Gymnastics("burpees", 10), null))).hasMessage("elements cannot be empty");
+        assertThatThrownBy(() -> new Workout(java.util.Arrays.asList(new Gymnastics("burpees", 10), null))).hasMessage("an element cannot be null");
     }
 }

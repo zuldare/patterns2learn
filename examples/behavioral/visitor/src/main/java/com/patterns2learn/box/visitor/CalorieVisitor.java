@@ -1,6 +1,6 @@
 package com.patterns2learn.box.visitor;
 
-/** Another visitor, added without touching Lift, Gymnastics or Cardio: a rough calorie estimate. */
+/** Another visitor, added without touching Lift, Gymnastics or Cardio: a rough estimate (the load is ignored). */
 public class CalorieVisitor implements WorkoutVisitor<Integer> {
     private int calories;
 

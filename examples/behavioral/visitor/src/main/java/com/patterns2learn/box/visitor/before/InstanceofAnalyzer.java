@@ -12,7 +12,7 @@ import java.util.Set;
 public class InstanceofAnalyzer {
     public List<String> equipment(List<WorkoutElement> elements) {
         Set<String> out = new LinkedHashSet<>();
-        for (Object e : elements) {
+        for (WorkoutElement e : elements) {
             if (e instanceof Lift) out.add("barbell + plates");
             else if (e instanceof Gymnastics g && g.name().contains("pull-up")) out.add("pull-up bar");
             else if (e instanceof Cardio c && c.machine().equals("row")) out.add("rower");
@@ -23,7 +23,7 @@ public class InstanceofAnalyzer {
     // @step:instanceof
     public int calories(List<WorkoutElement> elements) {
         int total = 0;
-        for (Object e : elements) {
+        for (WorkoutElement e : elements) {
             if (e instanceof Lift l) total += l.reps() * 2;
             else if (e instanceof Gymnastics g) total += g.reps() * 2 / 5;
             // Cardio was added later… and nobody remembered this chain

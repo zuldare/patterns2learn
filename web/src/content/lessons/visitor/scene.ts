@@ -106,7 +106,7 @@ const scene: Scene = {
         { link: 'l-workout-lift', label: 'accept(v)' },
         { link: 'l-lift-equip', label: 'barbell + plates' },
       ],
-      code: { file: `${MAIN}/EquipmentVisitor.java`, region: 'equipment', highlight: [2, 7, 13] },
+      code: { file: `${MAIN}/EquipmentVisitor.java`, region: 'equipment', highlight: [2, 8, 14, 15, 16] },
     },
     {
       id: 'new-operation',

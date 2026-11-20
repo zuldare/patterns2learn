@@ -19,6 +19,7 @@ recap:
     - A new element type means touching the interface and every visitor
     - accept() and the double call take some reading the first time
     - The elements have to expose what the visitors need
+    - A visitor accumulates, so each walk needs a new one
   related:
     - Composite
     - Iterator
@@ -28,26 +29,26 @@ quiz:
     options:
       - A scaling() method in Lift, Gymnastics and Cardio
       - One more instanceof in every existing analysis
-      - A new ScalingVisitor class; the elements don't change
-      - The controller, so it works out the scaling itself
+      - A ScalingVisitor class; the elements don't change
+      - A scale() method in Workout that walks the elements
     answer: 2
     explain: Each operation is a visitor. ScalingVisitor implements the three visits and neither Lift, Gymnastics nor Cardio notices.
   - q: And if what you add is a new element type, Rest?
     options:
-      - You must add visitRest to WorkoutVisitor and to every visitor
-      - You only need to create the Rest class with its accept()
-      - You touch the controller and nothing else
-      - Spring registers it by itself, as one more visitor
+      - Add visitRest to the interface and to every visitor
+      - Only create the Rest class with its accept()
+      - Only add Rest to permits and @JsonSubTypes
+      - Create a RestVisitor that handles the rests
     answer: 0
     explain: That's the pattern's price. Adding operations is easy; adding element types means touching every visitor. That's why it fits when the types rarely change.
   - q: What is accept() for on each element?
     options:
       - To validate the element's data before it's used
       - So the element stores the operation's result
-      - To copy the element before it's visited
-      - To call the visit for its own type, without instanceof
+      - To register the element with the visitor before walking
+      - To call the visit for its type, without instanceof
     answer: 3
-    explain: Lift.accept(v) calls v.visitLift(this). Java picks accept by the element's real class and visit by the visitor; that double call replaces the instanceof.
+    explain: Lift.accept(v) calls v.visitLift(this). The element picks which method gets called (visitLift) and the visitor's real class picks which implementation runs; that double call replaces the instanceof.
   - q: With a sealed interface and a switch with no default, what happens if you add Rest?
     options:
       - It works the same, and Rest adds zero calories
@@ -55,7 +56,7 @@ quiz:
       - An exception is thrown the first time a Rest arrives
       - You have to restart the application for it to notice
     answer: 1
-    explain: The compiler knows every possible type of a sealed interface and checks that the switch covers them. It's the same safety net Visitor gives, with less ceremony.
+    explain: The compiler knows every type of a sealed interface and checks that the switch covers them. It's a net similar to Visitor's, even stricter (though a stale class that wasn't recompiled would throw MatchException when a Rest arrives).
 ---
 ## @step:problem — Questions about a WOD
 A WOD has elements of three types: **lifts** (deadlift, 100 kg × 15), **gymnastics** (30 burpees) and **cardio** (1000 m row). And the box keeps asking more questions about it: what equipment to set out, how many calories it burns, how to scale it…
@@ -73,7 +74,7 @@ Every new operation is one more chain to keep up to date, and the compiler doesn
 
 > [!warning]
 > When several operations repeat the same `instanceof` over the same family of classes, forgetting a case is only a matter of time.
-@describe: InstanceofAnalyzer and Cardio, highlighted in red: cardio's calories come out as 0 because its case doesn't exist.
+@describe: InstanceofAnalyzer, in red, and Cardio, highlighted: cardio's calories come out as 0 because its case doesn't exist.
 
 ## @step:visitor — One method per type
 Visitor defines an interface with **one method per element type**: `visitLift`, `visitGymnastics`, `visitCardio`, and `result()` to collect the result.
@@ -87,7 +88,7 @@ Each operation is a class that implements it. And since all three methods must b
 ## @step:accept — Each element calls its method
 How does the visitor know what type of element it has without asking? It doesn't: the element tells it. Each one implements `accept(visitor)` by calling its own method: `Lift` calls `visitLift(this)`.
 
-It's a **double call**: Java picks `accept` by the element's real class, and `visit` by the visitor. Together they replace the `instanceof`.
+It's a **double call**: the element's real class decides which method gets called (`visitLift`), and the visitor's real class decides which implementation runs. Together they replace the `instanceof`.
 @describe: Lift, highlighted together with EquipmentVisitor, calls it with visitLift(this).
 
 ## @step:equipment — One operation, one class
@@ -106,14 +107,16 @@ It's a **double call**: Java picks `accept` by the element's real class, and `vi
 ## @step:sealed — In modern Java
 Since Java 21, a `sealed` interface and a `switch` with patterns give a similar safety net with less ceremony: the compiler knows every possible type and, if the `switch` has no `default`, it won't compile until you cover them all.
 
-`PatternMatchingCalories` works out the same as `CalorieVisitor`, and a test checks it. Which to use? The `switch` is more direct for simple operations; the visitor fits when the operation has its own state, when you want to pass it around as an object, or when the hierarchy isn't `sealed`.
+`PatternMatchingCalories` works out the same as `CalorieVisitor`, and a test checks it. In fact, in this code a `switch` over the `sealed` interface would have been enough not to forget cardio.
+
+When does Visitor still pay off? When the hierarchy isn't `sealed` (or you can't use Java 21), when you want the operation to be an object you inject, pass around or swap, and when the structure drives the walk (a tree, a Composite) and the visitor receives each node.
 @describe: The three element types, highlighted: a switch over the sealed interface covers them all.
 
 ## @step:request — The analysis through the API
 `POST /api/wods/analysis` with the WOD as JSON (a `type` field per element):
 
 1. Jackson creates `Lift`, `Cardio` and `Gymnastics`, which validate their data.
-2. The controller runs a new `EquipmentVisitor` and a new `CalorieVisitor` over the `Workout`.
+2. The controller runs a new `EquipmentVisitor` and a new `CalorieVisitor` over the `Workout` (new because a visitor accumulates: reusing one would add everything twice).
 3. The answer brings the equipment (barbell and plates, rower) and an estimated 102 kcal.
 
 An element that breaks the rules, like a machine that doesn't exist, returns 400 with the reason.
@@ -122,7 +125,9 @@ An element that breaks the rules, like a machine that doesn't exist, returns 400
 ## @step:spring-does-it — Spring already does it for you
 A bean definition has many parts: the class name, the properties, the constructor arguments, nested beans and collections… `BeanDefinitionVisitor` walks all of them and runs every text value through a resolver.
 
-That's what Spring uses to replace the `${...}` in bean definitions (`PropertySourcesPlaceholderConfigurer` does it, through `PlaceholderConfigurerSupport`). In the test, `${coach}` becomes "Ana" and `${city}`, "Madrid".
+That's what Spring uses to replace the `${...}` in bean definitions (`PropertySourcesPlaceholderConfigurer` does it, through `PlaceholderConfigurerSupport`). In the test, `${coach}` becomes "Ana" and `${city}`, "Madrid". `@Value("${...}")` on fields, on the other hand, is resolved at injection time, not by this visitor.
+
+It's a "loose" Visitor: the definition has no `accept()` and there's no double call, and there's a single walker; the operation you plug in is the resolver.
 
 > [!spring]
 > The operation (resolving placeholders) lives outside the definition. Walking the structure is the visitor's job, and what to do with each value is the resolver's you hand it.

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class InstanceofAnalyzerTest {
     final InstanceofAnalyzer analyzer = new InstanceofAnalyzer();
 
-    @Test void equipmentKnowsEveryType() {
+    @Test void equipmentHandlesCardio() {
         assertThat(analyzer.equipment(List.of(new Lift("deadlift", 100, 15), new Cardio("row", 1000))))
             .containsExactly("barbell + plates", "rower");
     }

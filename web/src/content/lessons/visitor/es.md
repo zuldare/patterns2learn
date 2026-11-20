@@ -19,6 +19,7 @@ recap:
     - Un tipo de elemento nuevo obliga a tocar la interfaz y todos los visitantes
     - accept() y la doble llamada cuestan de leer la primera vez
     - Los elementos tienen que exponer lo que los visitantes necesitan
+    - Un visitante va acumulando, así que hace falta uno nuevo para cada recorrido
   related:
     - Composite
     - Iterator
@@ -28,26 +29,26 @@ quiz:
     options:
       - Un método scaling() en Lift, Gymnastics y Cardio
       - Un instanceof más en cada análisis que ya existe
-      - Una clase ScalingVisitor nueva; los elementos no cambian
-      - El controlador, para que calcule el escalado él mismo
+      - Una clase ScalingVisitor; los elementos no cambian
+      - Un método scale() en Workout que recorra los elementos
     answer: 2
     explain: Cada operación es un visitante. ScalingVisitor implementa los tres visit y ni Lift, ni Gymnastics, ni Cardio se enteran.
   - q: ¿Y si lo que añades es un tipo de elemento nuevo, Rest?
     options:
-      - Hay que añadir visitRest a WorkoutVisitor y a cada visitante
-      - Solo hay que crear la clase Rest con su accept()
-      - Hay que tocar el controlador y nada más
-      - Spring lo registra solo, como un visitante más
+      - Añadir visitRest a la interfaz y a cada visitante
+      - Solo crear la clase Rest con su accept()
+      - Solo añadir Rest a permits y a @JsonSubTypes
+      - Crear un RestVisitor que se encargue de los descansos
     answer: 0
     explain: Es el precio del patrón. Añadir operaciones es fácil; añadir tipos de elemento obliga a tocar todos los visitantes. Por eso encaja cuando los tipos cambian poco.
   - q: ¿Para qué sirve accept() en cada elemento?
     options:
       - Para validar los datos del elemento antes de usarlo
       - Para que el elemento guarde el resultado de la operación
-      - Para copiar el elemento antes de que lo visiten
-      - Para llamar al visit de su propio tipo, sin instanceof
+      - Para registrar el elemento en el visitante antes de recorrer
+      - Para llamar al visit de su tipo, sin instanceof
     answer: 3
-    explain: Lift.accept(v) llama a v.visitLift(this). Java elige el accept según la clase real del elemento y el visit según el visitante; es la doble llamada que sustituye al instanceof.
+    explain: Lift.accept(v) llama a v.visitLift(this). El elemento elige qué método se llama (visitLift) y la clase real del visitante elige qué implementación se ejecuta; esa doble llamada sustituye al instanceof.
   - q: Con una interfaz sealed y un switch sin default, ¿qué pasa si añades Rest?
     options:
       - Funciona igual, y Rest suma cero calorías
@@ -55,7 +56,7 @@ quiz:
       - Salta una excepción la primera vez que llega un Rest
       - Hay que reiniciar la aplicación para que lo tenga en cuenta
     answer: 1
-    explain: El compilador sabe todos los tipos posibles de un sealed y comprueba que el switch los cubre. Es la misma red de seguridad que da Visitor, con menos ceremonia.
+    explain: El compilador conoce todos los tipos de un sealed y comprueba que el switch los cubre. Es una red parecida a la de Visitor, incluso más estricta (aunque una clase vieja sin recompilar lanzaría MatchException al llegar un Rest).
 ---
 ## @step:problem — Preguntas sobre un WOD
 Un WOD tiene elementos de tres tipos: **levantamientos** (peso muerto, 100 kg × 15), **gimnásticos** (30 burpees) y **cardio** (1000 m de remo). Y el box le hace cada vez más preguntas: qué material hay que sacar, cuántas calorías se gastan, cómo se escala…
@@ -73,7 +74,7 @@ Con cada operación nueva hay una cadena más que mantener al día, y el compila
 
 > [!warning]
 > Cuando varias operaciones repiten el mismo `instanceof` sobre la misma familia de clases, olvidar un caso es solo cuestión de tiempo.
-@describe: InstanceofAnalyzer y Cardio, resaltados en rojo: las calorías del cardio salen 0 porque su caso no existe.
+@describe: InstanceofAnalyzer, en rojo, y Cardio, resaltado: las calorías del cardio salen 0 porque su caso no existe.
 
 ## @step:visitor — Un método por tipo
 Visitor define una interfaz con **un método por tipo de elemento**: `visitLift`, `visitGymnastics`, `visitCardio`, y `result()` para recoger el resultado.
@@ -87,7 +88,7 @@ Cada operación es una clase que la implementa. Y como hay que implementar los t
 ## @step:accept — Cada elemento llama a su método
 ¿Cómo sabe el visitante qué tipo de elemento tiene delante sin preguntar? No lo sabe: se lo dice el elemento. Cada uno implementa `accept(visitor)` llamando a su propio método: `Lift` llama a `visitLift(this)`.
 
-Es una **doble llamada**: Java elige `accept` según la clase real del elemento, y el `visit` según el visitante. Juntas sustituyen al `instanceof`.
+Es una **doble llamada**: la clase real del elemento decide qué método se llama (`visitLift`), y la clase real del visitante decide qué implementación se ejecuta. Juntas sustituyen al `instanceof`.
 @describe: Lift, resaltado junto a EquipmentVisitor, le llama con visitLift(this).
 
 ## @step:equipment — Una operación, una clase
@@ -106,14 +107,16 @@ Es una **doble llamada**: Java elige `accept` según la clase real del elemento,
 ## @step:sealed — En Java moderno
 Desde Java 21, una interfaz `sealed` y un `switch` con patrones dan una red de seguridad parecida con menos ceremonia: el compilador conoce todos los tipos posibles y, si el `switch` no tiene `default`, no compila hasta que cubres todos.
 
-`PatternMatchingCalories` calcula lo mismo que `CalorieVisitor`, y un test lo comprueba. ¿Cuál usar? El `switch` es más directo para operaciones sencillas; el visitante encaja cuando la operación tiene estado propio, cuando quieres pasarla como objeto o cuando la jerarquía no es `sealed`.
+`PatternMatchingCalories` calcula lo mismo que `CalorieVisitor`, y un test lo comprueba. De hecho, en este código un `switch` sobre el `sealed` habría bastado para no olvidarse del cardio.
+
+¿Cuándo sigue compensando Visitor? Cuando la jerarquía no es `sealed` (o no puedes usar Java 21), cuando quieres que la operación sea un objeto que se inyecta, se pasa o se cambia, y cuando es la estructura la que dirige el recorrido (un árbol, un Composite) y el visitante va recibiendo cada nodo.
 @describe: Los tres tipos de elemento, resaltados: un switch sobre la interfaz sealed los cubre todos.
 
 ## @step:request — El análisis por la API
 `POST /api/wods/analysis` con el WOD en JSON (un campo `type` por elemento):
 
 1. Jackson crea `Lift`, `Cardio` y `Gymnastics`, que validan sus datos.
-2. El controlador pasa por el `Workout` un `EquipmentVisitor` y un `CalorieVisitor` nuevos.
+2. El controlador pasa por el `Workout` un `EquipmentVisitor` y un `CalorieVisitor` nuevos (nuevos porque un visitante acumula: reutilizarlo sumaría dos veces).
 3. La respuesta trae el material (barra y discos, remo) y 102 kcal estimadas.
 
 Un elemento que no cumple las reglas, como una máquina que no existe, devuelve 400 con el motivo.
@@ -122,7 +125,9 @@ Un elemento que no cumple las reglas, como una máquina que no existe, devuelve 
 ## @step:spring-does-it — Spring ya lo hace por ti
 Una definición de bean tiene muchas partes: el nombre de la clase, las propiedades, los argumentos del constructor, beans y colecciones anidadas… `BeanDefinitionVisitor` las recorre todas y pasa cada valor de texto por un resolvedor.
 
-Es lo que usa Spring para sustituir los `${...}` de las definiciones de beans (lo hace `PropertySourcesPlaceholderConfigurer`, a través de `PlaceholderConfigurerSupport`). En el test, `${coach}` pasa a ser "Ana" y `${city}`, "Madrid".
+Es lo que usa Spring para sustituir los `${...}` de las definiciones de beans (lo hace `PropertySourcesPlaceholderConfigurer`, a través de `PlaceholderConfigurerSupport`). En el test, `${coach}` pasa a ser "Ana" y `${city}`, "Madrid". Los `@Value("${...}")` de los campos, en cambio, se resuelven al inyectar, no con este visitante.
+
+Es un Visitor "suelto": la definición no tiene `accept()` ni hay doble llamada, y hay un solo recorredor; la operación que enchufas es el resolvedor.
 
 > [!spring]
 > La operación (resolver placeholders) está fuera de la definición. Recorrer la estructura es cosa del visitante, y qué hacer con cada valor, del resolvedor que le pasas.
