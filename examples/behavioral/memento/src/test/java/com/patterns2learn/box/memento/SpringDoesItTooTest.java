@@ -17,9 +17,9 @@ class SpringDoesItTooTest {
         Integer rows = tx.execute(status -> {
             // @step:savepoint
             jdbc.sql("insert into pr (athlete, lift, kg) values ('Ana', 'clean', 70)").update();
-            Object savepoint = status.createSavepoint();        // an opaque snapshot: you can't look inside
-            jdbc.sql("insert into pr (athlete, lift, kg) values ('Ana', 'clean', 700)").update();   // a typo
-            status.rollbackToSavepoint(savepoint);             // back to the snapshot, the transaction goes on
+            Object savepoint = status.createSavepoint();    // opaque: you can't look inside
+            jdbc.sql("insert into pr (athlete, lift, kg) values ('Ana', 'clean', 700)").update();   // typo
+            status.rollbackToSavepoint(savepoint);          // back to it; the transaction goes on
             // @end
             int n = jdbc.sql("select count(*) from pr").query(Integer.class).single();
             status.setRollbackOnly();
