@@ -35,6 +35,7 @@ const path = [
       <p class="hero__intro">{t(lang, 'intro')}</p>
     </section>
 
+    <div class="home__cards">
     <section class="start-here" aria-labelledby="start-here-title">
       <h2 class="start-here__title" id="start-here-title">{t(lang, 'startHere')}</h2>
       <p class="start-here__intro">{t(lang, 'startHereIntro')}</p>
@@ -59,6 +60,7 @@ const path = [
     </section>
 
     <CourseTree lang={lang} lessons={lessons} static />
+    </div>
   </div>
 </BaseLayout>
 <script>
