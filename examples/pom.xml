@@ -51,6 +51,7 @@
     <module>structural/decorator</module>
     <module>structural/facade</module>
     <module>structural/composite</module>
+    <module>structural/bridge</module>
     <module>behavioral/template-method</module>
     <module>behavioral/strategy</module>
     <module>behavioral/observer</module>
