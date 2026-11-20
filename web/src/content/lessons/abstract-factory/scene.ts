@@ -17,32 +17,36 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +4.5:
- * - Left to right: controller (sx −12.5) → WodService (sx −8) → FranPlanner, the client (sx −3.5) →
- *   DivisionKit, the abstract factory (sx 1) → the three kits in a column (sx 5.5) → the Rx family's
- *   three products in a column (sx 10.5).
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). Rows, so the scene stays narrow and its labels readable:
+ * - The coach stands off the platform's back-left edge, above and a little right of the controller, and calls
+ *   down into it (the long GET packet parks on that steep link, inside the frame).
+ * - Top row, left to right: controller → WodService → FranPlanner, the client, about 5.8 units of x − y apart.
+ * - DivisionKit, the abstract factory, sits straight below FranPlanner: the long "barbell() · pull() ·
+ *   scorecard()" packet parks on that vertical link, where width costs nothing.
+ * - The three kits stand in a column to its right (RxKit up, ScaledKit level, TeensKit down), the Rx family's
+ *   three products in a column right of RxKit.
  * - IfElseFranPlanner (before) takes FranPlanner's spot.
  * - spring-does-it reuses the spots: DataSource (service), Connection (DivisionKit), its statements (products).
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.65, y: 20.15 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 18.4, d: 18.4, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'WodController', ...at(5.25, 17.75), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'service', kind: 'block', label: 'WodService', ...at(7.5, 15.5), tone: 'neutral', icon: 'gear' },
-  { id: 'ifElse', kind: 'block', label: 'IfElseFranPlanner', ...at(9.75, 13.25), tone: 'danger', icon: 'warning' },
-  { id: 'planner', kind: 'block', label: 'FranPlanner', ...at(9.75, 13.25), tone: 'accent', icon: 'board' },
-  { id: 'kit', kind: 'interface', label: 'DivisionKit', ...at(12.0, 11.0, IFACE), tone: 'neutral' },
-  { id: 'rx', kind: 'block', label: 'RxKit', ...at(10.75, 5.25), tone: 'accent', icon: 'medal' },
-  { id: 'scaled', kind: 'block', label: 'ScaledKit', ...at(14.25, 8.75), tone: 'neutral', icon: 'tag' },
-  { id: 'teens', kind: 'block', label: 'TeensKit', ...at(17.75, 12.25), tone: 'neutral', icon: 'cap' },
-  { id: 'barbell', kind: 'block', label: 'Barbell 43 kg', ...at(11.25, 0.75), tone: 'neutral', icon: 'ten' },
-  { id: 'pull', kind: 'block', label: 'pull-ups', ...at(13.75, 3.25), tone: 'neutral', icon: 'plus' },
-  { id: 'scorecard', kind: 'block', label: "Rx · 10'", ...at(16.25, 5.75), tone: 'neutral', icon: 'timer' },
-  { id: 'dataSource', kind: 'block', label: 'DataSource', ...at(7.5, 15.5), tone: 'neutral', icon: 'db' },
-  { id: 'connection', kind: 'block', label: 'Connection (H2)', ...at(12.0, 11.0), tone: 'accent', icon: 'key' },
-  { id: 'statement', kind: 'block', label: 'Statement', ...at(11.25, 0.75), tone: 'neutral', icon: 'file' },
-  { id: 'prepared', kind: 'block', label: 'PreparedStatement', ...at(13.75, 3.25), tone: 'neutral', icon: 'file' },
-  { id: 'metadata', kind: 'block', label: 'CallableStatement', ...at(16.25, 5.75), tone: 'neutral', icon: 'file' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 1.4, y: -0.6 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 4.5, y: -5.8 }, size: { w: 19.55, d: 13.75, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'WodController', ...at(6, 6), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'service', kind: 'block', label: 'WodService', ...at(8.9, 3.1), tone: 'neutral', icon: 'gear' },
+  { id: 'ifElse', kind: 'block', label: 'IfElseFranPlanner', ...at(11.8, 0.2), tone: 'danger', icon: 'warning' },
+  { id: 'planner', kind: 'block', label: 'FranPlanner', ...at(11.8, 0.2), tone: 'accent', icon: 'board' },
+  { id: 'kit', kind: 'interface', label: 'DivisionKit', ...at(16.3, 4.7, IFACE), tone: 'neutral' },
+  { id: 'rx', kind: 'block', label: 'RxKit', ...at(16.3, 0.2), tone: 'accent', icon: 'medal' },
+  { id: 'scaled', kind: 'block', label: 'ScaledKit', ...at(19.05, 2.95), tone: 'neutral', icon: 'tag' },
+  { id: 'teens', kind: 'block', label: 'TeensKit', ...at(22.55, 6.45), tone: 'neutral', icon: 'cap' },
+  { id: 'barbell', kind: 'block', label: 'Barbell 43 kg', ...at(16.8, -4.3), tone: 'neutral', icon: 'ten' },
+  { id: 'pull', kind: 'block', label: 'pull-ups', ...at(19.3, -1.8), tone: 'neutral', icon: 'plus' },
+  { id: 'scorecard', kind: 'block', label: "Rx · 10'", ...at(21.8, 0.7), tone: 'neutral', icon: 'timer' },
+  { id: 'dataSource', kind: 'block', label: 'DataSource', ...at(8.9, 3.1), tone: 'neutral', icon: 'db' },
+  { id: 'connection', kind: 'block', label: 'Connection (H2)', ...at(16.3, 4.7), tone: 'accent', icon: 'key' },
+  { id: 'statement', kind: 'block', label: 'Statement', ...at(16.8, -4.3), tone: 'neutral', icon: 'file' },
+  { id: 'prepared', kind: 'block', label: 'PreparedStatement', ...at(19.3, -1.8), tone: 'neutral', icon: 'file' },
+  { id: 'metadata', kind: 'block', label: 'CallableStatement', ...at(21.8, 0.7), tone: 'neutral', icon: 'file' },
 ];
 
 const KITS = ['kit', 'rx', 'scaled', 'teens'];
