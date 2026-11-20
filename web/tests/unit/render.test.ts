@@ -1,4 +1,4 @@
-import { fitViewBox, MARGIN, MAX_ASPECT, MIN_ZOOM, PACKET_H, PILL_H, packetMarkup, packetWidth, parseBox, pillWidth, renderScene, type ViewBox } from '../../src/engine/render';
+import { fitViewBox, MARGIN, MAX_ASPECT, MIN_ZOOM, PACKET_H, PILL_H, packetMarkup, packetWidth, parseBox, pillWidth, renderScene, TWIN_OFFSET, type ViewBox } from '../../src/engine/render';
 import type { Entity, Scene } from '../../src/engine/types';
 import { scene } from './fixtures/scene';
 
@@ -192,4 +192,10 @@ test('a link arriving from above stops short of its target label instead of cros
   const d = /id="path-v" class="iso-link-line" d="M([-\d.]+),([-\d.]+) L([-\d.]+),([-\d.]+)"/.exec(svg)!.slice(1).map(Number);
   const label = /data-id="low"[^]*?<g class="iso-label" transform="translate\(([-\d.]+) ([-\d.]+)\)"/.exec(svg)!.slice(1).map(Number);
   expect(d[3]).toBeLessThan(label[1] - PILL_H / 2);
+});
+test('two links joining the same pair in opposite directions are drawn as separate lanes', () => {
+  const pair: Scene = { entities: [block('a', 0, 0), block('b', 6, -6)], links: [{ id: 'go', from: 'a', to: 'b', style: 'call' }, { id: 'back', from: 'b', to: 'a', style: 'call' }], steps: [{ id: 's', visible: ['a', 'b'], highlight: [], packets: [] }] };
+  const svg = renderScene(pair);
+  const y = (id: string) => Number(new RegExp(`data-id="${id}"[^>]*data-y1="([-\\d.]+)"`).exec(svg)![1]);
+  expect(Math.abs(y('go') - y('back'))).toBeGreaterThanOrEqual(2 * TWIN_OFFSET - 0.01);
 });

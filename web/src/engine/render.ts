@@ -238,7 +238,10 @@ const MARKER: Record<Link['style'], string> = {
   injects: 'url(#iso-diamond)',
 };
 
-function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState): string {
+/** Sideways shift (px) of each of two links that join the same pair in opposite directions. */
+export const TWIN_OFFSET = 11;
+
+function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState, twin = false): string {
   const from = byId.get(l.from);
   const to = byId.get(l.to);
   if (!from || !to) throw new Error(`link "${l.id}" references a missing entity`);
@@ -254,12 +257,16 @@ function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState): strin
   if (out && out[0] < 0.5) t1 = Math.max(t1, out[1] + gap);
   const into = labelSpan(to, c1, c2);
   if (into && into[1] > 0.5) t2 = Math.min(t2, into[0] - gap);
-  const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t, sy: c1.sy + (c2.sy - c1.sy) * t });
+  // A link with a reverse twin (A→B and B→A) moves to its own right, so the two read as lanes and
+  // their parked packets don't sit on top of each other.
+  const ox = twin ? (-(c2.sy - c1.sy) / len) * TWIN_OFFSET : 0;
+  const oy = twin ? ((c2.sx - c1.sx) / len) * TWIN_OFFSET : 0;
+  const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t + ox, sy: c1.sy + (c2.sy - c1.sy) * t + oy });
   const p1 = at(t1);
   const p2 = at(t2);
   return (
     `<g class="iso-link${stateClasses(step, l)} style-${l.style}" data-id="${escapeXml(l.id)}" data-from="${escapeXml(l.from)}" data-to="${escapeXml(l.to)}" ` +
-    `data-x1="${n(c1.sx)}" data-y1="${n(c1.sy)}" data-x2="${n(c2.sx)}" data-y2="${n(c2.sy)}">` +
+    `data-x1="${n(c1.sx + ox)}" data-y1="${n(c1.sy + oy)}" data-x2="${n(c2.sx + ox)}" data-y2="${n(c2.sy + oy)}">` +
     `<path id="path-${escapeXml(l.id)}" class="iso-link-line" d="M${pt(p1)} L${pt(p2)}" marker-end="${MARKER[l.style]}"/>` +
     `</g>`
   );
@@ -332,7 +339,7 @@ export function renderScene(scene: Scene, opts: RenderOptions = {}): string {
     ` viewBox="${vb.map(n).join(' ')}" data-full-view="${full.map(n).join(' ')}">` +
     DEFS +
     `<g class="iso-entities">${ordered.map(p => entityMarkup(p, bounds.get(p.e.id)!, step)).join('')}</g>` +
-    `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step)).join('')}</g>` +
+    `<g class="iso-links">${scene.links.map(l => linkMarkup(l, byId, step, scene.links.some(o => o.from === l.to && o.to === l.from))).join('')}</g>` +
     `<g class="iso-packets"></g>` +
     `</svg>`
   );
