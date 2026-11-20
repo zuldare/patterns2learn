@@ -17,28 +17,33 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
- * - Left to right: controller (sx −10) → Workout, the structure (sx −5.5) → its three kinds of element
- *   in a column (sx −0.5) → the two visitors (sx 5) → the WorkoutVisitor interface (sx 10).
+ * Layout notes. Positions come from screen coordinates (u = x − y across, v = x + y down):
+ * - Left to right on the middle row (v 22): controller (u −12) → Workout, the structure (u −6.5) → the
+ *   element column (u 0.5: Lift v 15, Gymnastics v 22, Cardio v 29) → the two visitors (u 6.5: v 18 and
+ *   v 26) → the WorkoutVisitor interface (u 11.5, v 22).
+ * - Workout sits 7 units left of the elements so "instanceof Gymnastics?" parks between them; the
+ *   visitors sit 6 to the right so "barbell + plates" clears Lift.
+ * - The coach stands below-left, outside the platform (u −14, v 31): the request climbs to the
+ *   controller and its long packet parks under the controller, clear of the context label.
  * - InstanceofAnalyzer (before) takes Workout's spot.
- * - spring-does-it: BeanDefinitionVisitor in the visitors' spot, the parts of a bean definition in the element column.
+ * - spring-does-it: BeanDefinitionVisitor in EquipmentVisitor's spot, the parts of a bean definition in the element column.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 4.4, y: 18.5 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 17.2, d: 17.2, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'AnalysisController', ...at(6.0, 16.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'analyzer', kind: 'block', label: 'InstanceofAnalyzer', ...at(8.25, 13.75), tone: 'danger', icon: 'warning' },
-  { id: 'workout', kind: 'block', label: 'Workout', ...at(8.25, 13.75), tone: 'neutral', icon: 'board' },
-  { id: 'lift', kind: 'block', label: 'Lift', ...at(7.25, 7.75), tone: 'neutral', icon: 'ten' },
-  { id: 'gym', kind: 'block', label: 'Gymnastics', ...at(10.75, 11.25), tone: 'neutral', icon: 'plus' },
-  { id: 'cardio', kind: 'block', label: 'Cardio', ...at(14.25, 14.75), tone: 'neutral', icon: 'timer' },
-  { id: 'equip', kind: 'block', label: 'EquipmentVisitor', ...at(11.5, 6.5), tone: 'accent', icon: 'key' },
-  { id: 'cal', kind: 'block', label: 'CalorieVisitor', ...at(15.5, 10.5), tone: 'accent', icon: 'heart' },
-  { id: 'visitor', kind: 'interface', label: 'WorkoutVisitor', ...at(16.0, 6.0, IFACE), tone: 'neutral' },
-  { id: 'bdVisitor', kind: 'block', label: 'BeanDefinitionVisitor', ...at(11.5, 6.5), tone: 'accent', icon: 'gear' },
-  { id: 'bdClass', kind: 'block', label: 'class name', ...at(7.25, 7.75), tone: 'neutral', icon: 'file' },
-  { id: 'bdProps', kind: 'block', label: 'coach = ${coach}', ...at(10.75, 11.25), tone: 'neutral', icon: 'file' },
-  { id: 'bdArgs', kind: 'block', label: 'arg = ${city}', ...at(14.25, 14.75), tone: 'neutral', icon: 'file' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 7.9, y: 21.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 3.5, y: 3.5 }, size: { w: 15, d: 15, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'AnalysisController', ...at(5.0, 17.0), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'analyzer', kind: 'block', label: 'InstanceofAnalyzer', ...at(7.75, 14.25), tone: 'danger', icon: 'warning' },
+  { id: 'workout', kind: 'block', label: 'Workout', ...at(7.75, 14.25), tone: 'neutral', icon: 'board' },
+  { id: 'lift', kind: 'block', label: 'Lift', ...at(7.75, 7.25), tone: 'neutral', icon: 'ten' },
+  { id: 'gym', kind: 'block', label: 'Gymnastics', ...at(11.25, 10.75), tone: 'neutral', icon: 'plus' },
+  { id: 'cardio', kind: 'block', label: 'Cardio', ...at(14.75, 14.25), tone: 'neutral', icon: 'timer' },
+  { id: 'equip', kind: 'block', label: 'EquipmentVisitor', ...at(12.25, 5.75), tone: 'accent', icon: 'key' },
+  { id: 'cal', kind: 'block', label: 'CalorieVisitor', ...at(16.25, 9.75), tone: 'accent', icon: 'heart' },
+  { id: 'visitor', kind: 'interface', label: 'WorkoutVisitor', ...at(16.75, 5.25, IFACE), tone: 'neutral' },
+  { id: 'bdVisitor', kind: 'block', label: 'BeanDefinitionVisitor', ...at(12.25, 5.75), tone: 'accent', icon: 'gear' },
+  { id: 'bdClass', kind: 'block', label: 'class name', ...at(7.75, 7.25), tone: 'neutral', icon: 'file' },
+  { id: 'bdProps', kind: 'block', label: 'coach = ${coach}', ...at(11.25, 10.75), tone: 'neutral', icon: 'file' },
+  { id: 'bdArgs', kind: 'block', label: 'arg = ${city}', ...at(14.75, 14.25), tone: 'neutral', icon: 'file' },
 ];
 
 const ELEMENTS = ['lift', 'gym', 'cardio'];
