@@ -2,19 +2,28 @@ package com.patterns2learn.box.flyweight;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SetLog {
     private final MovementCatalog catalog;
     private final List<LoggedSet> sets = new ArrayList<>();
+    private final int capacity;
 
+    @Autowired
     public SetLog(MovementCatalog catalog) {
+        this(catalog, 10_000);
+    }
+
+    SetLog(MovementCatalog catalog, int capacity) {
         this.catalog = catalog;
+        this.capacity = capacity;
     }
 
     // @step:client
     public synchronized LoggedSet log(String athlete, String movement, int reps, int kg) {
+        if (sets.size() >= capacity) throw new LogFullException();          // a demo, not a database
         String who = validate(athlete, reps, kg);
         LoggedSet set = new LoggedSet(who, catalog.get(movement), reps, kg);   // shared + own
         sets.add(set);

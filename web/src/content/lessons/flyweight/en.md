@@ -20,7 +20,7 @@ recap:
   related:
     - Singleton
     - Composite
-    - Prototype
+    - State
 quiz:
   - q: What is intrinsic state in this example?
     options:
@@ -32,36 +32,36 @@ quiz:
     explain: Intrinsic is what every set of a movement shares, and it goes inside the flyweight. The athlete, reps and kilos belong to each set.
   - q: Why does Movement have to be immutable?
     options:
-      - Because Java records can't have methods
-      - Because thousands of sets share it and a change would reach all of them
-      - Because ConcurrentHashMap only accepts immutable values
-      - Because Spring doesn't inject objects that can be modified
+      - So equals() stays consistent
+      - Because all its sets share it at once
+      - So the map key never changes
+      - So it can be serialized safely
     answer: 1
     explain: A flyweight is the same object for everyone using it. If one set could change its standard, it would change it for all the others.
-  - q: What makes two squat sets share the same object?
+  - q: What makes two squat sets share an object?
     options:
-      - MovementCatalog creates it once and then always hands back that one
-      - Java detects equal objects and merges them on its own
-      - LoggedSet copies the movement from the previous set
-      - The Movement record overrides equals() and hashCode()
+      - Java merges equal objects on its own
+      - LoggedSet copies the previous set's movement
+      - The Movement record overrides equals()
+      - They both ask the same catalog for it
+    answer: 3
+    explain: computeIfAbsent creates the movement the first time and then returns the same instance. equals() returning true isn't enough; someone has to hand out the same object.
+  - q: What should NOT go inside Movement?
+    options:
+      - The kilos each athlete lifted
+      - The movement's category
+      - The equipment it needs
+      - The standard for how it's done
     answer: 0
-    explain: computeIfAbsent creates the movement the first time and then returns the same instance. Equal equals() isn't enough; someone has to hand out the same object.
-  - q: Why is Integer.valueOf(100) == Integer.valueOf(100) true but not with 1000?
-    options:
-      - Because 100 fits in a byte and Java keeps it on the stack
-      - Because the compiler replaces 100 with a constant
-      - Because Integer caches the values from -128 to 127
-      - Because == compares the value when the number is small
-    answer: 2
-    explain: valueOf returns shared objects for small values, the most used ones. It's a flyweight in the JDK itself; with 1000 it creates a new object (unless the cache is widened with -XX:AutoBoxCacheMax).
+    explain: The kilos change in every set, so they're extrinsic state. If they went inside Movement, it could no longer be shared.
 ---
 ## @step:problem — One copy per set
 The box logs every set: who, which movement, how many reps and how many kilos. In a month that's thousands, and nearly all of them are squats, deadlifts or thrusters.
 
-In the first version, each set carries the whole movement: name, category, the standard for how it's done (a long text) and the equipment. It's what happens when every row of a query becomes brand-new objects. With 3,000 sets there are 3,000 copies of two texts; the `CopiedMovementLogTest` test counts them.
+In the first version, each set carries the whole movement: name, category, the standard for how it's done (a long text) and the equipment. It's what happens with a denormalized query or a JSON import: every row brings its own texts. With 3,000 sets there are 3,000 copies of two texts; the `CopiedMovementLogTest` test counts them.
 
 > [!problem]
-> What's the same in every set is repeated in each one, and every copy takes up its own memory.
+> What's the same in every set is repeated in each one, and every copy holds its own characters in memory.
 @describe: Three sets, each with its own copy of the movement, highlighted in red: two copies of the squat and one of the deadlift.
 
 ## @step:flyweight — What's shared
@@ -70,7 +70,7 @@ Flyweight splits the data in two. What's the same for every set of a movement (n
 `Movement` is a `record` and its equipment list is copied with `List.copyOf`: it's **immutable**. It has to be, because thousands of sets use it at once.
 
 > [!key-idea]
-> A flyweight is small in number, not in size: there's one per movement, however many sets use it.
+> What becomes light is each set: the heavy, common part is stored once.
 @describe: The two shared movements appear, the squat and the deadlift, highlighted.
 
 ## @step:extrinsic — What belongs to each set
@@ -80,7 +80,7 @@ Ana and Leo squat and share **the same** `Movement` object; each has their own l
 @describe: Ana's and Leo's sets point to the same squat, highlighted, and pass it their reps and kilos with line().
 
 ## @step:factory — One per name
-`MovementCatalog` is the **flyweight factory**. `get("Back Squat")` normalises the name and uses `computeIfAbsent`: the first time it loads the movement and keeps it; after that it returns the same object. It's thread-safe because it's a `ConcurrentHashMap`.
+`MovementCatalog` is the **flyweight factory**. `get("Back Squat")` normalises the name and uses `computeIfAbsent`: the first time it reads the data and builds the `Movement`; after that it returns the same object. It's thread-safe because it's a `ConcurrentHashMap`.
 
 A movement that doesn't exist answers 404 "unknown movement".
 
@@ -89,28 +89,30 @@ A movement that doesn't exist answers 404 "unknown movement".
 @describe: MovementCatalog, highlighted, creates the squat and the deadlift just once with computeIfAbsent.
 
 ## @step:client — The client asks, it doesn't create
-`SetLog` doesn't do `new Movement(...)`: it asks the catalog for the movement and creates a `LoggedSet` with the shared part and its own. That way no set can end up with its own copy.
+`SetLog` doesn't do `new Movement(...)`: it asks the catalog for the movement and creates a `LoggedSet` with the shared part and its own. As long as everyone goes through the catalog, no set ends up with its own copy (the type doesn't enforce it: anyone could `new Movement(...)`).
 @describe: SetLog, highlighted, asks the catalog for get("deadlift") and creates Eva's set with the shared movement.
 
 ## @step:share — 3,000 sets, 2 movements
 The test logs 3,000 sets alternating squat and deadlift. At the end, the catalog has created **two** `Movement` objects. All 3,000 sets point to those two.
 
-How much you save depends on how big the shared state is and how often it repeats: here, a standard of about 100 characters per set.
+Each set is still a small object (athlete, reps, kilos and one reference); what disappears is the copied movement. How much you save depends on how big that common part is and how often it repeats: here, a standard of about 100 characters per set.
+
+(In the book, sometimes there isn't even an object per element: the extrinsic state is computed from the structure, like a letter's position in a document.)
 @describe: The squat, the deadlift and the catalog, highlighted: every set points to just two movements.
 
 ## @step:request — Over HTTP
-Ana, Leo and Eva log a deadlift with `POST /api/sets` (it answers 201 with their line). `GET /api/sets/stats` says there are 3 sets and **1** movement object.
+Ana, Leo and Eva log a deadlift with `POST /api/sets` (it answers 201 with their line). `GET /api/sets/stats` says there are 3 sets and the catalog has built **1** movement. The scene shows Eva's set.
 
-An unknown movement answers 404; reps out of range, 400.
-@describe: POST /api/sets travels from the athlete to the controller and to SetLog, which asks the catalog for the deadlift; the set points to the shared movement, highlighted along with SetLog.
+An unknown movement answers 404; reps out of range, 400; and if the demo log fills up (10,000 sets), 409.
+@describe: POST /api/sets travels from the athlete to the controller and to SetLog, which asks the catalog for the deadlift; Eva's set points to the shared movement, highlighted along with SetLog.
 
 ## @step:spring-does-it — Java and Spring already do it for you
-`Integer.valueOf(100)` always returns the same object: the JDK caches the integers from -128 to 127, the most used ones. With 1000 it creates a new one. It's a textbook flyweight (and the reason comparing `Integer` with `==` is a bad idea).
+`Integer.valueOf(100)` always returns the same object: the JDK caches the integers from -128 to 127, the most used ones. With 1000, by default, it creates a new one (not guaranteed: the cache can be widened). That's why comparing `Integer` with `==` is a bad idea.
 
-Spring does the same with MIME types: `MimeTypeUtils.parseMimeType("application/json")` parses the text once, keeps it in a cache and then returns the same instance. A web app asks for it thousands of times.
+Spring does the same with MIME types: `MimeTypeUtils.parseMimeType("application/json")` keeps recently parsed types in a small LRU cache (`multipart` ones excluded) and returns the same instance. A web app asks for it thousands of times.
 
 > [!spring]
-> When an immutable object is requested many times with the same data, caching it by its key is a flyweight. Spring does it with MIME types; you can do it with your catalogs.
+> These are the "sharing" half of Flyweight: an immutable value handed out from a pool by key. With no extrinsic state to split off, it's plain caching or interning; Flyweight adds the split.
 @describe: Integer.valueOf(100) and MimeTypeUtils.parseMimeType always get the same cached instance, highlighted.
 
 ## @step:recap — Recap
@@ -120,7 +122,7 @@ You started with a copy of the movement in every set and ended up with:
 - **A factory**, `MovementCatalog`, that creates each one once and hands it out.
 - **Extrinsic state** in each `LoggedSet`: athlete, reps and kilos.
 
-Its neighbours: a **Singleton** is one instance of a class; with Flyweight there's one per key (one per movement). In a **Composite**, repeated leaves can be flyweights. And **Prototype** does the opposite: it copies an object so each one has its own.
+Its neighbours: a **Singleton** is one instance of a class; with Flyweight there's one per key (one per movement). In a **Composite**, repeated leaves can be flyweights, and **State** and **Strategy** objects often are. **Prototype** does the opposite: it copies an object so each one has its own. And `String.intern()` or the JVM's string deduplication are close relatives: they share equal values, but without splitting state.
 
 When not to use it: with few objects, or little repeated state, the saving isn't worth it. And if the shared data has to change per set, it isn't intrinsic: the flyweight doesn't fit. Measure before you optimise.
 

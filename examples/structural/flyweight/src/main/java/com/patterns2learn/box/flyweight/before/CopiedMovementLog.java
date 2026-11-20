@@ -17,18 +17,22 @@ public class CopiedMovementLog {
     // @step:copies
     public void log(String athlete, String movement, int reps, int kg) {
         String[] row = ROWS.get(movement);
-        // every set gets its own strings, like rows mapped one by one from a query
-        sets.add(new CopiedSet(athlete, reps, kg, new String(movement), new String(row[0]),
-                               new String(row[1]), List.of(new String("barbell"))));
+        // every set gets strings with their own characters, like a denormalized query or a JSON import
+        sets.add(new CopiedSet(athlete, reps, kg, own(movement), own(row[0]),
+                               own(row[1]), List.of(own("barbell"))));
     }
     // @end
+
+    private static String own(String s) {
+        return new String(s.toCharArray());     // new String(s) alone would share s's characters
+    }
 
     public List<CopiedSet> sets() {
         return List.copyOf(sets);
     }
 
-    /** Characters held by all the copies of the standard text. */
-    public long charsHeld() {
+    /** Characters across all the copies of the standard text (each copy has its own). */
+    public long charsInCopies() {
         return sets.stream().mapToLong(s -> s.standard().length()).sum();
     }
 }

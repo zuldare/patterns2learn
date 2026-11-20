@@ -101,7 +101,7 @@ const scene: Scene = {
         { link: 'l-catalog-squat', label: 'computeIfAbsent' },
         { link: 'l-catalog-dead', label: 'computeIfAbsent' },
       ],
-      code: { file: `${MAIN}/MovementCatalog.java`, region: 'factory', highlight: [3, 4, 10, 11] },
+      code: { file: `${MAIN}/MovementCatalog.java`, region: 'factory', highlight: [3, 4, 9, 10, 11] },
     },
     {
       id: 'client',
@@ -111,7 +111,7 @@ const scene: Scene = {
         { link: 'l-service-catalog', label: 'get("deadlift")' },
         { link: 'l-service-set3', label: 'new LoggedSet(…)' },
       ],
-      code: { file: `${MAIN}/SetLog.java`, region: 'client', highlight: [3] },
+      code: { file: `${MAIN}/SetLog.java`, region: 'client', highlight: [4] },
     },
     {
       id: 'share',
@@ -122,7 +122,7 @@ const scene: Scene = {
     },
     {
       id: 'request',
-      visible: SPRING,
+      visible: ['context', 'coach', 'controller', 'service', 'set3', 'dead', 'catalog'],
       highlight: ['service', 'dead'],
       packets: [
         { link: 'l-coach-controller', label: 'POST /api/sets' },
@@ -130,7 +130,7 @@ const scene: Scene = {
         { link: 'l-service-catalog', label: 'get("deadlift")' },
         { link: 'l-set3-dead', label: 'shared' },
       ],
-      code: { file: `${TEST}/web/SetApiTest.java`, region: 'request', highlight: [3, 4, 7, 8, 9] },
+      code: { file: `${TEST}/web/SetApiTest.java`, region: 'request', highlight: [2, 4, 5, 7, 8, 9] },
     },
     {
       id: 'spring-does-it',

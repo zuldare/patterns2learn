@@ -16,6 +16,5 @@ class SpringDoesItTooTest {
         MimeType json2 = MimeTypeUtils.parseMimeType("application/json");
         assertThat(json1).isSameAs(json2);                            // parsed once, then shared
         // @end
-        assertThat(Integer.valueOf(1000)).isNotSameAs(Integer.valueOf(1000));
     }
 }

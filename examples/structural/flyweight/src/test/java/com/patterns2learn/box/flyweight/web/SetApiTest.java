@@ -29,7 +29,7 @@ class SetApiTest {
         }
         mvc.perform(get("/api/sets/stats"))
            .andExpect(jsonPath("$.sets").value(3))
-           .andExpect(jsonPath("$.movementObjects").value(1));
+           .andExpect(jsonPath("$.movementsCreated").value(1));
         // @end
     }
 
@@ -40,6 +40,6 @@ class SetApiTest {
            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("reps must be between 1 and 500"));
         mvc.perform(post("/api/sets").contentType(MediaType.APPLICATION_JSON).content("{\"athlete\":\"Ana\",\"movement\":\"deadlift\",\"reps\":5.5,\"kg\":0}"))
            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("malformed request body"));
-        mvc.perform(get("/api/sets/stats")).andExpect(jsonPath("$.sets").value(0)).andExpect(jsonPath("$.movementObjects").value(0));
+        mvc.perform(get("/api/sets/stats")).andExpect(jsonPath("$.sets").value(0)).andExpect(jsonPath("$.movementsCreated").value(0));
     }
 }

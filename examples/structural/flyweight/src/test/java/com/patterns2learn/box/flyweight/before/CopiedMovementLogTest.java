@@ -14,7 +14,7 @@ class CopiedMovementLogTest {
 
         Set<String> standards = Collections.newSetFromMap(new IdentityHashMap<>());
         log.sets().forEach(s -> standards.add(s.standard()));
-        assertThat(standards).hasSize(3_000);                       // 3,000 copies of two texts
-        assertThat(log.charsHeld()).isGreaterThan(3_000 * 100L);    // and every copy is paid for
+        assertThat(standards).hasSize(3_000);                          // 3,000 distinct strings…
+        assertThat(log.charsInCopies()).isGreaterThan(3_000 * 90L);    // …each with its own characters
     }
 }

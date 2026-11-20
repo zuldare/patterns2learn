@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SetController {
     public record SetRequest(String athlete, String movement, int reps, int kg) {}
     public record SetView(String athlete, String movement, int reps, int kg, String line) {}
-    public record Stats(int sets, int movementObjects) {}
+    public record Stats(int sets, int movementsCreated) {}
 
     private final SetLog log;
     private final MovementCatalog catalog;

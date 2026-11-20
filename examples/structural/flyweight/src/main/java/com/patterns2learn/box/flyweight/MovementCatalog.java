@@ -20,14 +20,14 @@ public class MovementCatalog {
     }
 
     private Movement load(String key) {
-        Movement m = MovementDefinitions.ALL.get(key);
-        if (m == null) throw new UnknownMovementException(abbreviate(key));
+        MovementDefinitions.Row row = MovementDefinitions.ROWS.get(key);
+        if (row == null) throw new UnknownMovementException(abbreviate(key));
         created.incrementAndGet();
-        return new Movement(m.name(), m.category(), m.standard(), m.equipment());
+        return new Movement(key, row.category(), row.standard(), row.equipment());   // built once per name
     }
     // @end
 
-    /** How many Movement objects exist, however many sets point to them. */
+    /** How many Movement objects the catalog has built, however many sets point to them. */
     public int created() {
         return created.get();
     }

@@ -51,5 +51,8 @@ class MovementCatalogTest {
         assertThatThrownBy(() -> log.log("Ana", "deadlift", 0, 100)).hasMessage("reps must be between 1 and 500");
         assertThatThrownBy(() -> log.log("Ana", "deadlift", 5, -1)).hasMessage("kg must be between 0 and 500");
         assertThatThrownBy(() -> log.log("x".repeat(41), "deadlift", 5, 100)).hasMessage("athlete is at most 40 characters");
+        SetLog small = new SetLog(new MovementCatalog(), 1);
+        small.log("Ana", "deadlift", 5, 100);
+        assertThatThrownBy(() -> small.log("Leo", "deadlift", 5, 100)).isInstanceOf(LogFullException.class).hasMessage("the log is full");
     }
 }
