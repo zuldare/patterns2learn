@@ -17,27 +17,31 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - Creators (one planner per format) form a diagonal column in the middle;
- *   each one's product (the Workout it builds) sits to its right.
+ * Layout notes. Screen coordinates: sx = x − y (horizontal), sy = x + y (vertical):
+ * - Left to right: coach (sx −9, below-left so the request packet parks on the diagonal) → controller
+ *   (sx −5.6) → service (sx −0.4) → creators → products.
+ * - Creators (one planner per format) stand in a straight column at sx 4, rows sy 7.5 / 12.5 / 17.5;
+ *   each one's product (the Workout it builds) sits in the same row at sx 9.6, 5.6 apart so the
+ *   "new …()" packet parks between them.
  * - The switching service and the Spring WodService share one spot.
- * - WodPlanner (the abstract creator) sits below the creators.
+ * - WodPlanner (the abstract creator) sits left of the creators, below the service (sx −3.4, sy 13.4).
  * - DailyWodFactoryBean only appears in spring-does-it, in the AMRAP planner's spot.
+ * - The platform hugs the blocks; the coach stands off its front-left edge.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 3.9, y: 12.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0.3, y: -2.55 }, size: { w: 14.75, d: 12.65, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'WodController', ...at(1.8, 7.4), tone: 'neutral', icon: 'arrow-in' },
   { id: 'switcher', kind: 'block', label: 'SwitchingWodService', ...at(3.8, 4.2), tone: 'danger', icon: 'warning' },
   { id: 'service', kind: 'block', label: 'WodService', ...at(3.8, 4.2), tone: 'neutral', icon: 'gear' },
-  { id: 'amrapP', kind: 'block', label: 'AmrapPlanner', ...at(6.4, 1.4), tone: 'neutral', icon: 'board' },
-  { id: 'emomP', kind: 'block', label: 'EmomPlanner', ...at(8.4, 4.4), tone: 'neutral', icon: 'board' },
-  { id: 'forTimeP', kind: 'block', label: 'ForTimePlanner', ...at(9.2, 7.4), tone: 'neutral', icon: 'board' },
+  { id: 'amrapP', kind: 'block', label: 'AmrapPlanner', ...at(5.75, 1.75), tone: 'neutral', icon: 'board' },
+  { id: 'emomP', kind: 'block', label: 'EmomPlanner', ...at(8.25, 4.25), tone: 'neutral', icon: 'board' },
+  { id: 'forTimeP', kind: 'block', label: 'ForTimePlanner', ...at(10.75, 6.75), tone: 'neutral', icon: 'board' },
   { id: 'planner', kind: 'interface', label: 'WodPlanner', ...at(5.0, 8.4, IFACE), tone: 'neutral' },
-  { id: 'amrap', kind: 'block', label: 'Amrap', ...at(10.4, 0.8), tone: 'accent', icon: 'timer' },
-  { id: 'emom', kind: 'block', label: 'Emom', ...at(11.6, 4.0), tone: 'accent', icon: 'timer' },
-  { id: 'fortime', kind: 'block', label: 'ForTime', ...at(11.8, 7.6), tone: 'accent', icon: 'timer' },
-  { id: 'factoryBean', kind: 'block', label: 'DailyWodFactoryBean', ...at(6.4, 1.4), tone: 'accent', icon: 'gear' },
+  { id: 'amrap', kind: 'block', label: 'Amrap', ...at(8.55, -1.05), tone: 'accent', icon: 'timer' },
+  { id: 'emom', kind: 'block', label: 'Emom', ...at(11.05, 1.45), tone: 'accent', icon: 'timer' },
+  { id: 'fortime', kind: 'block', label: 'ForTime', ...at(13.55, 3.95), tone: 'accent', icon: 'timer' },
+  { id: 'factoryBean', kind: 'block', label: 'DailyWodFactoryBean', ...at(5.75, 1.75), tone: 'accent', icon: 'gear' },
 ];
 
 const PLANNERS = ['amrapP', 'emomP', 'forTimeP'];
