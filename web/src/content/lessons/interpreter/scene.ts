@@ -17,33 +17,37 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
- * - Left to right: controller (sx −10) → WodParser (sx −5.5) → the tree for "3 x (10 burpees + 15 air-squats)":
- *   Repeat (sx −1) → Sequence (sx 3.5) → two Movement leaves (sx 8, up and down).
- * - The Tally (the context) to the right of the leaves (sx 12.5); the WodExpression interface top left, only where it's explained.
- * - Before: SplitCounter in the parser's spot and the lost pull-ups in the Repeat's.
- * - spring-does-it: the SpEL tree for "reps * rounds + 10" in the same spots.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). Rows, so the scene stays narrow and its labels readable:
+ * - The coach stands off the platform's back-left edge, high above the controller, and calls down into it.
+ * - The controller sits a row above WodParser, a little to its right, so its call into the tree (to Repeat)
+ *   runs down and to the right and its packet parks clear of the parse(wod) one.
+ * - Middle row, left to right: WodParser → the tree for "3 x (10 burpees + 15 air-squats)": Repeat (8 units
+ *   of x − y on) → Sequence (6.6 more), with the two Movement leaves straight above and below the Sequence
+ *   and the Tally (the context) to its right, between them (the long add(…) packet parks on that diagonal).
+ * - The WodExpression interface sits straight above Repeat and left of the first leaf, only where it's explained.
+ * - Before: SplitCounter in the parser's spot, the lost pull-ups in the Repeat's, burpees: 20 in the Sequence's.
+ * - spring-does-it: the SpEL tree for "reps * rounds + 10" in the same spots, the 10 in the interface's.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 4.4, y: 18.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 20.0, d: 17.6, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'WodController', ...at(6.0, 16.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'split', kind: 'block', label: 'SplitCounter (regex)', ...at(8.25, 13.75), tone: 'danger', icon: 'warning' },
-  { id: 'lost', kind: 'block', label: '3 x (5 pull-ups) → ?', ...at(10.5, 11.5), tone: 'danger', icon: 'warning' },
-  { id: 'kept', kind: 'block', label: 'burpees: 20', ...at(12.75, 9.25), tone: 'neutral', icon: 'file' },
-  { id: 'parser', kind: 'block', label: 'WodParser', ...at(8.25, 13.75), tone: 'neutral', icon: 'gear' },
-  { id: 'iface', kind: 'interface', label: 'WodExpression', ...at(5.0, 6.0, IFACE), tone: 'accent' },
-  { id: 'repeat', kind: 'block', label: 'Repeat 3 x', ...at(10.5, 11.5), tone: 'accent', icon: 'timer' },
-  { id: 'seq', kind: 'block', label: 'Sequence +', ...at(12.75, 9.25), tone: 'accent', icon: 'plus' },
-  { id: 'leaf1', kind: 'block', label: 'Movement 10 burpees', ...at(12.0, 4.0), tone: 'accent', icon: 'medal' },
-  { id: 'leaf2', kind: 'block', label: 'Movement 15 air-squats', ...at(18.0, 10.0), tone: 'accent', icon: 'medal' },
-  { id: 'tally', kind: 'block', label: 'Tally', ...at(17.25, 4.75), tone: 'neutral', icon: 'board' },
-  { id: 'spelParser', kind: 'block', label: 'SpelExpressionParser', ...at(8.25, 13.75), tone: 'neutral', icon: 'gear' },
-  { id: 'opPlus', kind: 'block', label: 'OpPlus', ...at(10.5, 11.5), tone: 'accent', icon: 'plus' },
-  { id: 'opMul', kind: 'block', label: 'OpMultiply', ...at(12.75, 9.25), tone: 'accent' },
-  { id: 'reps', kind: 'block', label: 'reps', ...at(12.0, 4.0), tone: 'neutral', icon: 'tag' },
-  { id: 'rounds', kind: 'block', label: 'rounds', ...at(18.0, 10.0), tone: 'neutral', icon: 'tag' },
-  { id: 'ten', kind: 'block', label: '10', ...at(7.75, 4.25), tone: 'neutral', icon: 'ten' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: -4.4, y: 4.2 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0.7, y: 0.7 }, size: { w: 18.6, d: 14.8, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'WodController', ...at(2.2, 8.8), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'split', kind: 'block', label: 'SplitCounter (regex)', ...at(6, 14), tone: 'danger', icon: 'warning' },
+  { id: 'lost', kind: 'block', label: '3 x (5 pull-ups) → ?', ...at(10, 10), tone: 'danger', icon: 'warning' },
+  { id: 'kept', kind: 'block', label: 'burpees: 20', ...at(13.3, 6.7), tone: 'neutral', icon: 'file' },
+  { id: 'parser', kind: 'block', label: 'WodParser', ...at(6, 14), tone: 'neutral', icon: 'gear' },
+  { id: 'iface', kind: 'interface', label: 'WodExpression', ...at(5.5, 5.5, IFACE), tone: 'accent' },
+  { id: 'repeat', kind: 'block', label: 'Repeat 3 x', ...at(10, 10), tone: 'accent', icon: 'timer' },
+  { id: 'seq', kind: 'block', label: 'Sequence +', ...at(13.3, 6.7), tone: 'accent', icon: 'plus' },
+  { id: 'leaf1', kind: 'block', label: 'Movement 10 burpees', ...at(8.8, 2.2), tone: 'accent', icon: 'medal' },
+  { id: 'leaf2', kind: 'block', label: 'Movement 15 air-squats', ...at(17.8, 11.2), tone: 'accent', icon: 'medal' },
+  { id: 'tally', kind: 'block', label: 'Tally', ...at(15.5, 4.5), tone: 'neutral', icon: 'board' },
+  { id: 'spelParser', kind: 'block', label: 'SpelExpressionParser', ...at(6, 14), tone: 'neutral', icon: 'gear' },
+  { id: 'opPlus', kind: 'block', label: 'OpPlus', ...at(10, 10), tone: 'accent', icon: 'plus' },
+  { id: 'opMul', kind: 'block', label: 'OpMultiply', ...at(13.3, 6.7), tone: 'accent' },
+  { id: 'reps', kind: 'block', label: 'reps', ...at(8.8, 2.2), tone: 'neutral', icon: 'tag' },
+  { id: 'rounds', kind: 'block', label: 'rounds', ...at(17.8, 11.2), tone: 'neutral', icon: 'tag' },
+  { id: 'ten', kind: 'block', label: '10', ...at(5.5, 5.5), tone: 'neutral', icon: 'ten' },
 ];
 
 const TREE = ['repeat', 'seq', 'leaf1', 'leaf2'];
