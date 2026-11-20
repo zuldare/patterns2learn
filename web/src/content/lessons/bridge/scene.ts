@@ -17,18 +17,24 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3.5:
- * - Left: controller (sx −11) → ReminderService (sx −6.5).
- * - Middle: the abstraction side, ClassReminder (up) and PaymentReminder (down) extending Reminder (sx 2);
- *   the bridge link joins Reminder to Channel (sx 8); the three channels in a column on the right (sx 13).
+ * Layout notes. Positions come from screen coordinates (u = x − y across, v = x + y down):
+ * - Left, a zigzag so the long packets park on diagonals: the front desk stands up-left, off the
+ *   platform's left side (u −14, v 13) → controller on the middle row (u −11, v 23) → ReminderService
+ *   down on the bottom row (u −7, v 31) → back up to ClassReminder. The context label sits below-left of
+ *   the service, clear of the request.
+ * - Middle: the abstraction side, ClassReminder (u −2, v 16) and PaymentReminder (u −2, v 30) extending
+ *   Reminder (u 2, v 23); the bridge link joins Reminder to Channel (u 8); the three channels in a column
+ *   on the right (u 13: v 16, 23, 30).
  * - Before: four one-per-combination classes in a 2×2 grid in the middle.
- * - spring-does-it (outside the context: the test builds both clients with new): RestClient in Reminder's spot, ClientHttpRequestFactory in Channel's, two factories on the right.
+ * - spring-does-it (outside the context: the test builds both clients with new): RestClient in Reminder's
+ *   spot, ClientHttpRequestFactory in Channel's, the two factories in EmailChannel's and PushChannel's spots
+ *   (a row apart, so their long labels clear the interface's).
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Front desk', pos: { x: 4.4, y: 19.5 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 22.2, d: 18.6, h: FLOOR }, tone: 'neutral' },
+  { id: 'coach', kind: 'actor', label: 'Front desk', pos: { x: -1.1, y: 12.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 5, y: 0 }, size: { w: 18, d: 20.5, h: FLOOR }, tone: 'neutral' },
   { id: 'controller', kind: 'block', label: 'ReminderController', ...at(6.0, 17.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'service', kind: 'block', label: 'ReminderService', ...at(8.25, 14.75), tone: 'neutral', icon: 'gear' },
+  { id: 'service', kind: 'block', label: 'ReminderService', ...at(12, 19), tone: 'neutral', icon: 'gear' },
   { id: 'b1', kind: 'block', label: 'EmailClassReminder', ...at(7.0, 8.0), tone: 'neutral', icon: 'file' },
   { id: 'b2', kind: 'block', label: 'SmsClassReminder', ...at(9.75, 5.25), tone: 'neutral', icon: 'file' },
   { id: 'b3', kind: 'block', label: 'EmailPaymentReminder', ...at(14.0, 15.0), tone: 'neutral', icon: 'file' },
@@ -43,7 +49,7 @@ const entities: Entity[] = [
   { id: 'restClient', kind: 'block', label: 'RestClient', ...at(12.5, 10.5), tone: 'accent', icon: 'arrow-in' },
   { id: 'factory', kind: 'interface', label: 'ClientHttpRequestFactory', ...at(15.5, 7.5, IFACE), tone: 'accent' },
   { id: 'jdk', kind: 'block', label: 'JdkClientHttpRequestFactory', ...at(14.5, 1.5), tone: 'neutral', icon: 'plug' },
-  { id: 'simple', kind: 'block', label: 'SimpleClientHttpRequestFactory', ...at(18.0, 5.0), tone: 'neutral', icon: 'plug' },
+  { id: 'simple', kind: 'block', label: 'SimpleClientHttpRequestFactory', ...at(21.5, 8.5), tone: 'neutral', icon: 'plug' },
 ];
 
 const ABSTRACTION = ['classR', 'payR', 'reminder'];
