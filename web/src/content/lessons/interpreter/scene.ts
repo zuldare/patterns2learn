@@ -20,7 +20,7 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
  * - Left to right: controller (sx −10) → WodParser (sx −5.5) → the tree for "3 x (10 burpees + 15 air-squats)":
  *   Repeat (sx −1) → Sequence (sx 3.5) → two Movement leaves (sx 8, up and down).
- * - The Tally (the context) below the leaves; the WodExpression interface top left, only where it's explained.
+ * - The Tally (the context) to the right of the leaves (sx 12.5); the WodExpression interface top left, only where it's explained.
  * - Before: SplitCounter in the parser's spot and the lost pull-ups in the Repeat's.
  * - spring-does-it: the SpEL tree for "reps * rounds + 10" in the same spots.
  */
@@ -37,7 +37,7 @@ const entities: Entity[] = [
   { id: 'seq', kind: 'block', label: 'Sequence +', ...at(12.75, 9.25), tone: 'accent', icon: 'plus' },
   { id: 'leaf1', kind: 'block', label: 'Movement 10 burpees', ...at(12.0, 4.0), tone: 'accent', icon: 'medal' },
   { id: 'leaf2', kind: 'block', label: 'Movement 15 air-squats', ...at(18.0, 10.0), tone: 'accent', icon: 'medal' },
-  { id: 'tally', kind: 'block', label: 'Tally', ...at(18.25, 14.75), tone: 'neutral', icon: 'board' },
+  { id: 'tally', kind: 'block', label: 'Tally', ...at(17.25, 4.75), tone: 'neutral', icon: 'board' },
   { id: 'spelParser', kind: 'block', label: 'SpelExpressionParser', ...at(8.25, 13.75), tone: 'neutral', icon: 'gear' },
   { id: 'opPlus', kind: 'block', label: 'OpPlus', ...at(10.5, 11.5), tone: 'accent', icon: 'plus' },
   { id: 'opMul', kind: 'block', label: 'OpMultiply', ...at(12.75, 9.25), tone: 'accent', icon: 'plus' },
@@ -126,16 +126,6 @@ const scene: Scene = {
       code: { file: `${MAIN}/WodParser.java`, region: 'parser', highlight: [3, 4, 10, 13, 15] },
     },
     {
-      id: 'interpret',
-      visible: ['parser', ...TREE, 'tally'],
-      highlight: ['tally'],
-      packets: [
-        { link: 'l-leaf1-tally', label: 'add()' },
-        { link: 'l-leaf2-tally', label: 'add()' },
-      ],
-      code: { file: `${TEST}/WodInterpreterTest.java`, region: 'interpret', highlight: [1, 3, 5] },
-    },
-    {
       id: 'request',
       visible: SPRING,
       highlight: ['parser', 'tally'],
@@ -161,7 +151,7 @@ const scene: Scene = {
       visible: SPRING,
       highlight: [],
       packets: [],
-      code: { file: `${MAIN}/WodExpression.java`, region: 'expression', highlight: [2, 4] },
+      code: { file: `${TEST}/WodInterpreterTest.java`, region: 'interpret', highlight: [1, 3, 5] },
     },
   ],
 };
