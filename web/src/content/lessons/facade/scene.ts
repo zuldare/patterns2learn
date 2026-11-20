@@ -22,11 +22,13 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * - FrontDeskController (before) takes the facade's spot: it talks to the subsystems itself.
  * - spring-does-it reuses the facade spot for ApplicationContext and four subsystem spots
  *   for what it fronts.
+ * - The platform hugs the blocks (x 4 → 21, y −1 → 15.7) so its label sits under KioskController, clear of
+ *   the Visitor; both actors stand just off its front-left edge.
  */
 const entities: Entity[] = [
   { id: 'desk', kind: 'actor', label: 'Front desk', pos: { x: 3.4, y: 16.0 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
   { id: 'visitor', kind: 'actor', label: 'Visitor', pos: { x: 6.4, y: 19.0 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 20.2, d: 15.7, h: FLOOR }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 4.0, y: -1 }, size: { w: 17, d: 16.7, h: FLOOR }, tone: 'neutral' },
   { id: 'frontDesk', kind: 'block', label: 'FrontDeskController', ...at(9.5, 10.5), tone: 'danger', icon: 'warning' },
   { id: 'members', kind: 'block', label: 'MemberController', ...at(5.0, 12.0), tone: 'neutral', icon: 'arrow-in' },
   { id: 'kiosk', kind: 'block', label: 'KioskController', ...at(8.0, 15.0), tone: 'neutral', icon: 'arrow-in' },
