@@ -17,33 +17,42 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes:
- * - The three interested parties (notifications, leaderboard, badges) form a
- *   column on the right; whatever notifies them (the coupled service, the GoF
- *   observer interface or Spring's event publisher) sits in the middle.
+ * Layout notes (u = x − y across, v = x + y down):
+ * - Two rows. Bottom row (v 23–26): the athlete in front of the platform
+ *   (u −7.5) → LiftController (u −3), which climbs to the main row.
+ * - Main row (v 16), left to right: the service spot (u 0) → the notifier spot
+ *   (u 5.5) → the three interested parties (notifications, leaderboard,
+ *   badges) in a column on the right (u 11.5: v 9, 16, 22), 6 units right of
+ *   the notifier so the long publisher label clears the leaderboard's and the
+ *   packets park between them.
+ * - Whatever notifies them (the coupled service, the GoF observer interface or
+ *   Spring's event publisher) sits in the middle.
  * - coupled / subject / service share one spot; iface / bus share another.
  * - The coupled collaborators (Notifier, Leaderboard, Badges) and the two GoF
  *   observers reuse the listeners' spots: never visible together with them.
- * - ApplicationContext only appears in spring-does-it, in an empty corner.
+ * - ApplicationContext only appears in spring-does-it, straight above the
+ *   publisher (u 8.5, v 8.5) so its event parks on the way down.
+ * - The controller is the leftmost block, so the context label lands under it,
+ *   clear of the athlete's request.
  */
 const entities: Entity[] = [
-  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 1.9, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 12.4, d: 9.8, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'LiftController', ...at(2.0, 7.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'coupled', kind: 'block', label: 'CoupledResultService', ...at(4.0, 3.0), tone: 'danger', icon: 'warning' },
-  { id: 'subject', kind: 'block', label: 'ManualPrSubject', ...at(4.0, 3.0), tone: 'warn', icon: 'gear' },
-  { id: 'service', kind: 'block', label: 'ResultService', ...at(4.0, 3.0), tone: 'neutral', icon: 'gear' },
-  { id: 'iface', kind: 'interface', label: 'PrObserver', ...at(7.5, 5.5, IFACE), tone: 'neutral' },
-  { id: 'bus', kind: 'block', label: 'ApplicationEventPublisher', ...at(7.5, 5.5), tone: 'accent', icon: 'shield' },
-  { id: 'notif', kind: 'block', label: 'NotificationListener', ...at(10.5, 1.2), tone: 'neutral', icon: 'bell' },
-  { id: 'board', kind: 'block', label: 'LeaderboardListener', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
-  { id: 'badges', kind: 'block', label: 'BadgeListener', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
-  { id: 'cNotifier', kind: 'block', label: 'Notifier', ...at(10.5, 1.2), tone: 'neutral', icon: 'bell' },
-  { id: 'cBoard', kind: 'block', label: 'Leaderboard', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
-  { id: 'cBadges', kind: 'block', label: 'Badges', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
-  { id: 'oBoard', kind: 'block', label: 'leaderboard observer', ...at(11.4, 5.2), tone: 'neutral', icon: 'board' },
-  { id: 'oBadges', kind: 'block', label: 'badges observer', ...at(9.5, 9.0), tone: 'neutral', icon: 'medal' },
-  { id: 'app', kind: 'block', label: 'ApplicationContext', ...at(2.0, 1.6), tone: 'accent', icon: 'gear' },
+  { id: 'athlete', kind: 'actor', label: 'Athlete', pos: { x: 8.65, y: 16.15 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 6.5, y: -2.75 }, size: { w: 11.75, d: 17.25, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'LiftController', ...at(10, 13), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'coupled', kind: 'block', label: 'CoupledResultService', ...at(8, 8), tone: 'danger', icon: 'warning' },
+  { id: 'subject', kind: 'block', label: 'ManualPrSubject', ...at(8, 8), tone: 'warn', icon: 'gear' },
+  { id: 'service', kind: 'block', label: 'ResultService', ...at(8, 8), tone: 'neutral', icon: 'gear' },
+  { id: 'iface', kind: 'interface', label: 'PrObserver', ...at(10.75, 5.25, IFACE), tone: 'neutral' },
+  { id: 'bus', kind: 'block', label: 'ApplicationEventPublisher', ...at(10.75, 5.25), tone: 'accent', icon: 'shield' },
+  { id: 'notif', kind: 'block', label: 'NotificationListener', ...at(10.25, -1.25), tone: 'neutral', icon: 'bell' },
+  { id: 'board', kind: 'block', label: 'LeaderboardListener', ...at(13.75, 2.25), tone: 'neutral', icon: 'board' },
+  { id: 'badges', kind: 'block', label: 'BadgeListener', ...at(16.75, 5.25), tone: 'neutral', icon: 'medal' },
+  { id: 'cNotifier', kind: 'block', label: 'Notifier', ...at(10.25, -1.25), tone: 'neutral', icon: 'bell' },
+  { id: 'cBoard', kind: 'block', label: 'Leaderboard', ...at(13.75, 2.25), tone: 'neutral', icon: 'board' },
+  { id: 'cBadges', kind: 'block', label: 'Badges', ...at(16.75, 5.25), tone: 'neutral', icon: 'medal' },
+  { id: 'oBoard', kind: 'block', label: 'leaderboard observer', ...at(13.75, 2.25), tone: 'neutral', icon: 'board' },
+  { id: 'oBadges', kind: 'block', label: 'badges observer', ...at(16.75, 5.25), tone: 'neutral', icon: 'medal' },
+  { id: 'app', kind: 'block', label: 'ApplicationContext', ...at(8.5, 0), tone: 'accent', icon: 'gear' },
 ];
 
 const PARTIES = ['notif', 'board', 'badges'];
