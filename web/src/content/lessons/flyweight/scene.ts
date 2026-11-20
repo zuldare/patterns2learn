@@ -17,33 +17,36 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
- * - Left: controller (sx −10) → SetLog (sx −5.5).
- * - Middle column (sx −1): three logged sets, small, one above the other.
- * - Right (sx 4.5): the two shared Movement flyweights; two sets point to the squat, one to the deadlift.
- * - Below right (sx 2, sy 13): MovementCatalog, the factory that creates them once.
- * - Before: three movement copies, one per set, in the same right column.
- * - spring-does-it: Integer.valueOf in the first set's spot, MimeTypeUtils in the third; the cached
- *   instances where the movements are.
+ * Layout notes (u = x − y across, v = x + y down; 32 / 16 px per unit):
+ * - Sets column (u 0): Ana's set on top, Leo's 10 v below, Eva's at the bottom row.
+ * - Movements column (u 6.5): the back squat halfway between Ana and Leo (so each long line(…)
+ *   pill parks on a diagonal, clear of both labels), MovementCatalog below it and the deadlift on
+ *   Eva's row; the catalog feeds both movements along short vertical links.
+ * - Bottom row, left to right: SetLog → Eva's set → deadlift. SetController sits up-left of SetLog
+ *   (the long log(…) pill parks on that diagonal) and the athletes stand off the back-left edge,
+ *   up-left of the controller.
+ * - Before: three movement copies, each to the right of its set.
+ * - spring-does-it: Integer.valueOf in Ana's spot, MimeTypeUtils in Eva's; the cached instances
+ *   where the movements are.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Athletes', pos: { x: 5.4, y: 19.4 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 19.0, d: 18.2, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'SetController', ...at(7.0, 17.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'service', kind: 'block', label: 'SetLog', ...at(9.25, 14.75), tone: 'neutral', icon: 'gear' },
-  { id: 'set1', kind: 'block', label: 'Ana · 5 × squat', ...at(5.5, 6.5, SMALL), tone: 'neutral', icon: 'file' },
-  { id: 'set2', kind: 'block', label: 'Leo · 3 × squat', ...at(8.5, 9.5, SMALL), tone: 'neutral', icon: 'file' },
-  { id: 'set3', kind: 'block', label: 'Eva · 5 × deadlift', ...at(11.5, 12.5, SMALL), tone: 'neutral', icon: 'file' },
-  { id: 'copy1', kind: 'block', label: 'squat copy', ...at(8.25, 3.75), tone: 'danger', icon: 'warning' },
-  { id: 'copy2', kind: 'block', label: 'squat copy', ...at(11.25, 6.75), tone: 'danger', icon: 'warning' },
-  { id: 'copy3', kind: 'block', label: 'deadlift copy', ...at(14.25, 9.75), tone: 'danger', icon: 'warning' },
-  { id: 'squat', kind: 'block', label: 'Movement: back squat', ...at(9.75, 5.25), tone: 'accent', icon: 'medal' },
-  { id: 'dead', kind: 'block', label: 'Movement: deadlift', ...at(12.75, 8.25), tone: 'accent', icon: 'medal' },
-  { id: 'catalog', kind: 'block', label: 'MovementCatalog', ...at(17.0, 15.0), tone: 'accent', icon: 'db' },
-  { id: 'valueOf', kind: 'block', label: 'Integer.valueOf(100)', ...at(5.5, 6.5, SMALL), tone: 'neutral', icon: 'ten' },
-  { id: 'int100', kind: 'block', label: 'Integer 100 (cached)', ...at(9.75, 5.25), tone: 'accent', icon: 'ten' },
-  { id: 'parse', kind: 'block', label: 'MimeTypeUtils.parseMimeType', ...at(11.5, 12.5, SMALL), tone: 'neutral', icon: 'file' },
-  { id: 'json', kind: 'block', label: 'application/json (cached)', ...at(12.75, 8.25), tone: 'accent', icon: 'tag' },
+  { id: 'coach', kind: 'actor', label: 'Athletes', pos: { x: -1.6, y: 10.9 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 2.1, y: 0 }, size: { w: 16.65, d: 19, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'SetController', ...at(5.5, 15), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'service', kind: 'block', label: 'SetLog', ...at(11, 17.5), tone: 'neutral', icon: 'gear' },
+  { id: 'set1', kind: 'block', label: 'Ana · 5 × squat', ...at(3.5, 4, SMALL), tone: 'neutral', icon: 'file' },
+  { id: 'set2', kind: 'block', label: 'Leo · 3 × squat', ...at(8.5, 9, SMALL), tone: 'neutral', icon: 'file' },
+  { id: 'set3', kind: 'block', label: 'Eva · 5 × deadlift', ...at(14, 14.5, SMALL), tone: 'neutral', icon: 'file' },
+  { id: 'copy1', kind: 'block', label: 'squat copy', ...at(6, 1.5), tone: 'danger', icon: 'warning' },
+  { id: 'copy2', kind: 'block', label: 'squat copy', ...at(11, 6.5), tone: 'danger', icon: 'warning' },
+  { id: 'copy3', kind: 'block', label: 'deadlift copy', ...at(16.5, 12), tone: 'danger', icon: 'warning' },
+  { id: 'squat', kind: 'block', label: 'Movement: back squat', ...at(9.25, 3.25), tone: 'accent', icon: 'medal' },
+  { id: 'dead', kind: 'block', label: 'Movement: deadlift', ...at(17.25, 11.25), tone: 'accent', icon: 'medal' },
+  { id: 'catalog', kind: 'block', label: 'MovementCatalog', ...at(13.25, 7.25), tone: 'accent', icon: 'db' },
+  { id: 'valueOf', kind: 'block', label: 'Integer.valueOf(100)', ...at(3.5, 4, SMALL), tone: 'neutral', icon: 'ten' },
+  { id: 'int100', kind: 'block', label: 'Integer 100 (cached)', ...at(9.25, 3.25), tone: 'accent', icon: 'ten' },
+  { id: 'parse', kind: 'block', label: 'MimeTypeUtils.parseMimeType', ...at(14, 14.5, SMALL), tone: 'neutral', icon: 'file' },
+  { id: 'json', kind: 'block', label: 'application/json (cached)', ...at(17.25, 11.25), tone: 'accent', icon: 'tag' },
 ];
 
 const SETS = ['set1', 'set2', 'set3'];
