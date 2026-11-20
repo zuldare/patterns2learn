@@ -45,6 +45,7 @@
     <module>creational/factory-method</module>
     <module>creational/builder</module>
     <module>creational/abstract-factory</module>
+    <module>creational/prototype</module>
     <module>structural/proxy</module>
     <module>structural/adapter</module>
     <module>structural/decorator</module>
