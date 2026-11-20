@@ -251,16 +251,18 @@ function linkMarkup(l: Link, byId: Map<string, Placed>, step?: StepState, twin =
   const gap = LINK_GAP / len;
   let t1 = Math.min(0.45, rimT(from.box, c1, c2) + gap);
   let t2 = Math.max(0.55, 1 - rimT(to.box, c2, c1) - gap);
-  // A link heading up would run through its own block's label, and one arriving from above through
-  // its target's: start past the first and stop short of the second (the arrow then points at the name).
-  const out = labelSpan(from, c1, c2);
-  if (out && out[0] < 0.5) t1 = Math.max(t1, out[1] + gap);
-  const into = labelSpan(to, c1, c2);
-  if (into && into[1] > 0.5) t2 = Math.min(t2, into[0] - gap);
   // A link with a reverse twin (A→B and B→A) moves to its own right, so the two read as lanes and
   // their parked packets don't sit on top of each other.
   const ox = twin ? (-(c2.sy - c1.sy) / len) * TWIN_OFFSET : 0;
   const oy = twin ? ((c2.sx - c1.sx) / len) * TWIN_OFFSET : 0;
+  const s1 = { sx: c1.sx + ox, sy: c1.sy + oy };
+  const s2 = { sx: c2.sx + ox, sy: c2.sy + oy };
+  // A link heading up would run through its own block's label, and one arriving from above through
+  // its target's: start past the first and stop short of the second (the arrow then points at the name).
+  const out = labelSpan(from, s1, s2);
+  if (out && out[0] < 0.5) t1 = Math.max(t1, out[1] + gap);
+  const into = labelSpan(to, s1, s2);
+  if (into && into[1] > 0.5) t2 = Math.min(t2, into[0] - gap);
   const at = (t: number): ScreenPoint => ({ sx: c1.sx + (c2.sx - c1.sx) * t + ox, sy: c1.sy + (c2.sy - c1.sy) * t + oy });
   const p1 = at(t1);
   const p2 = at(t2);
