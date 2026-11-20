@@ -16,19 +16,23 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
 });
 
 /*
- * Layout notes. Positions come from screen coordinates (sx = x − y, sy = (x + y) / 2), shifted by +3:
- * - Left to right: controller (sx −10) → WeekService (sx −5.5) → ProgramLibrary (sx −1, up).
- * - On the right, the template week (up) and the copied week (down), each with its Wednesday next to it.
+ * Layout notes (screen x ∝ x − y, screen y ∝ x + y). Two rows plus the coach, so the scene stays narrow:
+ * - The coach stands off the platform's back-left edge, high above the controller, and calls down into it.
+ * - Lower row, left to right: controller → WeekService (4.6 units of x − y on); WeekService calls up and to the
+ *   right into ProgramLibrary, which starts the upper row.
+ * - Upper row: ProgramLibrary → template week → its Wednesday. The copied week sits straight below the template
+ *   (the long copy().rename(…) packet parks on that vertical link), its Wednesday next to it, and 6.5 units of
+ *   x − y right of WeekService so "new list, same days" fits between them.
  * - Week 46 (last week) takes the template's spot in the first four steps; the template comes in with the registry.
  * - Before: ShallowCopyService takes WeekService's spot and Week 47 points at Week 46's Wednesday.
  * - spring-does-it: the base bean definition in the template week's spot, its clone in the copy's spot.
  */
 const entities: Entity[] = [
-  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 4.4, y: 18.5 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
-  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 0, y: 0 }, size: { w: 18.0, d: 17.2, h: FLOOR }, tone: 'neutral' },
-  { id: 'controller', kind: 'block', label: 'WeekController', ...at(6.0, 16.0), tone: 'neutral', icon: 'arrow-in' },
-  { id: 'shallow', kind: 'block', label: 'ShallowCopyService', ...at(8.25, 13.75), tone: 'danger', icon: 'warning' },
-  { id: 'service', kind: 'block', label: 'WeekService', ...at(8.25, 13.75), tone: 'neutral', icon: 'gear' },
+  { id: 'coach', kind: 'actor', label: 'Coach', pos: { x: 1.35, y: 11.45 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
+  { id: 'context', kind: 'container', label: 'Spring context', pos: { x: 5.5, y: 2 }, size: { w: 13, d: 15.55, h: FLOOR }, tone: 'neutral' },
+  { id: 'controller', kind: 'block', label: 'WeekController', ...at(7.95, 16.05), tone: 'neutral', icon: 'arrow-in' },
+  { id: 'shallow', kind: 'block', label: 'ShallowCopyService', ...at(10.25, 13.75), tone: 'danger', icon: 'warning' },
+  { id: 'service', kind: 'block', label: 'WeekService', ...at(10.25, 13.75), tone: 'neutral', icon: 'gear' },
   { id: 'library', kind: 'block', label: 'ProgramLibrary', ...at(7.0, 8.0), tone: 'accent', icon: 'board' },
   { id: 'tmplWeek', kind: 'block', label: 'Strength block', ...at(9.25, 5.75), tone: 'neutral', icon: 'calendar' },
   { id: 'tmplDay', kind: 'block', label: 'Wed: back squat', ...at(11.5, 3.5), tone: 'neutral', icon: 'file' },
