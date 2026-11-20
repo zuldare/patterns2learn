@@ -18,6 +18,7 @@ recap:
     - Two hierarchies and a reference between them, more to read than one direct class
     - You have to decide well what goes on each side; with a bad boundary, things cross over
     - If only one dimension varies, it's extra structure
+    - If each channel needs different wording for each reminder, the sides aren't independent and the bridge breaks
   related:
     - Adapter
     - Strategy
@@ -33,7 +34,7 @@ quiz:
     explain: Reminders talk to Channel, not to a concrete channel. A new channel works for every reminder that already exists.
   - q: And if you add a new reminder, the personal-record one?
     options:
-      - A PrReminder class extending Reminder; it works with every channel
+      - A PrReminder class extending Reminder
       - Three classes, one for each existing channel
       - A new method on Channel for records
       - An if in every channel to format the record
@@ -42,19 +43,19 @@ quiz:
   - q: Why is the 160-character cut in SmsChannel and not in each reminder?
     options:
       - Because reminders have no access to the text's length
-      - Because Spring only lets you validate inside beans
-      - Because that way the cut runs faster
-      - Because it's a channel rule, so it applies to every reminder
+      - So each reminder can pick its own limit
+      - Because only SmsChannel knows the member's phone
+      - Because it's a channel rule and applies to all
     answer: 3
     explain: In the earlier version, every SMS class copied the cut and one left it out. If the rule belongs to the channel, it goes in the channel and can't be forgotten.
   - q: How are RestClient and ClientHttpRequestFactory related?
     options:
-      - RestClient extends the request factory
-      - RestClient is the API and the factory, the transport; they change separately
-      - They're the same object seen through two interfaces
+      - RestClient extends the request factory and adds to it
+      - RestClient is the API; the factory, the transport underneath
+      - They're the same object seen through two different interfaces
       - The factory is only used in tests with MockRestServiceServer
     answer: 1
-    explain: You write the same code with RestClient and pick the HTTP client underneath (the JDK's, java.net's, Apache, Jetty…). It's a bridge between the API and the transport.
+    explain: You write the same code with RestClient and pick the HTTP client underneath (java.net.http.HttpClient, HttpURLConnection, Apache, Jetty…). It's a bridge between the API and the transport.
 ---
 ## @step:problem — One class per combination
 The box sends two kinds of reminder, for tomorrow's **class** and for the membership **payment**, and sends them by **email** or **SMS**. The first version has one class for each combination: `EmailClassReminder`, `SmsClassReminder`, `EmailPaymentReminder` and `SmsPaymentReminder`.
@@ -92,41 +93,45 @@ No channel knows what a class or a payment is.
 @describe: ClassReminder and PaymentReminder, highlighted, extend Reminder.
 
 ## @step:channel-rules — Each rule, in its place
-The 160-character limit is the SMS's business, so it lives in `SmsChannel`, once. It applies to the class reminder, the payment one and any that comes. Push cuts the title at 40 and the body at 120; email cuts nothing.
+The 160-character limit is the SMS's business, so it lives in `SmsChannel`, once. It applies to the class reminder, the payment one with a long note and any that comes. It counts real characters (code points), so it never splits an emoji in half. Push cuts the title at 40 and the body at 120; email cuts nothing.
+
+(160 is a simplification: a real SMS counts GSM-7 septets, `€` costs two, and any character outside GSM-7 drops the limit to 70.)
 @describe: SmsChannel, highlighted, applies its 160-character limit to any reminder.
 
 ## @step:combine — Any combination
-With two kinds of reminder and three channels there are six combinations, and not a single class per combination: `new ClassReminder(sms, …)` or `new PaymentReminder(push, …)`. A test walks all six.
+With two kinds of reminder and three channels there are six combinations, and not a single class per combination: `new ClassReminder(sms, …)` or `new PaymentReminder(sms, …)`. A test walks all six.
 
 > [!key-idea]
 > A new channel works for every reminder, and a new reminder for every channel. The classes grow like a sum, not like a table.
 @describe: ClassReminder, PaymentReminder and SmsChannel, highlighted: both reminders go out by SMS across the bridge.
 
 ## @step:request — Each member, their channel
-In Spring, each channel is a named bean (`"email"`, `"sms"`, `"push"`) and `ReminderService` gets them in a map. Each member has a preferred channel: Ana email, Leo SMS, Eva push.
+In Spring, each channel is a bean, and `ReminderService` gets the list of every `Channel` and indexes them by their `name()` (`"email"`, `"sms"`, `"push"`). Each member has a preferred channel: Ana email, Leo SMS, Eva push.
 
-`POST /api/reminders` with Leo and "class": the service creates a `ClassReminder` with Leo's channel and sends it to +34600000002. With `"channel": "email"` in the request, the same reminder goes out by email.
+`POST /api/reminders` with Leo and "class": the service creates a `ClassReminder` with Leo's channel and sends it to +34600000002. With `"channel": "email"` in the request, the same reminder goes out by email; with no channel, or a blank one, the preferred one is used.
 @describe: POST /api/reminders travels from the front desk to the controller and remind("leo", "class") to the service, which creates a ClassReminder with the SMS channel; ReminderService and SmsChannel are highlighted.
 
 ## @step:spring-does-it — Spring already does it for you
 With `RestClient` you always write the same thing: `get().uri(…).retrieve()`. Underneath, a `ClientHttpRequestFactory` decides which HTTP client does the work: the `java.net.http` one (`JdkClientHttpRequestFactory`), the classic `HttpURLConnection` (`SimpleClientHttpRequestFactory`), Apache, Jetty or Reactor.
 
-The test makes the same call with two different transports against its own server and gets the same answer. Spring Boot, besides, picks one by itself based on what's on the classpath.
+The test makes the same call with two different transports against its own server and gets the same answer. And the `RestClient.Builder` Spring Boot gives you picks one by itself from the classpath (Apache, Jetty, Reactor Netty, the JDK's and, as a last resort, `HttpURLConnection`).
+
+It's a "degenerate" bridge: the abstraction side has a single class (`RestClient` has no refined subtypes), and the implementation is a request factory.
 
 > [!spring]
 > `RestClient` is the abstraction and the request factory, the implementation. You can change the HTTP client without touching a single line of the code that makes the calls.
-@describe: Inside the Spring context, RestClient, highlighted, creates its requests with ClientHttpRequestFactory, also highlighted, which can be the JDK's or HttpURLConnection's.
+@describe: RestClient, highlighted, creates its requests with ClientHttpRequestFactory, also highlighted, which can be the JDK's or HttpURLConnection's.
 
 ## @step:recap — Recap
 You started with one class per combination and ended up with:
 
 - **An abstraction**, `Reminder`, that has a channel instead of inheriting it.
-- **An implementation**, `Channel`, with one channel per class and its rules inside.
+- **An implementation**, `Channel`, with one class per channel and its rules inside.
 - **Free combinations**: kinds of reminder and channels grow separately.
 
-Don't mix it up with its neighbours: an **Adapter** fits something that already exists and didn't fit; a Bridge is designed from the start so two sides can change separately. With **Strategy** the shape is similar, but there an algorithm gets swapped and here two hierarchies grow. And an **Abstract Factory** can be the one that picks which implementation to use.
+Don't mix it up with its neighbours: an **Adapter** fits something that already exists and didn't fit; a Bridge is designed from the start so two sides can change separately. With **Strategy** the shape is almost the same, and here `Channel` looks like one: a single method, injected. What makes it a Bridge is the intent: *both* sides are hierarchies meant to grow separately. In the book, besides, the implementation usually offers lower-level operations that the abstraction combines; here we've simplified it to a single `deliver`. By the way, a final `send()` with `title()` and `body()` as hooks is a **Template Method** inside the abstraction. And an **Abstract Factory** can be the one that picks which implementation to use.
 
-And when you don't need it: if there's only one channel, or only one kind of reminder, a direct class is simpler.
+And when you don't need it: if there's only one channel, or only one kind of reminder, a direct class is simpler. And if each channel needs different wording for each reminder, the two sides aren't independent: the bridge leaks, and per-channel templates will serve you better.
 
 > [!key-idea]
 > When something varies in two directions at once, separate the two directions and join them with a reference.

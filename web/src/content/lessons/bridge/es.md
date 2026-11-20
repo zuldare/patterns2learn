@@ -18,6 +18,7 @@ recap:
     - Dos jerarquías y una referencia entre ellas, más que leer que una clase directa
     - Hay que decidir bien qué va en cada lado; si la frontera está mal, se cruzan cosas
     - Si solo hay una dimensión que varía, es estructura de más
+    - Si cada canal necesita otra redacción para cada recordatorio, los lados no son independientes y el puente se rompe
   related:
     - Adapter
     - Strategy
@@ -33,7 +34,7 @@ quiz:
     explain: Los recordatorios hablan con Channel, no con un canal concreto. Un canal nuevo vale para todos los recordatorios que ya existen.
   - q: ¿Y si añades un recordatorio nuevo, el de récord personal?
     options:
-      - Una clase PrReminder que extienda Reminder; vale para todos los canales
+      - Una clase PrReminder que extienda Reminder
       - Tres clases, una para cada canal que ya existe
       - Un método nuevo en Channel para los récords
       - Un if en cada canal para dar formato al récord
@@ -42,19 +43,19 @@ quiz:
   - q: ¿Por qué el recorte a 160 caracteres está en SmsChannel y no en cada recordatorio?
     options:
       - Porque los recordatorios no tienen acceso a la longitud del texto
-      - Porque Spring solo deja validar dentro de los beans
-      - Porque así el recorte se ejecuta más deprisa
-      - Porque es una regla del canal, y así vale para todos los recordatorios
+      - Para que cada recordatorio pueda elegir su propio límite
+      - Porque solo SmsChannel conoce el teléfono del socio
+      - Porque es una regla del canal y vale para todos
     answer: 3
-    explain: En la versión anterior, cada clase SMS copiaba el recorte y una se lo dejó. Si la regla es del canal, va en el canal y no se puede olvidar.
+    explain: En la versión anterior, cada clase SMS copiaba el recorte y una lo olvidó. Si la regla es del canal, va en el canal y no se puede olvidar.
   - q: ¿Qué relación hay entre RestClient y ClientHttpRequestFactory?
     options:
-      - RestClient hereda de la fábrica de peticiones
-      - RestClient es la API y la fábrica, el transporte; cambian por separado
-      - Son el mismo objeto visto a través de dos interfaces
+      - RestClient hereda de la fábrica de peticiones y la amplía
+      - RestClient es la API; la fábrica, el transporte que va debajo
+      - Son el mismo objeto visto a través de dos interfaces distintas
       - La fábrica solo se usa en los tests con MockRestServiceServer
     answer: 1
-    explain: Escribes el mismo código con RestClient y eliges debajo el cliente HTTP (el del JDK, el de java.net, Apache, Jetty…). Es un puente entre la API y el transporte.
+    explain: Escribes el mismo código con RestClient y eliges debajo el cliente HTTP (java.net.http.HttpClient, HttpURLConnection, Apache, Jetty…). Es un puente entre la API y el transporte.
 ---
 ## @step:problem — Una clase por combinación
 El box manda dos tipos de recordatorio, el de la **clase** de mañana y el del **pago** de la cuota, y los manda por **email** o por **SMS**. La primera versión tiene una clase para cada combinación: `EmailClassReminder`, `SmsClassReminder`, `EmailPaymentReminder` y `SmsPaymentReminder`.
@@ -88,45 +89,49 @@ Ningún canal sabe qué es una clase ni un pago.
 @describe: Aparece la interfaz Channel, resaltada, con EmailChannel, SmsChannel y PushChannel implementándola.
 
 ## @step:refined — Cada recordatorio, su texto
-`ClassReminder` y `PaymentReminder` son las **abstracciones refinadas**: solo escriben su título y su cuerpo ("Class tomorrow", "Hyrox prep at 18:00…"). No saben por qué canal va a salir.
+`ClassReminder` y `PaymentReminder` son las **abstracciones refinadas**: solo escriben su título y su cuerpo ("Class tomorrow", "Hyrox prep at 18:00…"). No saben por qué canal van a salir.
 @describe: ClassReminder y PaymentReminder, resaltados, extienden Reminder.
 
 ## @step:channel-rules — Cada regla, en su sitio
-El límite de 160 caracteres es cosa del SMS, así que vive en `SmsChannel`, una sola vez. Vale para el recordatorio de clase, para el de pago y para cualquiera que venga. El push recorta el título a 40 y el cuerpo a 120; el email no recorta nada.
+El límite de 160 caracteres es cosa del SMS, así que vive en `SmsChannel`, una sola vez. Vale para el recordatorio de clase, para el de pago con una nota larga y para cualquiera que venga. Cuenta caracteres reales (code points), así que nunca parte un emoji por la mitad. El push recorta el título a 40 y el cuerpo a 120; el email no recorta nada.
+
+(160 es una simplificación: un SMS de verdad cuenta septetos GSM-7, el `€` vale por dos y cualquier carácter fuera de GSM-7 baja el límite a 70.)
 @describe: SmsChannel, resaltado, aplica su límite de 160 caracteres a cualquier recordatorio.
 
 ## @step:combine — Cualquier combinación
-Con dos tipos de recordatorio y tres canales hay seis combinaciones, y no hay ni una clase por combinación: `new ClassReminder(sms, …)` o `new PaymentReminder(push, …)`. Un test recorre las seis.
+Con dos tipos de recordatorio y tres canales hay seis combinaciones, y no hay ni una clase por combinación: `new ClassReminder(sms, …)` o `new PaymentReminder(sms, …)`. Un test recorre las seis.
 
 > [!key-idea]
 > Un canal nuevo vale para todos los recordatorios, y un recordatorio nuevo, para todos los canales. Las clases crecen como una suma, no como una tabla.
 @describe: ClassReminder, PaymentReminder y SmsChannel, resaltados: los dos recordatorios salen por SMS a través del puente.
 
 ## @step:request — Cada socio, su canal
-En Spring, cada canal es un bean con nombre (`"email"`, `"sms"`, `"push"`) y `ReminderService` los recibe en un mapa. Cada socio tiene su canal preferido: Ana email, Leo SMS, Eva push.
+En Spring, cada canal es un bean, y `ReminderService` recibe la lista de todos los `Channel` y los indexa por su `name()` (`"email"`, `"sms"`, `"push"`). Cada socio tiene su canal preferido: Ana email, Leo SMS, Eva push.
 
-`POST /api/reminders` con Leo y "class": el servicio crea un `ClassReminder` con el canal de Leo y lo envía al +34600000002. Con `"channel": "email"` en la petición, el mismo recordatorio sale por email.
+`POST /api/reminders` con Leo y "class": el servicio crea un `ClassReminder` con el canal de Leo y lo envía al +34600000002. Con `"channel": "email"` en la petición, el mismo recordatorio sale por email; sin canal, o con uno en blanco, se usa el preferido.
 @describe: POST /api/reminders viaja de recepción al controlador y remind("leo", "class") al servicio, que crea un ClassReminder con el canal SMS; ReminderService y SmsChannel aparecen resaltados.
 
 ## @step:spring-does-it — Spring ya lo hace por ti
 Con `RestClient` escribes siempre lo mismo: `get().uri(…).retrieve()`. Debajo, un `ClientHttpRequestFactory` decide qué cliente HTTP hace el trabajo: el de `java.net.http` (`JdkClientHttpRequestFactory`), el clásico `HttpURLConnection` (`SimpleClientHttpRequestFactory`), Apache, Jetty o Reactor.
 
-El test hace la misma llamada con dos transportes distintos contra el propio servidor y obtiene la misma respuesta. Spring Boot, además, elige uno solo según lo que haya en el classpath.
+El test hace la misma llamada con dos transportes distintos contra el propio servidor y obtiene la misma respuesta. Y el `RestClient.Builder` que te da Spring Boot elige uno por sí mismo según el classpath (Apache, Jetty, Reactor Netty, el del JDK y, como último recurso, `HttpURLConnection`).
+
+Es un puente "degenerado": del lado de la abstracción solo hay una clase (`RestClient` no tiene subtipos refinados), y la implementación es una fábrica de peticiones.
 
 > [!spring]
 > `RestClient` es la abstracción y la fábrica de peticiones, la implementación. Puedes cambiar el cliente HTTP sin tocar ni una línea del código que hace las llamadas.
-@describe: Dentro del contexto de Spring, RestClient, resaltado, crea sus peticiones con ClientHttpRequestFactory, también resaltada, que puede ser la del JDK o la de HttpURLConnection.
+@describe: RestClient, resaltado, crea sus peticiones con ClientHttpRequestFactory, también resaltada, que puede ser la del JDK o la de HttpURLConnection.
 
 ## @step:recap — Resumen
 Empezaste con una clase por combinación y acabaste con:
 
 - **Una abstracción**, `Reminder`, que tiene un canal en lugar de heredarlo.
-- **Una implementación**, `Channel`, con un canal por clase y sus reglas dentro.
+- **Una implementación**, `Channel`, con una clase por canal y sus reglas dentro.
 - **Combinaciones libres**: tipos de recordatorio y canales crecen por separado.
 
-No lo confundas con sus vecinos: un **Adapter** encaja algo que ya existe y no encajaba; un Bridge se diseña desde el principio para que dos lados cambien por separado. Con **Strategy** la forma es parecida, pero allí se cambia un algoritmo y aquí crecen dos jerarquías. Y una **Abstract Factory** puede ser la que elija qué implementación usar.
+No lo confundas con sus vecinos: un **Adapter** encaja algo que ya existe y no encajaba; un Bridge se diseña desde el principio para que dos lados cambien por separado. Con **Strategy** la forma es casi igual, y aquí `Channel` lo parece: un solo método, inyectado. Lo que lo hace Bridge es la intención: *los dos* lados son jerarquías pensadas para crecer por separado. En el libro, además, la implementación suele ofrecer operaciones más básicas que la abstracción combina; aquí la hemos simplificado a un único `deliver`. Por cierto, `send()` final con `title()` y `body()` como ganchos es un **Template Method** dentro de la abstracción. Y una **Abstract Factory** puede ser la que elija qué implementación usar.
 
-Y cuándo no hace falta: si solo hay un canal, o solo un tipo de recordatorio, una clase directa es más sencilla.
+Y cuándo no hace falta: si solo hay un canal, o solo un tipo de recordatorio, una clase directa es más sencilla. Y si cada canal necesita otra redacción para cada recordatorio, los dos lados no son independientes: el puente hace agua, y te irán mejor plantillas por canal.
 
 > [!key-idea]
 > Cuando algo varía en dos direcciones a la vez, separa las dos direcciones y únelas con una referencia.

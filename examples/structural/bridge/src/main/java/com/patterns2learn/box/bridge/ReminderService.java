@@ -20,17 +20,21 @@ public class ReminderService {
         "leo", new Preference(new Member("leo", "Leo", "leo@box.example", "+34600000002", "device-leo"), "sms"),
         "eva", new Preference(new Member("eva", "Eva", "eva@box.example", "+34600000003", "device-eva"), "push"));
 
-    public ReminderService(Map<String, Channel> channels) {
-        this.channels = new TreeMap<>(channels);    // every Channel bean, by name
+    public ReminderService(List<Channel> all) {
+        this.channels = new TreeMap<>();            // every Channel bean, by its own name()
+        for (Channel c : all) channels.put(c.name(), c);
     }
 
     public Delivery remind(String memberId, String kind, String channelName) {
-        Preference p = members.get(memberId == null ? "" : memberId.strip().toLowerCase(Locale.ROOT));
+        if (memberId == null || memberId.isBlank()) throw new InvalidReminderException("member is required");
+        Preference p = members.get(memberId.strip().toLowerCase(Locale.ROOT));
         if (p == null) throw new UnknownMemberException(abbreviate(memberId));
-        Channel channel = channel(channelName == null ? p.channel() : channelName);   // theirs, unless overridden
+        boolean asked = channelName != null && !channelName.isBlank();
+        Channel channel = channel(asked ? channelName : p.channel());   // theirs, unless overridden
         Reminder reminder = switch (kind == null ? "" : kind.strip().toLowerCase(Locale.ROOT)) {
             case "class" -> new ClassReminder(channel, "Hyrox prep", LocalTime.of(18, 0));
-            case "payment" -> new PaymentReminder(channel, new BigDecimal("89.00"), LocalDate.of(2026, 12, 1));
+            case "payment" -> new PaymentReminder(channel, new BigDecimal("89.00"), LocalDate.of(2026, 12, 1),
+                "Card or cash at the front desk.");
             default -> throw new InvalidReminderException("kind must be class or payment");
         };
         return reminder.send(p.member());

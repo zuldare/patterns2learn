@@ -4,7 +4,7 @@ import com.patterns2learn.box.bridge.Delivery;
 import com.patterns2learn.box.bridge.Member;
 import org.springframework.stereotype.Component;
 
-@Component("email")
+@Component
 public class EmailChannel implements Channel {
     @Override public String name() { return "email"; }
 

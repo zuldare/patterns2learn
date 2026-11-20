@@ -22,7 +22,7 @@ const at = (cx: number, cy: number, size = BLOCK) => ({
  * - Middle: the abstraction side, ClassReminder (up) and PaymentReminder (down) extending Reminder (sx 2);
  *   the bridge link joins Reminder to Channel (sx 8); the three channels in a column on the right (sx 13).
  * - Before: four one-per-combination classes in a 2×2 grid in the middle.
- * - spring-does-it: RestClient in Reminder's spot, ClientHttpRequestFactory in Channel's, two factories on the right.
+ * - spring-does-it (outside the context: the test builds both clients with new): RestClient in Reminder's spot, ClientHttpRequestFactory in Channel's, two factories on the right.
  */
 const entities: Entity[] = [
   { id: 'coach', kind: 'actor', label: 'Front desk', pos: { x: 4.4, y: 19.5 }, size: { w: 1.2, d: 1.2, h: 0.5 }, tone: 'neutral' },
@@ -122,7 +122,7 @@ const scene: Scene = {
       highlight: ['service', 'sms'],
       packets: [
         { link: 'l-coach-controller', label: 'POST /api/reminders' },
-        { link: 'l-controller-service', label: 'remind("leo", "class")' },
+        { link: 'l-controller-service', label: 'remind("leo", "class", null)' },
         { link: 'l-service-classr', label: 'new ClassReminder(sms)' },
         { link: 'l-bridge', label: 'deliver()' },
       ],
@@ -130,7 +130,7 @@ const scene: Scene = {
     },
     {
       id: 'spring-does-it',
-      visible: ['context', 'restClient', 'factory', 'jdk', 'simple'],
+      visible: ['restClient', 'factory', 'jdk', 'simple'],
       highlight: ['restClient', 'factory'],
       packets: [{ link: 'l-rest-factory', label: 'createRequest()' }],
       code: { file: `${TEST}/SpringDoesItTooTest.java`, region: 'transports', highlight: [2, 5, 8, 9] },

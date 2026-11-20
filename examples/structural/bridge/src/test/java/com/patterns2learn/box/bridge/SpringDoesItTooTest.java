@@ -25,6 +25,6 @@ class SpringDoesItTooTest {
         String a = overJdk.get().uri("/api/reminders/channels").retrieve().body(String.class);
         String b = overUrlConnection.get().uri("/api/reminders/channels").retrieve().body(String.class);
         // @end
-        assertThat(a).isEqualTo(b).contains("email", "sms", "push");
+        assertThat(a).isEqualTo(b).isEqualTo("[\"email\",\"push\",\"sms\"]");
     }
 }

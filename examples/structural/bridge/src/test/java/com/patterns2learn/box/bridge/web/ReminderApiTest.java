@@ -26,12 +26,20 @@ class ReminderApiTest {
         // @end
         mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"member\":\"leo\",\"kind\":\"payment\",\"channel\":\"email\"}"))
-           .andExpect(jsonPath("$.channel").value("email"));
+           .andExpect(status().isOk()).andExpect(jsonPath("$.channel").value("email"));
+        mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"member\":\" EVA \",\"kind\":\"Payment\",\"channel\":\" \"}"))   // blank: her preference
+           .andExpect(status().isOk()).andExpect(jsonPath("$.channel").value("push")).andExpect(jsonPath("$.to").value("device-eva"));
+        mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"member\":\"ana\",\"kind\":\"class\",\"channel\":\"SMS\"}"))
+           .andExpect(status().isOk()).andExpect(jsonPath("$.channel").value("sms"));
     }
 
     @Test void errorsKeepTheUsualShape() throws Exception {
         mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON).content("{\"member\":\"nobody\",\"kind\":\"class\"}"))
            .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").value("unknown member: nobody"));
+        mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON).content("{\"kind\":\"class\"}"))
+           .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("member is required"));
         mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON).content("{\"member\":\"ana\",\"kind\":\"party\"}"))
            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("kind must be class or payment"));
         mvc.perform(post("/api/reminders").contentType(MediaType.APPLICATION_JSON).content("{\"member\":\"ana\",\"kind\":\"class\",\"channel\":\"fax\"}"))
